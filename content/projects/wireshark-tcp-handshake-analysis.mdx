@@ -1,0 +1,60 @@
+---
+title: "Packet-Level Analysis of a TCP Handshake & DNS Query"
+slug: "wireshark-tcp-handshake-analysis"
+summary: "Captured live traffic in Wireshark and mapped a TCP three-way handshake and a DNS query/response back to the OSI and TCP/IP models, frame by frame."
+category: "Security"
+difficulty: "beginner"
+status: "completed"
+tags: ["Wireshark", "TCP/IP", "DNS", "Packet Analysis", "Google Cybersecurity"]
+technologies: ["Wireshark", "tcpdump"]
+skills: ["Packet & Traffic Analysis (Wireshark)", "CIA Triad & Security Frameworks"]
+relatedCertification: "google-cybersecurity"
+estimatedTime: "2 hours"
+completionDate: "2026-05-12"
+lastUpdated: "2026-05-14"
+githubUrl: "https://github.com/alexrivera-sec/wireshark-handshake-analysis"
+downloads:
+  - { label: "Annotated .pcapng capture", href: "https://github.com/alexrivera-sec/wireshark-handshake-analysis", type: "other" }
+  - { label: "GitHub Repository", href: "https://github.com/alexrivera-sec/wireshark-handshake-analysis", type: "github" }
+featured: true
+---
+
+## Overview
+
+Reading about the TCP three-way handshake is one thing — watching it happen frame by frame is
+what made it click. I opened Wireshark, filtered on a single HTTP request, and traced every frame
+from the initial `SYN` to the final `ACK`, then did the same for the DNS lookup that preceded it.
+
+## Objectives
+
+- Capture live traffic while requesting a single web page
+- Isolate the DNS query/response pair and the TCP three-way handshake
+- Map each captured frame to its OSI layer and TCP/IP layer
+- Write up the capture in plain language a non-technical reader could follow
+
+## Capture Filter
+
+```text
+(tcp.flags.syn == 1 || tcp.flags.fin == 1) or dns
+```
+
+## Verification — What the Capture Showed
+
+<CommandBlock title="frame sequence" commands={["Frame 1: DNS query — A record for target host", "Frame 2: DNS response — resolved IP returned", "Frame 3: TCP SYN — client to server, seq=0", "Frame 4: TCP SYN, ACK — server to client", "Frame 5: TCP ACK — client to server, handshake complete"]} />
+
+<Callout type="tip" title="Why this matters for a SOC role">
+Recognizing a clean handshake baseline is what makes anomalies visible later — a flood of SYNs
+with no matching SYN-ACK, for example, is one of the simplest indicators of a SYN flood attempt.
+</Callout>
+
+## Troubleshooting
+
+My first capture was noisy — background traffic from other apps buried the handshake I wanted.
+Adding a display filter scoped to the destination IP, and closing everything except the browser
+tab making the request, gave a clean five-frame sequence to analyze.
+
+## Lessons Learned
+
+- Wireshark's coloring rules make handshake and teardown frames easy to spot once you know what to filter for
+- DNS resolution happens *before* the TCP handshake to the resolved address — an easy detail to miss when reading about it instead of watching it
+- A clean, minimal capture is far more useful for analysis than a long unfiltered one

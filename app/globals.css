@@ -1,0 +1,168 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Light theme (slate, documentation-style) */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --border: 214 32% 89%;
+    --input: 214 32% 89%;
+    --muted: 210 20% 95%;
+    --muted-foreground: 215 16% 42%;
+    --primary: 217 91% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 95%;
+    --secondary-foreground: 222 47% 11%;
+    --accent: 210 20% 95%;
+    --accent-foreground: 222 47% 11%;
+    --success: 142 71% 33%;
+    --success-foreground: 0 0% 100%;
+    --warning: 32 95% 41%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --ring: 217 91% 53%;
+    --radius: 0.625rem;
+  }
+
+  .dark {
+    /* Dark theme (deep slate ink, default) */
+    --background: 222 47% 6%;
+    --foreground: 210 20% 92%;
+    --card: 222 39% 9%;
+    --card-foreground: 210 20% 92%;
+    --border: 217 25% 17%;
+    --input: 217 25% 17%;
+    --muted: 222 30% 12%;
+    --muted-foreground: 215 16% 58%;
+    --primary: 217 100% 63%;
+    --primary-foreground: 222 47% 8%;
+    --secondary: 222 30% 13%;
+    --secondary-foreground: 210 20% 92%;
+    --accent: 222 30% 13%;
+    --accent-foreground: 210 20% 92%;
+    --success: 142 71% 45%;
+    --success-foreground: 222 47% 8%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 222 47% 8%;
+    --destructive: 0 79% 63%;
+    --destructive-foreground: 222 47% 8%;
+    --ring: 217 100% 63%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  ::selection {
+    @apply bg-primary/25 text-foreground;
+  }
+
+  /* Visible keyboard focus everywhere */
+  :focus-visible {
+    @apply outline-none ring-2 ring-primary/60 ring-offset-2 ring-offset-background;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.55) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.55) 1px, transparent 1px);
+    background-size: 44px 44px;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 999px;
+  }
+}
+
+/* Prose (MDX article) styling — documentation-grade reading experience */
+.prose-docs {
+  @apply text-[0.975rem] leading-7 text-foreground/90;
+  max-width: 72ch;
+}
+.prose-docs h1,
+.prose-docs h2,
+.prose-docs h3,
+.prose-docs h4 {
+  @apply font-display font-semibold text-foreground scroll-mt-24;
+}
+.prose-docs h2 {
+  @apply mt-12 mb-4 text-xl border-t border-border pt-8;
+}
+.prose-docs h3 {
+  @apply mt-8 mb-3 text-lg;
+}
+.prose-docs p {
+  @apply my-4;
+}
+.prose-docs ul {
+  @apply my-4 ml-5 list-disc space-y-1.5;
+}
+.prose-docs ol {
+  @apply my-4 ml-5 list-decimal space-y-1.5;
+}
+.prose-docs a {
+  @apply text-primary underline underline-offset-4 decoration-primary/30 hover:decoration-primary transition-colors;
+}
+.prose-docs strong {
+  @apply text-foreground font-semibold;
+}
+.prose-docs code:not(pre code) {
+  @apply rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.85em] text-primary border border-border;
+}
+.prose-docs blockquote {
+  @apply border-l-2 border-primary/50 pl-4 italic text-muted-foreground my-4;
+}
+.prose-docs img {
+  @apply rounded-lg border border-border my-6;
+}
+.prose-docs hr {
+  @apply border-border my-10;
+}
+.prose-docs table {
+  @apply w-full my-6 border-collapse text-sm;
+}
+.prose-docs th {
+  @apply border border-border bg-muted px-3 py-2 text-left font-display font-medium;
+}
+.prose-docs td {
+  @apply border border-border px-3 py-2 align-top;
+}

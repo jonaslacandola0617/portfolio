@@ -1,0 +1,62 @@
+---
+title: "Subnetting: The Cheat Sheet I Wish I'd Had on Day One"
+slug: "subnetting-cheat-sheet"
+summary: "A practical walkthrough of subnetting the way I actually use it in labs — CIDR, the magic number trick, and a worked example end to end."
+date: "2026-04-20"
+tags: ["Subnetting", "IPv4", "CCNA", "Networking"]
+category: "Networking"
+featured: true
+---
+
+## Why subnetting clicked late for me
+
+I could recite the definition of a subnet mask for weeks before I could actually *do* subnetting
+quickly on a whiteboard. What finally worked was dropping the formulas and learning one repeatable
+method — the "magic number" — and drilling it until it was automatic.
+
+## The magic number method
+
+Given a CIDR prefix, the magic number is `256 - <last non-255 octet value>`. That number is also
+the size of each subnet block in that octet.
+
+<CommandBlock title="worked example — /26" commands={["Network: 192.168.1.0/26", "Subnet mask: 255.255.255.192", "Magic number: 256 - 192 = 64", "Blocks: .0, .64, .128, .192"]} />
+
+So `/26` gives four blocks of 64 addresses each. Pick the block your address falls into, and you
+instantly know the network address, broadcast address, and usable host range.
+
+## A full worked example
+
+<Callout type="tip" title="Scenario">
+  You're given `192.168.10.77/28` and asked for the network address, broadcast address, and
+  usable host range.
+</Callout>
+
+1. `/28` means 4 host bits, so the magic number is `256 - 240 = 16`.
+2. Blocks in the last octet: 0, 16, 32, 48, 64, 80... `.77` falls in the `64–79` block.
+3. Network address: `192.168.10.64`
+4. Broadcast address: `192.168.10.79`
+5. Usable range: `192.168.10.65` – `192.168.10.78`
+
+## Common CIDR values worth memorizing
+
+| CIDR | Mask | Magic Number | Usable Hosts |
+| ---- | ---- | ------------- | ------------ |
+| /24  | .0   | 256           | 254          |
+| /25  | .128 | 128           | 126          |
+| /26  | .192 | 64            | 62           |
+| /27  | .224 | 32            | 30           |
+| /28  | .240 | 16            | 14           |
+| /29  | .248 | 8             | 6            |
+| /30  | .252 | 4             | 2            |
+
+## Where this shows up in practice
+
+Every VLAN I've created in a lab needed a subnet sized to the number of hosts on it — oversizing
+wastes address space, undersizing means running out of room. Sizing a `/28` for a 10-host Guest
+VLAN instead of defaulting to `/24` everywhere is a small habit that reads as competence to anyone
+reviewing your addressing scheme.
+
+<Callout type="info">
+  I keep this table taped above my desk. Speed here is 90% memorization and 10% method — there's
+  no way around drilling it.
+</Callout>

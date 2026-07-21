@@ -1,0 +1,54 @@
+---
+title: "Linux File Permissions & Ownership Practice"
+slug: "linux-file-permissions-practice"
+purpose: "Practice reading and modifying Linux file permissions and ownership using chmod, chown, and umask, then reason about a shared-directory permissions scenario."
+date: "2026-03-05"
+status: "completed"
+difficulty: "beginner"
+tags: ["Linux", "Authentication"]
+category: "Linux"
+---
+
+## Purpose
+
+Permissions and ownership are the foundation for almost everything else in Linux administration
+and a lot of privilege-escalation reasoning in security work. This lab was pure repetition:
+create files and directories, deliberately misconfigure permissions, then fix them with the
+correct symbolic and octal syntax.
+
+## Commands Used
+
+<CommandBlock title="permissions practice" commands={["mkdir -p /srv/shared/reports", "touch /srv/shared/reports/q3.txt", "chown alex:staff /srv/shared/reports/q3.txt", "chmod 640 /srv/shared/reports/q3.txt", "chmod g+w /srv/shared/reports", "umask 027"]} />
+
+## Configuration
+
+Scenario: a shared `reports` directory should let the `staff` group read and write files, but
+give the file owner exclusive write access to any file they create, and keep everyone else out
+entirely.
+
+## Expected Result
+
+`ls -l` on the directory should show `rwxrwx---` for the directory itself, and new files created
+inside it should default to owner read/write, group read, others none — driven by the `umask 027`
+setting rather than manual `chmod` on every new file.
+
+## Actual Result
+
+Confirmed with `ls -l` and `stat` that the directory and a freshly created test file both matched
+the expected permission bits after setting the umask, without needing a manual `chmod` per file.
+
+## Mistakes
+
+Initially set `chmod 777` on the directory "to make it work," which technically fixed the access
+problem but defeated the entire point of the exercise by giving world write access.
+
+## Fixes
+
+Reverted to `chmod 770` on the directory (owner and group full access, others none) and confirmed
+the shared-write requirement was still met for the `staff` group without opening it to everyone.
+
+## Lessons Learned
+
+- `chmod 777` "fixing" a permissions problem is a signal to stop and re-read the requirement, not a valid solution
+- `umask` controls *default* permissions for new files — it's a session/process setting, not a permission on any single file
+- `stat` gives a more detailed permissions breakdown than `ls -l` when something doesn't look right

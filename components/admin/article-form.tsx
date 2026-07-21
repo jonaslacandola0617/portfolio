@@ -1,0 +1,138 @@
+"use client";
+
+import { useFormState } from "react-dom";
+import { useState } from "react";
+import type { JSONContent } from "@tiptap/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { EditorShell } from "@/components/editor/editor-shell";
+import { slugify } from "@/lib/utils";
+import {
+  createArticleAction,
+  updateArticleAction,
+  autosaveArticleContentAction,
+  deleteArticleAction,
+} from "@/app/admin/(dashboard)/journal/actions";
+import type { ActionResult } from "@/types/admin";
+
+interface ArticleFormProps {
+  mode: "create" | "edit";
+  article?: {
+    id: string;
+    title: string;
+    slug: string;
+    summary: string;
+    category: string;
+    publishStatus: string;
+    tags: string[];
+    date: string;
+    scheduledFor: string;
+    content: JSONContent;
+  };
+}
+
+const initialState: ActionResult = { success: false };
+
+function FieldError({ errors }: { errors?: string[] }) {
+  if (!errors?.length) return null;
+  return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
+}
+
+export function ArticleForm({ mode, article }: ArticleFormProps) {
+  const action = mode === "create" ? createArticleAction : updateArticleAction.bind(null, article!.id);
+  const [state, formAction] = useFormState(action, initialState);
+  const [title, setTitle] = useState(article?.title ?? "");
+  const [slug, setSlug] = useState(article?.slug ?? "");
+  const [slugTouched, setSlugTouched] = useState(mode === "edit");
+  const [publishStatus, setPublishStatus] = useState(article?.publishStatus ?? "DRAFT");
+
+  return (
+    <div className="space-y-8">
+      <form action={formAction} className="space-y-6">
+        <Card>
+          <CardContent className="space-y-5 pt-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="title">Title</Label>
+                <Input id="title" name="title" value={title} onChange={(e) => {
+                  setTitle(e.target.value);
+                  if (!slugTouched) setSlug(slugify(e.target.value));
+                }} required />
+                <FieldError errors={state.errors?.title} />
+              </div>
+              <div>
+                <Label htmlFor="slug">Slug</Label>
+                <Input id="slug" name="slug" value={slug} onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); }} required />
+                <FieldError errors={state.errors?.slug} />
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="summary">Summary</Label>
+              <Textarea id="summary" name="summary" defaultValue={article?.summary} required />
+              <FieldError errors={state.errors?.summary} />
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <Label htmlFor="category">Category</Label>
+                <Input id="category" name="category" defaultValue={article?.category} required />
+                <FieldError errors={state.errors?.category} />
+              </div>
+              <div>
+                <Label htmlFor="tags">Tags (comma-separated)</Label>
+                <Input id="tags" name="tags" defaultValue={article?.tags.join(", ")} />
+              </div>
+              <div>
+                <Label htmlFor="date">Date</Label>
+                <Input id="date" name="date" type="date" defaultValue={article?.date} required />
+                <FieldError errors={state.errors?.date} />
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <Label htmlFor="publishStatus">Publish status</Label>
+                <select id="publishStatus" name="publishStatus" value={publishStatus} onChange={(e) => setPublishStatus(e.target.value)} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
+                  <option value="DRAFT">Draft</option>
+                  <option value="PUBLISHED">Published</option>
+                  <option value="ARCHIVED">Archived</option>
+                  <option value="SCHEDULED">Scheduled</option>
+                </select>
+              </div>
+              {publishStatus === "SCHEDULED" && (
+                <div>
+                  <Label htmlFor="scheduledFor">Scheduled for</Label>
+                  <Input id="scheduledFor" name="scheduledFor" type="datetime-local" defaultValue={article?.scheduledFor} />
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="flex items-center justify-between">
+          <Button type="submit">{mode === "create" ? "Create entry" : "Save changes"}</Button>
+          {mode === "edit" && (
+            <form action={async () => { if (confirm("Delete this journal entry? This can't be undone.")) await deleteArticleAction(article!.id); }}>
+              <Button type="submit" variant="destructive">Delete</Button>
+            </form>
+          )}
+        </div>
+      </form>
+
+      {mode === "edit" && article && (
+        <div>
+          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">Content</h2>
+          <EditorShell initialContent={article.content} onSave={(content) => autosaveArticleContentAction(article.id, content)} />
+        </div>
+      )}
+
+      {mode === "create" && (
+        <p className="text-sm text-muted-foreground">Save the entry first — the content editor opens once it has an id to autosave against.</p>
+      )}
+    </div>
+  );
+}
