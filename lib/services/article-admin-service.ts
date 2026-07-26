@@ -5,7 +5,8 @@ import { slugify } from "@/lib/utils";
 import type { ArticleFormValues } from "@/lib/validations/article";
 import type { JSONContent } from "@tiptap/react";
 
-const EMPTY_DOC: JSONContent = { type: "doc", content: [{ type: "paragraph" }] };
+import { articleTemplate } from "@/lib/editor/templates";
+import { toPrismaJson } from "@/lib/prisma-json";
 
 interface AdminArticleListItem {
   id: string;
@@ -69,7 +70,7 @@ export async function createArticle(fm: ArticleFormValues) {
       date: new Date(fm.date),
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
-      content: EMPTY_DOC,
+      content: toPrismaJson(articleTemplate),
       ...relationInput(fm),
     },
   });
@@ -105,7 +106,7 @@ export async function updateArticleMetadata(id: string, fm: ArticleFormValues) {
 export async function updateArticleContent(id: string, content: JSONContent) {
   const article = await prisma.article.update({
     where: { id },
-    data: { content },
+    data: { content: toPrismaJson(content) },
     select: { slug: true, publishStatus: true },
   });
   if (article.publishStatus === "PUBLISHED") await revalidateArticlePaths(article.slug);

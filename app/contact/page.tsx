@@ -3,17 +3,27 @@ import { Mail, Github, Linkedin, ArrowUpRight } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { Card, CardContent } from "@/components/ui/card";
 import { ContactForm } from "@/components/shared/contact-form";
-import { siteConfig } from "@/lib/site-config";
+import { getSiteSettings } from "@/lib/db/queries/settings";
 
 export const metadata: Metadata = { title: "Contact" };
 
-const links = [
-  { label: "Email", value: siteConfig.email, href: `mailto:${siteConfig.email}`, icon: Mail },
-  { label: "GitHub", value: "@alexrivera-sec", href: siteConfig.social.github, icon: Github },
-  { label: "LinkedIn", value: "alexrivera-sec", href: siteConfig.social.linkedin, icon: Linkedin },
-];
+function handleFromUrl(url: string) {
+  try {
+    return new URL(url).pathname.replace(/^\//, "").replace(/\/$/, "") || url;
+  } catch {
+    return url;
+  }
+}
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getSiteSettings();
+
+  const links = [
+    { label: "Email", value: settings.email, href: `mailto:${settings.email}`, icon: Mail },
+    { label: "GitHub", value: handleFromUrl(settings.githubUrl), href: settings.githubUrl, icon: Github },
+    { label: "LinkedIn", value: handleFromUrl(settings.linkedinUrl), href: settings.linkedinUrl, icon: Linkedin },
+  ];
+
   return (
     <div className="mx-auto max-w-3xl px-6 py-14 md:px-10">
       <PageHeader
@@ -45,7 +55,7 @@ export default function ContactPage() {
 
       <Card>
         <CardContent className="pt-6">
-          <ContactForm />
+          <ContactForm email={settings.email} />
         </CardContent>
       </Card>
     </div>

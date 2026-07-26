@@ -5,12 +5,13 @@ import { usePathname } from "next/navigation";
 import { Github, Linkedin, Mail, Download, Terminal, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { siteConfig, navItems } from "@/lib/site-config";
+import type { SiteSettingsData } from "@/lib/db/queries/settings";
 import { Icon } from "@/components/shared/icon-map";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Separator } from "@/components/ui/separator";
 import { useSearch } from "@/hooks/use-search";
 
-export function Sidebar() {
+export function Sidebar({ settings }: { settings: SiteSettingsData }) {
   const pathname = usePathname();
   const { setOpen: setSearchOpen } = useSearch();
 
@@ -24,10 +25,10 @@ export function Sidebar() {
           </div>
           <div className="min-w-0">
             <div className="truncate font-display text-sm font-semibold text-foreground">
-              {siteConfig.name}
+              {settings.name}
             </div>
             <div className="truncate font-mono text-[0.68rem] text-muted-foreground">
-              {siteConfig.role}
+              {settings.role}
             </div>
           </div>
         </Link>
@@ -90,7 +91,7 @@ export function Sidebar() {
         {/* Social + resume */}
         <div className="flex items-center gap-1">
           <a
-            href={siteConfig.social.github}
+            href={settings.githubUrl}
             target="_blank"
             rel="noreferrer"
             className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
@@ -99,7 +100,7 @@ export function Sidebar() {
             <Github className="h-4 w-4" />
           </a>
           <a
-            href={siteConfig.social.linkedin}
+            href={settings.linkedinUrl}
             target="_blank"
             rel="noreferrer"
             className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
@@ -108,14 +109,14 @@ export function Sidebar() {
             <Linkedin className="h-4 w-4" />
           </a>
           <a
-            href={`mailto:${siteConfig.email}`}
+            href={`mailto:${settings.email}`}
             className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             aria-label="Email"
           >
             <Mail className="h-4 w-4" />
           </a>
           <a
-            href={siteConfig.resumeUrl}
+            href={settings.resumeUrl}
             download
             className="flex h-9 w-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
             aria-label="Download resume"

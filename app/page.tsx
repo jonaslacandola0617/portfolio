@@ -10,6 +10,7 @@ import { NetworkTopology } from "@/components/shared/network-topology";
 import { siteConfig } from "@/lib/site-config";
 import { githubActivity } from "@/lib/data/github";
 import { getAllProjects, getAllArticles, getAllLabs } from "@/lib/content";
+import { getSiteSettings } from "@/lib/db/queries/settings";
 import { formatDate } from "@/lib/utils";
 
 const heroTopologyNodes = [
@@ -34,9 +35,15 @@ const heroTopologyEdges = [
 ];
 
 export default async function HomePage() {
-  const projects = (await getAllProjects()).slice(0, 3);
-  const articles = (await getAllArticles()).slice(0, 2);
-  const latestLab = (await getAllLabs())[0];
+  const [projects, allArticles, allLabs, settings] = await Promise.all([
+    getAllProjects(),
+    getAllArticles(),
+    getAllLabs(),
+    getSiteSettings(),
+  ]);
+  const featuredProjects = projects.slice(0, 3);
+  const articles = allArticles.slice(0, 2);
+  const latestLab = allLabs[0];
 
   return (
     <div>
@@ -50,10 +57,10 @@ export default async function HomePage() {
               open to SOC / NetAdmin roles
             </div>
             <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl text-balance">
-              Hi, I&rsquo;m {siteConfig.name}.
+              Hi, I&rsquo;m {settings.name}.
             </h1>
             <p className="mt-4 max-w-xl text-lg text-muted-foreground text-balance">
-              {siteConfig.role}, focused on {siteConfig.tagline.toLowerCase()}
+              {settings.role}, focused on {settings.tagline.toLowerCase()}
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
@@ -76,7 +83,7 @@ export default async function HomePage() {
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg">
-                <a href={siteConfig.resumeUrl} download>
+                <a href={settings.resumeUrl} download>
                   Download Resume <Download className="h-4 w-4" />
                 </a>
               </Button>
@@ -105,7 +112,7 @@ export default async function HomePage() {
       <div className="mx-auto max-w-6xl px-6 py-14 md:px-10">
         {/* Widgets row */}
         <div className="grid gap-5 md:grid-cols-2">
-          <LearningProgress items={siteConfig.currentlyLearning} />
+          <LearningProgress items={settings.currentlyLearning} />
           <GitHubCard activity={githubActivity} />
         </div>
 
@@ -121,7 +128,7 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {projects.map((p) => (
+            {featuredProjects.map((p) => (
               <ProjectCard key={p.frontmatter.slug} project={p.frontmatter} />
             ))}
           </div>

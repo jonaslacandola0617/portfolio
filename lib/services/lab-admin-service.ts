@@ -5,7 +5,8 @@ import { slugify } from "@/lib/utils";
 import type { LabFormValues } from "@/lib/validations/lab";
 import type { JSONContent } from "@tiptap/react";
 
-const EMPTY_DOC: JSONContent = { type: "doc", content: [{ type: "paragraph" }] };
+import { labTemplate } from "@/lib/editor/templates";
+import { toPrismaJson } from "@/lib/prisma-json";
 
 /** Same pattern as lib/services/project-admin-service.ts — see that
  *  file's comments for the reasoning behind hand-rolled types,
@@ -76,7 +77,7 @@ export async function createLab(fm: LabFormValues) {
       labDate: new Date(fm.labDate),
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
-      content: EMPTY_DOC,
+      content: toPrismaJson(labTemplate),
       ...relationInput(fm),
     },
   });
@@ -114,7 +115,7 @@ export async function updateLabMetadata(id: string, fm: LabFormValues) {
 export async function updateLabContent(id: string, content: JSONContent) {
   const lab = await prisma.lab.update({
     where: { id },
-    data: { content },
+    data: { content: toPrismaJson(content) },
     select: { slug: true, publishStatus: true },
   });
   if (lab.publishStatus === "PUBLISHED") await revalidateLabPaths(lab.slug);

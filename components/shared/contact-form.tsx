@@ -6,9 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { siteConfig } from "@/lib/site-config";
 
-export function ContactForm() {
+export function ContactForm({ email: recipientEmail }: { email: string }) {
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
   const [message, setMessage] = React.useState("");
@@ -17,7 +16,7 @@ export function ContactForm() {
     e.preventDefault();
     const subject = encodeURIComponent(`Portfolio contact from ${name || "your site"}`);
     const body = encodeURIComponent(`${message}\n\n— ${name} (${email})`);
-    window.location.href = `mailto:${siteConfig.email}?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
   }
 
   return (

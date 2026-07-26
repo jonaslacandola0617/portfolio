@@ -4,22 +4,15 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { SearchDialog } from "@/components/shared/search-dialog";
+import type { SiteSettingsData } from "@/lib/db/queries/settings";
 
-/**
- * Everything under /admin is a "completely separate admin experience"
- * (per the CMS brief) — it gets its own sidebar (components/admin/
- * admin-sidebar.tsx, rendered by app/admin/(dashboard)/layout.tsx), not
- * the public one.
- *
- * The alternative to this component would be moving every existing
- * public route into an app/(site)/ route group so it could have its own
- * layout.tsx. That's a same-URLs, zero-risk move in theory, but it
- * touches the location of every public page file for a problem this
- * pathname check solves by touching exactly one file instead. If the
- * project ever needs genuinely different root-level HTML (not just
- * different chrome) for /admin, revisit that route-group approach then.
- */
-export function SiteChrome({ children }: { children: React.ReactNode }) {
+export function SiteChrome({
+  children,
+  settings,
+}: {
+  children: React.ReactNode;
+  settings: SiteSettingsData;
+}) {
   const pathname = usePathname();
   const isAdmin = pathname?.startsWith("/admin");
 
@@ -35,8 +28,8 @@ export function SiteChrome({ children }: { children: React.ReactNode }) {
       >
         Skip to content
       </a>
-      <Sidebar />
-      <MobileNav />
+      <Sidebar settings={settings} />
+      <MobileNav settings={settings} />
       <main id="main-content" className="lg:pl-[272px]">
         {children}
       </main>

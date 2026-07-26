@@ -4,6 +4,7 @@ import matter from "gray-matter";
 import { PrismaClient } from "@prisma/client";
 import { mdxBodyToTipTapDoc } from "./mdx-to-tiptap";
 import { validateTipTapDoc } from "@/lib/validations/content";
+import { toPrismaJson } from "@/lib/prisma-json";
 import { skillCategories } from "@/lib/data/skills";
 import { certifications } from "@/lib/data/certifications";
 import { timelineEntries } from "@/lib/data/timeline";
@@ -63,7 +64,7 @@ function convertAndValidate(filename: string, content: string) {
     console.error(validation.error.message);
     return null;
   }
-  return validation.data as object;
+  return validation.data;
 }
 
 async function seedProjects() {
@@ -85,7 +86,7 @@ async function seedProjects() {
         title: fm.title,
         slug: fm.slug,
         summary: fm.summary,
-        content: validated,
+        content: toPrismaJson(validated),
         difficulty: fm.difficulty.toUpperCase() as never,
         progressStatus: fm.status.toUpperCase().replace(/-/g, "_") as never,
         publishStatus: "PUBLISHED",
@@ -123,7 +124,7 @@ async function seedProjects() {
       update: {
         title: fm.title,
         summary: fm.summary,
-        content: validated,
+        content: toPrismaJson(validated),
         difficulty: fm.difficulty.toUpperCase() as never,
         progressStatus: fm.status.toUpperCase().replace(/-/g, "_") as never,
         estimatedTime: fm.estimatedTime,
@@ -155,7 +156,7 @@ async function seedLabs() {
         title: fm.title,
         slug: fm.slug,
         purpose: fm.purpose,
-        content: validated,
+        content: toPrismaJson(validated),
         difficulty: fm.difficulty.toUpperCase() as never,
         progressStatus: fm.status.toUpperCase().replace(/-/g, "_") as never,
         publishStatus: "PUBLISHED",
@@ -177,7 +178,7 @@ async function seedLabs() {
       update: {
         title: fm.title,
         purpose: fm.purpose,
-        content: validated,
+        content: toPrismaJson(validated),
         difficulty: fm.difficulty.toUpperCase() as never,
         progressStatus: fm.status.toUpperCase().replace(/-/g, "_") as never,
         labDate: new Date(fm.date),
@@ -206,7 +207,7 @@ async function seedArticles() {
         title: fm.title,
         slug: fm.slug,
         summary: fm.summary,
-        content: validated,
+        content: toPrismaJson(validated),
         publishStatus: "PUBLISHED",
         date: new Date(fm.date),
         publishedAt: new Date(),
@@ -226,7 +227,7 @@ async function seedArticles() {
       update: {
         title: fm.title,
         summary: fm.summary,
-        content: validated,
+        content: toPrismaJson(validated),
         date: new Date(fm.date),
       },
     });

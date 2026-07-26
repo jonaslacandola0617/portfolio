@@ -9,8 +9,9 @@ import { siteConfig, navItems } from "@/lib/site-config";
 import { Icon } from "@/components/shared/icon-map";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useSearch } from "@/hooks/use-search";
+import type { SiteSettingsData } from "@/lib/db/queries/settings";
 
-export function MobileNav() {
+export function MobileNav({ settings }: { settings: SiteSettingsData }) {
   const pathname = usePathname();
   const [open, setOpen] = React.useState(false);
   const { setOpen: setSearchOpen } = useSearch();
@@ -24,7 +25,7 @@ export function MobileNav() {
           <div className="flex h-7 w-7 items-center justify-center rounded-md border border-primary/30 bg-primary/10 font-mono text-[0.65rem] font-semibold text-primary">
             {siteConfig.initials}
           </div>
-          <span className="font-display text-sm font-semibold">{siteConfig.name}</span>
+          <span className="font-display text-sm font-semibold">{settings.name}</span>
         </Link>
         <div className="flex items-center gap-1">
           <button

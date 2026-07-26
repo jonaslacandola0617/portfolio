@@ -5,7 +5,8 @@ import { slugify } from "@/lib/utils";
 import type { ProjectFormValues } from "@/lib/validations/project";
 import type { JSONContent } from "@tiptap/react";
 
-const EMPTY_DOC: JSONContent = { type: "doc", content: [{ type: "paragraph" }] };
+import { projectTemplate } from "@/lib/editor/templates";
+import { toPrismaJson } from "@/lib/prisma-json";
 
 /**
  * Hand-written, same reasoning as lib/db/queries/projects.ts's
@@ -101,7 +102,7 @@ export async function createProject(fm: ProjectFormValues) {
       githubUrl: fm.githubUrl || null,
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
-      content: EMPTY_DOC,
+      content: toPrismaJson(projectTemplate),
       ...relationInput(fm),
     },
   });
@@ -151,7 +152,7 @@ export async function updateProjectMetadata(id: string, fm: ProjectFormValues) {
 export async function updateProjectContent(id: string, content: JSONContent) {
   const project = await prisma.project.update({
     where: { id },
-    data: { content },
+    data: { content: toPrismaJson(content) },
     select: { slug: true, publishStatus: true },
   });
   if (project.publishStatus === "PUBLISHED") await revalidateProjectPaths(project.slug);

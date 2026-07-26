@@ -14,6 +14,7 @@ import {
 import { auth } from "@/auth";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SignOutButton } from "@/components/admin/sign-out-button";
+import { AdminSearchDialog } from "@/components/admin/admin-search-dialog";
 import { Separator } from "@/components/ui/separator";
 
 const adminNavItems = [
@@ -49,6 +50,8 @@ export async function AdminSidebar() {
         </Link>
 
         <Separator className="my-5" />
+
+        <AdminSearchDialog />
 
         <nav className="flex-1 space-y-0.5 overflow-y-auto scrollbar-thin">
           {adminNavItems.map((item) => (

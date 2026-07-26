@@ -5,11 +5,18 @@ transition plan and history; this document is the current-and-target architectur
 implement. Phase reports (`docs/PHASE_0_REPORT.md`, `docs/PHASE_1_REPORT.md`, ...) are the
 execution log of what actually happened at each step.
 
-**Status: all 6 content types have full admin CRUD** (list, create, edit, delete; publish
-workflow for the 5 that have one — Skills has no publish concept, see §5). The TipTap editor
-appears wherever a content type has real rich-text body content (Projects, Labs, Journal,
-Certificates); Timeline and Skills are metadata-only forms with no editor, since neither has a
-`content` field in the schema.
+**Status: Phase 5 complete, baseline build repair complete (July 26, 2026 — see
+`docs/BASELINE_BUILD_REPAIR_REPORT.md`), Phase 6 not yet started.** Media Library (Vercel Blob),
+content templates, admin search, and a live Settings screen are all built on top of the full CRUD
+from Phase 4. The public site now reads identity/contact fields (name, role, tagline, email,
+social links, resume path, "Currently Learning") from the database via
+`lib/db/queries/settings.ts`, with the original static `lib/site-config.ts` values as a fail-open
+fallback — same resilience pattern as every other query-layer function since Phase 2. Everything
+the CMS brief originally asked for now exists in some form; `docs/PHASE_5_REPORT.md` §5 lists
+what's still a deliberate simplification rather than a gap. Two real build blockers reported from
+the owner's local environment after Phase 5 — a Prisma JSON type error and an Auth.js/Jose Edge
+Runtime warning — are now fixed; see §3 and §5.1 for the current, corrected design of the pieces
+they touched.
 
 ## 1. Overall architecture
 
@@ -76,6 +83,13 @@ TimelineEntry, `name` for Skill) so re-running the seed script is safe.
 
 Single admin, no user registration, no roles table — see `auth.ts`.
 
+- **Keep `next-auth` current — it's had critical fixes.** Pinned to `5.0.0-beta.32` as of Phase 5,
+  upgraded from `beta.31` after a routine `npm audit` turned up 2 *critical* advisories in
+  `next-auth`/`@auth/core` (a configuration-error path that could make existence-based auth checks
+  fail open). Fixed by the version bump; see `docs/PHASE_5_REPORT.md` §3 for the full account.
+  This is exactly the dependency to *not* let go stale, given it's still on a beta channel (no
+  stable v5 release exists yet — checked again this phase, still true as of Phase 0's original
+  finding).
 - **Provider:** GitHub OAuth only.
 - **Session strategy:** JWT, no database adapter. Auth.js encodes the session into a signed
   httpOnly cookie; there is no `User`/`Session`/`Account` table in Postgres.
@@ -83,11 +97,26 @@ Single admin, no user registration, no roles table — see `auth.ts`.
   email against `ADMIN_EMAIL` (validated with Zod — `lib/validations/env.ts`). Anyone can start
   the OAuth flow; only that one email is granted a session.
 - **Two independent enforcement points** (defense-in-depth, not redundancy for its own sake):
-  1. `middleware.ts` — blocks any request under `/admin/*` (except `/admin/login`) before it
-     renders, redirecting to the login page.
-  2. `lib/services/auth-service.ts`'s `requireAdmin()` — called again inside
-     `app/admin/(dashboard)/layout.tsx`. If middleware's matcher is ever misconfigured or bypassed,
-     the page itself still refuses to render admin data for a non-admin session.
+  1. `middleware.ts` — a cheap, Edge-safe check that the Auth.js session *cookie is present*
+     (checks only `authjs.session-token` / `__Secure-authjs.session-token` by name), redirecting
+     to the login page if it's entirely absent. **As of the baseline build repair
+     (`docs/BASELINE_BUILD_REPAIR_REPORT.md`), this file no longer imports `@/auth` or calls the
+     real `auth()`** — it used to, but that pulled the full `next-auth → @auth/core → jose` chain
+     into the Edge Runtime bundle Next.js 14 builds for Middleware, and `jose`'s JWE decompression
+     path (`CompressionStream`/`DecompressionStream`) isn't an Edge-supported API, which produced a
+     build warning. Presence-only cookie checking needs no crypto and no next-auth import, so the
+     warning is gone by construction, not suppressed. **This file is explicitly not an
+     authorization boundary** — a present-but-forged or stale cookie passes this check every time;
+     see point 2.
+  2. `lib/services/auth-service.ts`'s `requireAdmin()` — called inside
+     `app/admin/(dashboard)/layout.tsx`, a Server Component, which runs in the Node.js runtime (not
+     Edge) by default. This is where the real, cryptographic session verification happens: the
+     actual `auth()` call, decrypting and validating the signed cookie. `CompressionStream` is a
+     standard Node global there, so nothing about *this* check ever produced the Edge warning, and
+     nothing about it changed in the repair — only middleware's redundant, weaker duplicate of it
+     was removed. If middleware's matcher is ever misconfigured, bypassed, or a forged cookie value
+     passes the presence check, the page itself still refuses to render admin data for a session
+     that doesn't verify.
 - **Mutations:** `signIn`/`signOut` are called from Server Actions
   (`app/admin/login/actions.ts`, `components/admin/sign-out-button.tsx`), not client-side fetches
   to an API route — consistent with the Server-Actions-first convention (§7).
@@ -170,9 +199,11 @@ Full schema: `prisma/schema.prisma`. Summary of the decisions that aren't obviou
   - **Activity Log** — `lib/db/queries/activity.ts` already returns a typed, empty
     `ActivityItem[]`; the dashboard already renders its empty state. Adding the real
     `ActivityLog` table later means changing one query function's body, nothing above it.
-  - **Site Settings** — the `SiteSettings` singleton table already exists in the schema (added
-    Phase 0); what's reserved is the *editor screen* for it (`/admin/settings`, currently a
-    placeholder), not the data model.
+  - **Site Settings** — the `SiteSettings` singleton table has existed since Phase 0; the editor
+    screen for it (`/admin/settings`) is real as of Phase 5, and the public site actually reads
+    from it now (§2, §3's sibling note). What's still not built: any UI to edit
+    `siteConfig.currentFocusStack`/`.stats` (the About-page focus badges and home-page stat
+    counters) — deliberately left static, see `docs/PHASE_5_REPORT.md` §2.
 
 ## 6. Folder structure
 
@@ -192,8 +223,12 @@ app/
                                 actions.ts. Projects/Labs/Journal/Certificates embed
                                 EditorShell (they have a `content` field); Timeline/Skills
                                 are metadata-only forms (no `content` field in their schema).
-      media/, settings/         Still placeholders — Phase 5
+      media/                    Real as of Phase 5 — upload (Vercel Blob) + grid, no CRUD
+                                actions.ts needed (no create/edit form, just upload/delete)
+      settings/                 Real as of Phase 5 — edits the SiteSettings singleton row
   api/auth/[...nextauth]/route.ts   The one Auth.js-required route handler (§7 explains why)
+  api/admin/media/upload/route.ts   The other legitimate API route exception — Vercel Blob's
+                                     client-direct-upload token issuance (§7)
 
 components/
   ui/            Presentational primitives (button, card, badge, dialog, ...) — untouched by CMS work
@@ -292,10 +327,13 @@ auth.ts          Auth.js config
    Exceptions so far, and why each one can't be a Server Action:
    - `app/api/auth/[...nextauth]/route.ts` — GitHub's OAuth redirect is an external HTTP request
      Next.js has to receive at a stable URL; Server Actions can't be a redirect target.
-   - (Phase 5, not yet built) Blob upload token issuance — Vercel Blob's client-direct-upload
-     pattern needs a route handler to issue a short-lived signed token before the browser uploads
-     straight to Blob.
-   Every other mutation (sign-in/sign-out triggers today; all future CRUD) is a Server Action.
+   - `app/api/admin/media/upload/route.ts` — Vercel Blob's client-direct-upload pattern needs a
+     route handler to issue a short-lived signed token before the browser uploads straight to
+     Blob, bypassing this server for the actual file bytes (Vercel Functions cap request bodies
+     around 4.5 MB; PCAP/Packet Tracer/video files routinely exceed that).
+   Every other mutation (sign-in/sign-out; all CRUD; media record creation, which happens via a
+   Server Action called right after the browser's direct upload resolves, not via this route) is
+   a Server Action.
 5. **Reserved-but-unimplemented features get a typed seam now, not a TODO comment.** Activity Log
    is the model: a real type (`ActivityItem`), a real query function that returns `[]`, and a
    real empty-state UI — so the eventual implementation changes one function body, not multiple
@@ -321,6 +359,15 @@ auth.ts          Auth.js config
    them as directly callable endpoints. `app/admin/(dashboard)/projects/actions.ts` is the
    reference — every exported action's first line is `await requireAdmin()`, not an assumption
    that reaching the action at all implies the caller was authorized.
+9. **Every Prisma `Json`/`Json?` write goes through `lib/prisma-json.ts`'s `toPrismaJson()`, not a
+   local cast.** `TipTapDoc`/TipTap's `JSONContent` and Zod-inferred array/object types (e.g.
+   `SiteSettings.currentlyLearning`) are structurally JSON-safe at runtime but aren't structurally
+   assignable to `Prisma.InputJsonValue` — Prisma's JSON input types require an index signature
+   ordinary TypeScript interfaces don't declare. Added during the baseline build repair
+   (`docs/BASELINE_BUILD_REPAIR_REPORT.md`) after this exact mismatch broke the production build.
+   One shared, JSON-round-trip-based function at every write site, rather than a scattered
+   `as unknown as Prisma.InputJsonValue` per call — new content types or new `Json` columns should
+   follow the same pattern rather than reintroducing a local cast.
 
 ## 8. Migration roadmap (condensed — full detail in `docs/CMS_MIGRATION_PLAN.md`)
 
@@ -331,5 +378,5 @@ auth.ts          Auth.js config
 | 2 | Migrate & cut over Projects only (seed script, `lib/content.ts` → Prisma for Projects, TipTap renderer) | ✅ Done |
 | 3 | Same pattern for Labs, Articles, Certificates, Timeline, Skills; retire MDX | ✅ Done (this phase) |
 | 4 | Admin CRUD + TipTap editor, autosave, publish workflow | ✅ Done — editor infrastructure + full CRUD for all 6 content types |
-| 5 | Media Library (Blob), templates, admin search, Settings screen | Pending |
+| 5 | Media Library (Blob), templates, admin search, Settings screen | ✅ Done |
 | 6 | Cleanup, caching pass, remove unused MDX deps, CMS becomes a showcased Project | Partially done — MDX deps already removed Phase 3; caching pass and the showcased-Project entry remain |

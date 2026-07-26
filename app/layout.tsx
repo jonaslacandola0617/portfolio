@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/components/layout/theme-provider";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { SearchProvider } from "@/hooks/use-search";
 import { getSearchIndex } from "@/lib/content";
+import { getSiteSettings } from "@/lib/db/queries/settings";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
 const spaceGrotesk = Space_Grotesk({
@@ -20,38 +21,41 @@ const jetbrainsMono = JetBrains_Mono({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteConfig.siteUrl),
-  title: {
-    default: `${siteConfig.name} — ${siteConfig.role}`,
-    template: `%s — ${siteConfig.name}`,
-  },
-  description: siteConfig.description,
-  keywords: [
-    "cybersecurity portfolio",
-    "SOC analyst",
-    "network engineer",
-    "CCNA",
-    "Google Cybersecurity",
-    "packet tracer",
-    "wireshark",
-  ],
-  authors: [{ name: siteConfig.name }],
-  openGraph: {
-    type: "website",
-    title: `${siteConfig.name} — ${siteConfig.role}`,
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getSiteSettings();
+  return {
+    metadataBase: new URL(siteConfig.siteUrl),
+    title: {
+      default: `${settings.name} — ${settings.role}`,
+      template: `%s — ${settings.name}`,
+    },
     description: siteConfig.description,
-    siteName: siteConfig.name,
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: `${siteConfig.name} — ${siteConfig.role}`,
-    description: siteConfig.description,
-  },
-};
+    keywords: [
+      "cybersecurity portfolio",
+      "SOC analyst",
+      "network engineer",
+      "CCNA",
+      "Google Cybersecurity",
+      "packet tracer",
+      "wireshark",
+    ],
+    authors: [{ name: settings.name }],
+    openGraph: {
+      type: "website",
+      title: `${settings.name} — ${settings.role}`,
+      description: siteConfig.description,
+      siteName: settings.name,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${settings.name} — ${settings.role}`,
+      description: siteConfig.description,
+    },
+  };
+}
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
-  const searchIndex = await getSearchIndex();
+  const [searchIndex, settings] = await Promise.all([getSearchIndex(), getSiteSettings()]);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -65,7 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <SearchProvider index={searchIndex}>
-            <SiteChrome>{children}</SiteChrome>
+            <SiteChrome settings={settings}>{children}</SiteChrome>
           </SearchProvider>
         </ThemeProvider>
       </body>

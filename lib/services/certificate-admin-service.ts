@@ -4,7 +4,8 @@ import { prisma } from "@/lib/db";
 import type { CertificateFormValues } from "@/lib/validations/certificate";
 import type { JSONContent } from "@tiptap/react";
 
-const EMPTY_DOC: JSONContent = { type: "doc", content: [{ type: "paragraph" }] };
+import { emptyTemplate } from "@/lib/editor/templates";
+import { toPrismaJson } from "@/lib/prisma-json";
 
 interface AdminCertificateListItem {
   id: string;
@@ -70,7 +71,7 @@ export async function createCertificate(fm: CertificateFormValues) {
       credentialUrl: fm.credentialUrl || null,
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
-      content: EMPTY_DOC,
+      content: toPrismaJson(emptyTemplate),
       skills: skillsInput(fm),
     },
   });
@@ -110,7 +111,7 @@ export async function updateCertificateMetadata(id: string, fm: CertificateFormV
 export async function updateCertificateContent(id: string, content: JSONContent) {
   const cert = await prisma.certificate.update({
     where: { id },
-    data: { content },
+    data: { content: toPrismaJson(content) },
     select: { publishStatus: true },
   });
   if (cert.publishStatus === "PUBLISHED") await revalidateCertificatePaths();
