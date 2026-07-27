@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { Plus, FolderGit2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/admin/empty-state";
+import { ManagementList, type ManagementListRow } from "@/components/admin/management-list";
 import { getAllProjectsForAdmin } from "@/lib/services/project-admin-service";
 import { formatDate } from "@/lib/utils";
+import { deleteProjectAction, bulkDeleteProjectsAction } from "./actions";
 
 const statusVariant = {
   DRAFT: "default",
@@ -15,6 +16,14 @@ const statusVariant = {
 
 export default async function AdminProjectsPage() {
   const projects = await getAllProjectsForAdmin();
+
+  const rows: ManagementListRow[] = projects.map((p) => ({
+    id: p.id,
+    title: p.title,
+    subtitle: `/${p.slug} · updated ${formatDate(p.updatedAt.toISOString().slice(0, 10))}`,
+    badgeLabel: p.publishStatus,
+    badgeVariant: statusVariant[p.publishStatus as keyof typeof statusVariant],
+  }));
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
@@ -37,25 +46,14 @@ export default async function AdminProjectsPage() {
           description="Create your first project to get started."
         />
       ) : (
-        <div className="divide-y divide-border rounded-lg border border-border">
-          {projects.map((p) => (
-            <Link
-              key={p.id}
-              href={`/admin/projects/${p.id}`}
-              className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-accent"
-            >
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-foreground">{p.title}</div>
-                <div className="mt-0.5 font-mono text-[0.68rem] text-muted-foreground">
-                  /{p.slug} · updated {formatDate(p.updatedAt.toISOString().slice(0, 10))}
-                </div>
-              </div>
-              <Badge variant={statusVariant[p.publishStatus as keyof typeof statusVariant]}>
-                {p.publishStatus}
-              </Badge>
-            </Link>
-          ))}
-        </div>
+        <ManagementList
+          rows={rows}
+          basePath="/admin/projects"
+          itemLabelSingular="project"
+          itemLabelPlural="projects"
+          deleteOneAction={deleteProjectAction}
+          deleteManyAction={bulkDeleteProjectsAction}
+        />
       )}
     </div>
   );

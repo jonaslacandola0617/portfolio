@@ -1,12 +1,26 @@
 import Link from "next/link";
 import { Plus, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/admin/empty-state";
+import { FormMessage } from "@/components/admin/form-message";
+import { ManagementList, type ManagementListRow } from "@/components/admin/management-list";
 import { getAllSkillsForAdmin } from "@/lib/services/skill-admin-service";
+import { deleteSkillAction, bulkDeleteSkillsAction } from "./actions";
 
-export default async function AdminSkillsPage() {
+export default async function AdminSkillsPage({
+  searchParams,
+}: {
+  searchParams: { created?: string; updated?: string };
+}) {
   const skills = await getAllSkillsForAdmin();
+
+  const rows: ManagementListRow[] = skills.map((s) => ({
+    id: s.id,
+    title: s.name,
+    subtitle: `${s.group} · used by ${s.projects.length} project${s.projects.length === 1 ? "" : "s"}`,
+    badgeLabel: s.level,
+    badgeVariant: "default",
+  }));
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
@@ -20,22 +34,20 @@ export default async function AdminSkillsPage() {
         </Button>
       </div>
 
+      {searchParams.created === "1" && <FormMessage variant="success" className="mb-4">Skill created.</FormMessage>}
+      {searchParams.updated === "1" && <FormMessage variant="success" className="mb-4">Skill updated.</FormMessage>}
+
       {skills.length === 0 ? (
         <EmptyState icon={Layers} title="No skills yet" description="Add your first skill to get started." />
       ) : (
-        <div className="divide-y divide-border rounded-lg border border-border">
-          {skills.map((s) => (
-            <Link key={s.id} href={`/admin/skills/${s.id}`} className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-accent">
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-foreground">{s.name}</div>
-                <div className="mt-0.5 font-mono text-[0.68rem] text-muted-foreground">
-                  {s.group} · used by {s.projects.length} project{s.projects.length === 1 ? "" : "s"}
-                </div>
-              </div>
-              <Badge variant="default">{s.level}</Badge>
-            </Link>
-          ))}
-        </div>
+        <ManagementList
+          rows={rows}
+          basePath="/admin/skills"
+          itemLabelSingular="skill"
+          itemLabelPlural="skills"
+          deleteOneAction={deleteSkillAction}
+          deleteManyAction={bulkDeleteSkillsAction}
+        />
       )}
     </div>
   );

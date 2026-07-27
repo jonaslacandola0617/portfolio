@@ -6,10 +6,16 @@ import { getEditorExtensions } from "@/lib/editor/extensions";
 import { EditorToolbar } from "@/components/editor/toolbar";
 import { SaveStatusIndicator } from "@/components/editor/save-status";
 import { useAutosave } from "@/hooks/use-autosave";
+import type { AutosaveResult } from "@/types/admin";
 
 interface EditorShellProps {
   initialContent: JSONContent;
-  onSave: (content: JSONContent) => Promise<void>;
+  /** Returns a structured result rather than throwing — see
+   *  types/admin.ts's AutosaveResult and
+   *  docs/PRE_PHASE_6_STABILIZATION_REPORT.md Workstream A. A rejected
+   *  Promise here used to leave the UI with no safe message to show and
+   *  no way to distinguish "still trying" from "gave up." */
+  onSave: (content: JSONContent) => Promise<AutosaveResult>;
   /** Exposes the editor's current JSON to the parent form on demand
    *  (e.g. when the surrounding metadata form submits) without making
    *  the parent re-render on every keystroke. */
@@ -17,7 +23,7 @@ interface EditorShellProps {
 }
 
 export function EditorShell({ initialContent, onSave, onReady }: EditorShellProps) {
-  const { status, notifyChange, saveNow } = useAutosave<JSONContent>(onSave);
+  const { status, errorMessage, notifyChange, saveNow, retry, isSaving } = useAutosave<JSONContent>(onSave);
 
   const editor = useEditor({
     extensions: getEditorExtensions(),
@@ -39,6 +45,8 @@ export function EditorShell({ initialContent, onSave, onReady }: EditorShellProp
     }
   }, [editor, onReady]);
 
+  const saving = isSaving();
+
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
@@ -48,13 +56,15 @@ export function EditorShell({ initialContent, onSave, onReady }: EditorShellProp
         <EditorContent editor={editor} />
       </div>
       <div className="mt-2 flex items-center justify-between">
-        <SaveStatusIndicator status={status} />
+        <SaveStatusIndicator status={status} errorMessage={errorMessage} onRetry={retry} />
         <button
           type="button"
           onClick={() => editor && saveNow(editor.getJSON())}
-          className="font-mono text-xs text-muted-foreground hover:text-foreground"
+          disabled={saving}
+          aria-disabled={saving}
+          className="font-mono text-xs text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
         >
-          Save now
+          {saving ? "Saving..." : "Save now"}
         </button>
       </div>
     </div>

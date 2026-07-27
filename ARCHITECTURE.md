@@ -5,18 +5,22 @@ transition plan and history; this document is the current-and-target architectur
 implement. Phase reports (`docs/PHASE_0_REPORT.md`, `docs/PHASE_1_REPORT.md`, ...) are the
 execution log of what actually happened at each step.
 
-**Status: Phase 5 complete, baseline build repair complete (July 26, 2026 — see
-`docs/BASELINE_BUILD_REPAIR_REPORT.md`), Phase 6 not yet started.** Media Library (Vercel Blob),
-content templates, admin search, and a live Settings screen are all built on top of the full CRUD
-from Phase 4. The public site now reads identity/contact fields (name, role, tagline, email,
-social links, resume path, "Currently Learning") from the database via
+**Status: Phase 5 complete, baseline build repair complete, pre-Phase-6 stabilization complete
+(July 27, 2026 — see `docs/PRE_PHASE_6_STABILIZATION_REPORT.md`), Phase 6 not yet started.** Media
+Library (Vercel Blob), content templates, admin search, and a live Settings screen are all built on
+top of the full CRUD from Phase 4. The public site now reads identity/contact fields (name, role,
+tagline, email, social links, resume path, "Currently Learning") from the database via
 `lib/db/queries/settings.ts`, with the original static `lib/site-config.ts` values as a fail-open
 fallback — same resilience pattern as every other query-layer function since Phase 2. Everything
 the CMS brief originally asked for now exists in some form; `docs/PHASE_5_REPORT.md` §5 lists
 what's still a deliberate simplification rather than a gap. Two real build blockers reported from
 the owner's local environment after Phase 5 — a Prisma JSON type error and an Auth.js/Jose Edge
-Runtime warning — are now fixed; see §3 and §5.1 for the current, corrected design of the pieces
-they touched.
+Runtime warning — were fixed in the baseline repair pass; see §3 and §5.1 for that design. A further
+round of real local use then surfaced an editor/type/validator/renderer contract mismatch that broke
+autosave, plus a set of admin UX/reliability gaps (silent failures, invalid nested delete forms, no
+bulk delete, no loading/error boundaries) — all fixed in the pre-Phase-6 stabilization pass; see §4
+(rendering pipeline), §5 (database design, JSON boundary), and §7 rules 10–12 for the current design
+of the pieces that pass touched.
 
 ## 1. Overall architecture
 
@@ -117,6 +121,14 @@ Single admin, no user registration, no roles table — see `auth.ts`.
      was removed. If middleware's matcher is ever misconfigured, bypassed, or a forged cookie value
      passes the presence check, the page itself still refuses to render admin data for a session
      that doesn't verify.
+- **`app/admin/(dashboard)/layout.tsx` declares `export const dynamic = "force-dynamic"`** — added
+  during the pre-Phase-6 stabilization pass after a real `npm run build` crashed: Next.js was
+  attempting to statically prerender every `/admin/*` route at build time despite `requireAdmin()`'s
+  `cookies()` usage, and since the admin data-fetching functions deliberately throw rather than fail
+  open on a DB error (unlike the public `queries/*` functions — see §5), a build-time DB outage took
+  the whole build down with it. This declaration makes the segment's already-true dynamic-only
+  nature explicit and removes any ambiguity Next.js's automatic detection apparently had for this
+  route shape.
 - **Mutations:** `signIn`/`signOut` are called from Server Actions
   (`app/admin/login/actions.ts`, `components/admin/sign-out-button.tsx`), not client-side fetches
   to an API route — consistent with the Server-Actions-first convention (§7).
@@ -137,23 +149,50 @@ Single admin, no user registration, no roles table — see `auth.ts`.
   static generation — using it would mean either losing `generateStaticParams` for content pages,
   or hydrating a full editor just to display text. The "can't drift apart" guarantee between
   editor and renderer comes from both being built against the same JSON contract
-  (`types/tiptap.ts` + `lib/validations/content.ts`), not from sharing a runtime instance.
+  (`types/tiptap.ts` + `lib/validations/content.ts`), not from sharing a runtime instance — and
+  that guarantee is only as good as the contract actually being kept in sync with what the editor's
+  underlying library really produces. It genuinely drifted once already: the pre-Phase-6
+  stabilization pass (`docs/PRE_PHASE_6_STABILIZATION_REPORT.md`) found the installed
+  `@tiptap/starter-kit@3.x` doesn't match what the original contract's authors assumed —
+  `codeBlock`'s `language` attribute defaults to `null`, not a string, so every toolbar-created code
+  block failed validation. `npm run validate:editor-content` (`scripts/validate-editor-content.ts`)
+  exists specifically so this class of drift is caught by a repeatable check instead of a support
+  report — run it after any TipTap version bump or toolbar change, before assuming the contract
+  still holds.
 - **The admin editor (Phase 4, real as of this phase):** `components/editor/editor-shell.tsx`
   wraps `@tiptap/react`'s `useEditor`, configured by `lib/editor/extensions.ts`. Standard rich
-  text (bold/italic/code/link, headings, lists, blockquote, horizontal rule, undo/redo) comes from
-  `@tiptap/starter-kit`; tables and task lists from official `@tiptap/extension-*` packages,
-  configured so their JSON output matches the schema exactly (`table`/`tableRow`/`tableCell`,
-  `taskList`/`taskItem`). The 3 blocks with no official TipTap equivalent — `Callout`,
+  text (bold/italic/code/link, headings, lists, blockquote, horizontal rule, hard break, undo/redo)
+  comes from `@tiptap/starter-kit`; tables and task lists from official `@tiptap/extension-*`
+  packages, configured so their JSON output matches the schema exactly
+  (`table`/`tableRow`/`tableCell`, `taskList`/`taskItem`). `StarterKit.configure()` explicitly sets
+  `link: false`/`underline: false`/`strike: false` — StarterKit v3 bundles all three by default,
+  which both duplicated this project's own separately-configured `Link` (a real
+  `[tiptap warn]: Duplicate extension names found` at runtime) and made two marks
+  (`underline`/`strike`) reachable via their default keyboard shortcuts with no toolbar button and
+  no schema support for either. The 3 blocks with no official TipTap equivalent — `Callout`,
   `CommandBlock`, `Mermaid` — are hand-written `Node` extensions under `lib/editor/extensions/`,
   each with a React `NodeView` (via `ReactNodeViewRenderer`) that reuses the *exact* display
   component `ContentRenderer` uses for the same node type, so what you see while editing is what
   renders on the public page. A toolbar (`components/editor/toolbar.tsx`) is the primary way to
   insert/format content — no slash-command menu or drag-and-drop reordering yet; see
-  `docs/PHASE_4_REPORT.md` §4 for that scope decision.
+  `docs/PHASE_4_REPORT.md` §4 for that scope decision. **Rule going forward: every enabled toolbar
+  button/keyboard shortcut must have a matching type in `types/tiptap.ts`, a matching Zod case in
+  `lib/validations/content.ts`, a matching render case in `content-renderer.tsx`, and a fixture in
+  `scripts/validate-editor-content.ts`. Anything the editor can produce but this triple doesn't
+  cover is a shipped bug, not a future cleanup item — see the stabilization report for what it looks
+  like when this rule isn't followed.**
 - **Autosave:** `hooks/use-autosave.ts` debounces `onUpdate` events (2s) and calls a Server Action
   per content type (`autosaveProjectContentAction` for Projects) that re-validates against
   `lib/validations/content.ts` before writing — the same Zod schema the seed script validates
   against, so a malformed autosave payload is rejected the same way a bad migration write would be.
+  The hook serializes saves through a single run-loop (`runSave()`) rather than a plain debounce: a
+  `notifyChange()` that arrives while a save is already in flight is queued, never fired as a second
+  concurrent request, which is what makes "a newer save can't be overwritten by an older one
+  finishing late" true by construction rather than by hoping requests resolve in order. On failure,
+  the hook auto-retries twice with backoff (status `"retrying"` — genuinely retrying, not just a
+  label) before surfacing a real `"error"` status with the actual failure reason and a working
+  manual `retry()`, both driven by the Server Action's `AutosaveResult` (`types/admin.ts`) rather
+  than a thrown, unstructured error.
 - **Static generation + on-demand ISR (target):** public content pages stay statically generated
   (`generateStaticParams`, unchanged); admin Server Actions call `revalidatePath`/`revalidateTag`
   after a publish so edits go live in seconds without a redeploy.
@@ -368,6 +407,47 @@ auth.ts          Auth.js config
    One shared, JSON-round-trip-based function at every write site, rather than a scattered
    `as unknown as Prisma.InputJsonValue` per call — new content types or new `Json` columns should
    follow the same pattern rather than reintroducing a local cast.
+10. **Admin data-fetching functions fail *closed*, not open — the deliberate exception to rule 6.**
+    `getAllProjectsForAdmin()` and its five siblings (`lib/services/*-admin-service.ts`) throw on a
+    database error rather than returning `[]`. This is intentional and inverted from the public
+    query layer on purpose: a visitor seeing an empty public page during a DB outage is a degraded
+    experience; an admin seeing a false-empty project list during the same outage could read as "I
+    have no projects" and lead to a panicked re-creation of real data. Because of this,
+    `app/admin/(dashboard)/layout.tsx` declares `export const dynamic = "force-dynamic"` (see §3) —
+    without it, Next.js's build-time static-generation pass can hit this same throw with no request
+    context to catch it in, and take the whole `next build` down. Any new admin list/data function
+    should keep this fail-closed behavior, not copy the public query layer's fail-open pattern.
+11. **Every admin mutation Server Action returns a structured result — `ActionResult`,
+    `AutosaveResult`, `DeleteResult`, or `BulkDeleteResult` (`types/admin.ts`) — never a bare throw.**
+    `lib/services/action-errors.ts`'s `classifyServiceError()` is the one place Prisma error codes
+    (P2002 duplicate, P2025 not found, P1xxx connection) get turned into a safe, specific,
+    user-facing message; every action's catch block calls it rather than inventing its own message
+    or letting the raw error reach the client. The same file's `isNextControlFlowError()` must be
+    checked first in any catch block that wraps a call which might itself call `redirect()`/
+    `notFound()` downstream — Next.js implements both via a thrown error, and swallowing it as an
+    ordinary failure silently breaks the redirect instead of showing an error. Added during the
+    pre-Phase-6 stabilization pass (`docs/PRE_PHASE_6_STABILIZATION_REPORT.md`) after autosave
+    failures were surfacing as opaque, unstyled thrown errors with no way for the UI to distinguish
+    "invalid content" from "database unreachable."
+12. **A delete Server Action never redirects internally — the caller decides what happens next.**
+    `deleteProjectAction(id)` and its siblings return a `DeleteResult` and stop; whether that's
+    followed by `router.push()` (edit page) or `router.refresh()` (a management-list row) is a
+    client-side decision made by `components/admin/delete-button.tsx`'s caller, not baked into the
+    action. This is also why Delete is never a nested `<form>` inside a record's metadata form —
+    nested forms are invalid HTML with inconsistent browser resolution, which was the actual
+    reported cause of unreliable delete behavior before this pass; `DeleteButton` is a plain
+    `useTransition`-based sibling component instead. Bulk delete
+    (`components/admin/management-list.tsx` + each service's `deleteXs(ids)`) follows the same
+    result-returning shape, and wraps its find-then-delete in a single `prisma.$transaction` so the
+    revalidated paths always match exactly what was actually removed.
+13. **Route-segment `loading.tsx`/`error.tsx` are placed at the layout boundary, not duplicated per
+    page.** `app/loading.tsx` and `app/admin/(dashboard)/loading.tsx` are Suspense boundaries
+    inherited by every route in their subtree that doesn't define a more specific one of its own —
+    one file each gives real skeleton coverage across the whole public site and the whole admin
+    section without a near-duplicate file per route. `error.tsx` boundaries follow the same
+    placement and must be Client Components (a Next.js requirement — `reset()` and the error object
+    only exist client-side), rendering inside their layout so the public nav/admin sidebar stay
+    mounted through an error, not just through a loading state.
 
 ## 8. Migration roadmap (condensed — full detail in `docs/CMS_MIGRATION_PLAN.md`)
 

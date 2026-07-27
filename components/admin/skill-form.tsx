@@ -1,10 +1,13 @@
 "use client";
 
 import { useFormState } from "react-dom";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { SubmitButton } from "@/components/admin/submit-button";
+import { FormMessage } from "@/components/admin/form-message";
+import { DeleteButton } from "@/components/admin/delete-button";
 import { createSkillAction, updateSkillAction, deleteSkillAction } from "@/app/admin/(dashboard)/skills/actions";
 import type { ActionResult } from "@/types/admin";
 
@@ -21,12 +24,18 @@ function FieldError({ errors }: { errors?: string[] }) {
 }
 
 export function SkillForm({ mode, skill }: SkillFormProps) {
+  const router = useRouter();
   const action = mode === "create" ? createSkillAction : updateSkillAction.bind(null, skill!.id);
   const [state, formAction] = useFormState(action, initialState);
 
   return (
     <div className="space-y-6">
       <form action={formAction} className="space-y-6">
+        {/* This action redirects to /admin/skills?created=1 / ?updated=1
+            on success — see components/admin/timeline-form.tsx's comment
+            for why only the failure path renders locally. */}
+        {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+
         <Card>
           <CardContent className="space-y-5 pt-6">
             <div>
@@ -53,11 +62,19 @@ export function SkillForm({ mode, skill }: SkillFormProps) {
         </Card>
 
         <div className="flex items-center justify-between">
-          <Button type="submit">{mode === "create" ? "Create skill" : "Save changes"}</Button>
-          {mode === "edit" && (
-            <form action={async () => { if (confirm("Delete this skill? This can't be undone.")) await deleteSkillAction(skill!.id); }}>
-              <Button type="submit" variant="destructive">Delete</Button>
-            </form>
+          <SubmitButton pendingLabel={mode === "create" ? "Creating..." : "Saving..."}>
+            {mode === "create" ? "Create skill" : "Save changes"}
+          </SubmitButton>
+          {mode === "edit" && skill && (
+            <DeleteButton
+              confirmMessage={
+                skill.projects.length > 0
+                  ? `Delete "${skill.name}"? It's used by ${skill.projects.length} project${skill.projects.length === 1 ? "" : "s"}. This can't be undone.`
+                  : `Delete "${skill.name}"? This can't be undone.`
+              }
+              onDelete={() => deleteSkillAction(skill.id)}
+              onSuccess={() => router.push("/admin/skills")}
+            />
           )}
         </div>
       </form>

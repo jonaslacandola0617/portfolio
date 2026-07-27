@@ -2,13 +2,16 @@
 
 import { useFormState } from "react-dom";
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { JSONContent } from "@tiptap/react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { EditorShell } from "@/components/editor/editor-shell";
+import { SubmitButton } from "@/components/admin/submit-button";
+import { FormMessage } from "@/components/admin/form-message";
+import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
 import {
   createLabAction,
@@ -44,6 +47,10 @@ function FieldError({ errors }: { errors?: string[] }) {
 }
 
 export function LabForm({ mode, lab }: LabFormProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const justCreated = mode === "edit" && searchParams.get("created") === "1";
+
   const action = mode === "create" ? createLabAction : updateLabAction.bind(null, lab!.id);
   const [state, formAction] = useFormState(action, initialState);
   const [title, setTitle] = useState(lab?.title ?? "");
@@ -54,6 +61,10 @@ export function LabForm({ mode, lab }: LabFormProps) {
   return (
     <div className="space-y-8">
       <form action={formAction} className="space-y-6">
+        {justCreated && <FormMessage variant="success">Lab created — autosave is on below.</FormMessage>}
+        {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
+        {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+
         <Card>
           <CardContent className="space-y-5 pt-6">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -135,11 +146,15 @@ export function LabForm({ mode, lab }: LabFormProps) {
         </Card>
 
         <div className="flex items-center justify-between">
-          <Button type="submit">{mode === "create" ? "Create lab" : "Save changes"}</Button>
-          {mode === "edit" && (
-            <form action={async () => { if (confirm("Delete this lab? This can't be undone.")) await deleteLabAction(lab!.id); }}>
-              <Button type="submit" variant="destructive">Delete</Button>
-            </form>
+          <SubmitButton pendingLabel={mode === "create" ? "Creating..." : "Saving..."}>
+            {mode === "create" ? "Create lab" : "Save changes"}
+          </SubmitButton>
+          {mode === "edit" && lab && (
+            <DeleteButton
+              confirmMessage="Delete this lab? This can't be undone."
+              onDelete={() => deleteLabAction(lab.id)}
+              onSuccess={() => router.push("/admin/labs")}
+            />
           )}
         </div>
       </form>

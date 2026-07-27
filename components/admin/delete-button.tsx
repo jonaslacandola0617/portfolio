@@ -1,0 +1,85 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { Loader2, Trash2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { DeleteResult } from "@/types/admin";
+
+/**
+ * Replaces the invalid nested `<form>`-inside-`<form>` delete pattern
+ * every edit page used before the pre-Phase-6 stabilization pass
+ * (Workstream D1) — each of the six edit forms wrapped its whole
+ * metadata form in one `<form action={formAction}>`, then nested a
+ * second `<form action={...}>` around the Delete button inside it.
+ * Nested forms are invalid HTML; browsers resolve them inconsistently
+ * (typically by ignoring/hoisting the inner form), which made delete
+ * behavior unreliable. This is a plain client component invoked via
+ * `onClick`/`useTransition`, rendered as a *sibling* of the metadata
+ * form, not nested inside it.
+ *
+ * Used both standalone on edit pages (`onSuccess` navigates away) and
+ * inside `ManagementList` for a row's individual delete (`onSuccess`
+ * refreshes the list in place) — see that component.
+ */
+interface DeleteButtonProps {
+  onDelete: () => Promise<DeleteResult>;
+  onSuccess: () => void;
+  confirmMessage: string;
+  label?: string;
+  variant?: "default" | "icon";
+  className?: string;
+}
+
+export function DeleteButton({
+  onDelete,
+  onSuccess,
+  confirmMessage,
+  label = "Delete",
+  variant = "default",
+  className,
+}: DeleteButtonProps) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  const handleClick = () => {
+    if (typeof window !== "undefined" && !window.confirm(confirmMessage)) return;
+    setError(null);
+    startTransition(async () => {
+      const result = await onDelete();
+      if (result.success) {
+        onSuccess();
+      } else {
+        setError(result.message ?? "Couldn't delete. Try again.");
+      }
+    });
+  };
+
+  const isIcon = variant === "icon";
+
+  return (
+    <div className={cn("inline-flex flex-col items-end gap-1", className)}>
+      <button
+        type="button"
+        onClick={handleClick}
+        disabled={isPending}
+        aria-disabled={isPending}
+        aria-label={isIcon ? label : undefined}
+        title={isIcon ? label : undefined}
+        className={cn(
+          "inline-flex items-center gap-1.5 rounded-md text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+          isIcon
+            ? "p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+            : "border border-destructive/40 px-3 py-1.5 text-destructive hover:bg-destructive/10"
+        )}
+      >
+        {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+        {!isIcon && (isPending ? "Deleting..." : label)}
+      </button>
+      {error && (
+        <p role="alert" className="max-w-[16rem] text-right text-xs text-destructive">
+          {error}
+        </p>
+      )}
+    </div>
+  );
+}

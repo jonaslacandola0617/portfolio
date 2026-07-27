@@ -1,6 +1,7 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
 import type { ProjectFormValues } from "@/lib/validations/project";
 import type { JSONContent } from "@tiptap/react";
@@ -161,6 +162,32 @@ export async function updateProjectContent(id: string, content: JSONContent) {
 export async function deleteProject(id: string) {
   const project = await prisma.project.delete({ where: { id }, select: { slug: true } });
   await revalidateProjectPaths(project.slug);
+}
+
+/** Bulk delete for the management page's checkbox selection (added
+ *  during the pre-Phase-6 stabilization pass, Workstream D). Wrapped in
+ *  a transaction: the slugs are read and the rows deleted as one atomic
+ *  unit, so a delete can't run against a set of ids that's already
+ *  drifted from what was read (and so revalidation always matches what
+ *  was actually removed). `deleteMany` itself is also a single SQL
+ *  statement, so this is atomic even without the explicit transaction —
+ *  the transaction's real purpose is keeping the find+delete pair
+ *  consistent. */
+export async function deleteProjects(ids: string[]): Promise<number> {
+  const slugs = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const records = await tx.project.findMany({ where: { id: { in: ids } }, select: { slug: true } });
+    await tx.project.deleteMany({ where: { id: { in: ids } } });
+    return records.map((r: { slug: string }) => r.slug);
+  });
+
+  for (const slug of slugs) {
+    revalidatePath(`/projects/${slug}`);
+  }
+  revalidatePath("/projects");
+  revalidatePath("/");
+  revalidatePath("/sitemap.xml");
+
+  return slugs.length;
 }
 
 async function revalidateProjectPaths(slug: string) {

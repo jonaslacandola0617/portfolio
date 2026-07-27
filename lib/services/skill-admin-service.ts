@@ -1,6 +1,7 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import type { SkillFormValues } from "@/lib/validations/skill";
 
 interface AdminSkillListItem {
@@ -40,6 +41,20 @@ export async function updateSkill(id: string, fm: SkillFormValues) {
 export async function deleteSkill(id: string) {
   await prisma.skill.delete({ where: { id } });
   await revalidateSkillPaths();
+}
+
+/** Bulk delete for the management page's checkbox selection. Prisma
+ *  cleans up the implicit Project/Certificate many-to-many join rows
+ *  for each deleted skill automatically — no separate step needed. */
+export async function deleteSkills(ids: string[]): Promise<number> {
+  const count = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const records = await tx.skill.findMany({ where: { id: { in: ids } }, select: { id: true } });
+    await tx.skill.deleteMany({ where: { id: { in: ids } } });
+    return records.length;
+  });
+
+  await revalidateSkillPaths();
+  return count;
 }
 
 async function revalidateSkillPaths() {

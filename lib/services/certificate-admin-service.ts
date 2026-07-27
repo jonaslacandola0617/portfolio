@@ -1,6 +1,7 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import type { CertificateFormValues } from "@/lib/validations/certificate";
 import type { JSONContent } from "@tiptap/react";
 
@@ -120,6 +121,20 @@ export async function updateCertificateContent(id: string, content: JSONContent)
 export async function deleteCertificate(id: string) {
   await prisma.certificate.delete({ where: { id } });
   await revalidateCertificatePaths();
+}
+
+/** Bulk delete for the management page's checkbox selection. No slugs
+ *  to revalidate per-record (certificates have no individual public
+ *  detail route — see revalidateCertificatePaths). */
+export async function deleteCertificates(ids: string[]): Promise<number> {
+  const count = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const records = await tx.certificate.findMany({ where: { id: { in: ids } }, select: { id: true } });
+    await tx.certificate.deleteMany({ where: { id: { in: ids } } });
+    return records.length;
+  });
+
+  await revalidateCertificatePaths();
+  return count;
 }
 
 async function revalidateCertificatePaths() {

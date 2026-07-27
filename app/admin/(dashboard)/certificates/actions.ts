@@ -9,10 +9,13 @@ import {
   updateCertificateMetadata,
   updateCertificateContent,
   deleteCertificate,
+  deleteCertificates,
 } from "@/lib/services/certificate-admin-service";
 import { certificateFormSchema } from "@/lib/validations/certificate";
 import { tiptapDocSchema } from "@/lib/validations/content";
-import type { ActionResult } from "@/types/admin";
+import { bulkDeleteSchema } from "@/lib/validations/admin";
+import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
+import type { ActionResult, AutosaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
 
 function parseFormData(formData: FormData) {
   return {
@@ -36,8 +39,15 @@ export async function createCertificateAction(_prevState: ActionResult, formData
   await requireAdmin();
   const parsed = certificateFormSchema.safeParse(parseFormData(formData));
   if (!parsed.success) return { success: false, errors: parsed.error.flatten().fieldErrors };
-  const cert = await createCertificate(parsed.data);
-  redirect(`/admin/certificates/${cert.id}`);
+
+  let cert;
+  try {
+    cert = await createCertificate(parsed.data);
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, { operation: "create", contentType: "certificate" });
+  }
+  redirect(`/admin/certificates/${cert.id}?created=1`);
 }
 
 export async function updateCertificateAction(
@@ -48,21 +58,72 @@ export async function updateCertificateAction(
   await requireAdmin();
   const parsed = certificateFormSchema.safeParse(parseFormData(formData));
   if (!parsed.success) return { success: false, errors: parsed.error.flatten().fieldErrors };
-  await updateCertificateMetadata(id, parsed.data);
+
+  try {
+    await updateCertificateMetadata(id, parsed.data);
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, { operation: "update", contentType: "certificate", recordId: id });
+  }
+
   revalidatePath(`/admin/certificates/${id}`);
-  return { success: true, recordId: id };
+  return { success: true, recordId: id, message: "Changes saved." };
 }
 
-export async function autosaveCertificateContentAction(id: string, content: JSONContent) {
+export async function autosaveCertificateContentAction(id: string, content: JSONContent): Promise<AutosaveResult> {
   await requireAdmin();
   const parsed = tiptapDocSchema.safeParse(content);
-  if (!parsed.success) throw new Error(`Invalid content: ${parsed.error.message}`);
-  await updateCertificateContent(id, parsed.data as JSONContent);
+  if (!parsed.success) {
+    console.error("[admin:certificate:autosave] content failed validation", {
+      recordId: id,
+      issues: parsed.error.issues,
+    });
+    return {
+      success: false,
+      message: "This content couldn't be saved — it contains something the editor doesn't recognize.",
+      code: "INVALID_CONTENT",
+    };
+  }
+
+  try {
+    await updateCertificateContent(id, parsed.data as JSONContent);
+  } catch (error) {
+    const result = classifyServiceError(error, { operation: "autosave", contentType: "certificate", recordId: id });
+    return { success: false, message: result.message, code: result.code };
+  }
+
+  return { success: true, savedAt: new Date().toISOString() };
 }
 
-export async function deleteCertificateAction(id: string) {
+export async function deleteCertificateAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
-  await deleteCertificate(id);
+  try {
+    await deleteCertificate(id);
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, { operation: "delete", contentType: "certificate", recordId: id });
+  }
   revalidatePath("/admin/certificates");
-  redirect("/admin/certificates");
+  revalidatePath("/certifications");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function bulkDeleteCertificatesAction(ids: string[]): Promise<BulkDeleteResult> {
+  await requireAdmin();
+  const parsed = bulkDeleteSchema.safeParse({ ids });
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid selection." };
+
+  let deletedCount: number;
+  try {
+    deletedCount = await deleteCertificates(parsed.data.ids);
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, { operation: "bulkDelete", contentType: "certificate" });
+  }
+
+  revalidatePath("/admin/certificates");
+  revalidatePath("/certifications");
+  revalidatePath("/");
+  return { success: true, deletedCount };
 }

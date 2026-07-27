@@ -1,6 +1,7 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
 import type { LabFormValues } from "@/lib/validations/lab";
 import type { JSONContent } from "@tiptap/react";
@@ -124,6 +125,26 @@ export async function updateLabContent(id: string, content: JSONContent) {
 export async function deleteLab(id: string) {
   const lab = await prisma.lab.delete({ where: { id }, select: { slug: true } });
   await revalidateLabPaths(lab.slug);
+}
+
+/** Bulk delete for the management page's checkbox selection — same
+ *  transaction-then-revalidate pattern as
+ *  lib/services/project-admin-service.ts's deleteProjects(). */
+export async function deleteLabs(ids: string[]): Promise<number> {
+  const slugs = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const records = await tx.lab.findMany({ where: { id: { in: ids } }, select: { slug: true } });
+    await tx.lab.deleteMany({ where: { id: { in: ids } } });
+    return records.map((r: { slug: string }) => r.slug);
+  });
+
+  for (const slug of slugs) {
+    revalidatePath(`/labs/${slug}`);
+  }
+  revalidatePath("/labs");
+  revalidatePath("/");
+  revalidatePath("/sitemap.xml");
+
+  return slugs.length;
 }
 
 async function revalidateLabPaths(slug: string) {

@@ -5,9 +5,9 @@ import remarkGfm from "remark-gfm";
 import type {
   TipTapBlockNode,
   TipTapDoc,
-  TipTapInlineNode,
   TipTapMark,
   TipTapTableCellNode,
+  TipTapTextNode,
 } from "@/types/tiptap";
 
 /**
@@ -68,7 +68,13 @@ function getJsxExpressionAttr(node: MdastNode, name: string): unknown {
   }
 }
 
-function convertMarks(node: MdastNode): TipTapInlineNode[] {
+/** Only ever produces `text` nodes — this MDX→TipTap converter has no
+ *  mdast "break" case, so the narrower internal type here is accurate,
+ *  not just convenient. The public return type is still the wider
+ *  `TipTapInlineNode[]` (which now also includes `hardBreak`, added
+ *  during the editor-contract audit) since that's what every caller of
+ *  this function actually expects to consume. */
+function convertMarks(node: MdastNode): TipTapTextNode[] {
   if (node.type === "text") {
     return [{ type: "text", text: node.value ?? "" }];
   }
@@ -158,6 +164,12 @@ function convertBlock(node: MdastNode): TipTapBlockNode[] {
     }
 
     case "table": {
+      // Real TipTap table cells hold block content (content: "block+"),
+      // not inline text directly — wrapping in a paragraph here matches
+      // what the toolbar's "Table" button and any real edit actually
+      // produce. See types/tiptap.ts's TipTapTableCellNode comment and
+      // docs/PRE_PHASE_6_STABILIZATION_REPORT.md for the full contract
+      // audit this was found during.
       const rows = node.children ?? [];
       return [
         {
@@ -167,7 +179,12 @@ function convertBlock(node: MdastNode): TipTapBlockNode[] {
             content: (row.children ?? []).map(
               (cell): TipTapTableCellNode => ({
                 type: rowIndex === 0 ? "tableHeader" : "tableCell",
-                content: (cell.children ?? []).flatMap(convertMarks),
+                content: [
+                  {
+                    type: "paragraph",
+                    content: (cell.children ?? []).flatMap(convertMarks),
+                  },
+                ],
               })
             ),
           })),

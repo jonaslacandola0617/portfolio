@@ -11,6 +11,22 @@
  * other way around.
  */
 
+/**
+ * Node/mark coverage — kept in sync with what the configured editor can
+ * actually produce (lib/editor/extensions.ts + lib/editor/extensions/*)
+ * and with the toolbar (components/editor/toolbar.tsx). See the
+ * pre-Phase-6 stabilization report for the audit that established this
+ * list: every node/mark below has a toolbar button or is a normal
+ * StarterKit default with no way to disable it from user input (`text`,
+ * `paragraph`, `hardBreak` via Shift+Enter). `strike` and `underline`
+ * are NOT modeled here on purpose — StarterKit v3 bundles both by
+ * default with keyboard shortcuts (Cmd+Shift+S, Cmd+U) even though
+ * neither has a toolbar button, so they're explicitly disabled in
+ * `getEditorExtensions()` instead of being given a schema — the editor
+ * genuinely cannot produce them, so there's nothing for the schema to
+ * cover.
+ */
+
 export type TipTapMark =
   | { type: "bold" }
   | { type: "italic" }
@@ -23,6 +39,13 @@ export interface TipTapTextNode {
   marks?: TipTapMark[];
 }
 
+/** Leaf inline node produced by Shift+Enter — no toolbar button, but a
+ *  standard StarterKit default with no way to disable it from the
+ *  keyboard, so it has to be modeled rather than rejected. */
+export interface TipTapHardBreakNode {
+  type: "hardBreak";
+}
+
 export interface TipTapHeadingNode {
   type: "heading";
   attrs: { level: 1 | 2 | 3 | 4 | 5 | 6 };
@@ -32,6 +55,18 @@ export interface TipTapHeadingNode {
 export interface TipTapParagraphNode {
   type: "paragraph";
   content?: TipTapInlineNode[];
+}
+
+/** Toolbar "Quote" button (StarterKit's Blockquote, content: "block+" —
+ *  holds block nodes, typically paragraphs, not inline text directly). */
+export interface TipTapBlockquoteNode {
+  type: "blockquote";
+  content: TipTapBlockNode[];
+}
+
+/** Toolbar "Horizontal rule" button — atomic leaf, no attrs, no content. */
+export interface TipTapHorizontalRuleNode {
+  type: "horizontalRule";
 }
 
 export interface TipTapListItemNode {
@@ -50,18 +85,30 @@ export interface TipTapOrderedListNode {
 }
 
 /** Plain code block, parameterized by language — one node type covers
- *  Cisco CLI / Linux / PowerShell / JSON / YAML / Python / plain text. */
+ *  Cisco CLI / Linux / PowerShell / JSON / YAML / Python / plain text.
+ *  `language` is nullable: @tiptap/extension-code-block's own attribute
+ *  default is `this.options.defaultLanguage`, which this project leaves
+ *  unset (see lib/editor/extensions.ts) — so `toggleCodeBlock()` from
+ *  the toolbar produces `attrs: { language: null }`, not a string. This
+ *  was the confirmed root cause of the reported autosave failure: every
+ *  code block created via the toolbar failed `safeParse()` before this
+ *  fix, because the old type/schema required `language: string`. */
 export interface TipTapCodeBlockNode {
   type: "codeBlock";
-  attrs: { language: string };
+  attrs: { language: string | null };
   content?: TipTapTextNode[];
 }
 
 /** Info/warning/success/danger/tip — one node type, variant attribute.
- *  Renders via components/shared/callout.tsx, unchanged since the MDX era. */
+ *  Renders via components/shared/callout.tsx, unchanged since the MDX era.
+ *  `title` is nullable, not just optional: the Callout NodeView
+ *  (lib/editor/extensions/callout.tsx) defines its attribute default as
+ *  `null` and explicitly sets it back to `null` (never `undefined`) when
+ *  the title input is cleared, so `getJSON()` always emits either a
+ *  non-empty string or `null` for this field, never an absent key. */
 export interface TipTapCalloutNode {
   type: "callout";
-  attrs: { variant: "info" | "tip" | "warning" | "success" | "danger"; title?: string };
+  attrs: { variant: "info" | "tip" | "warning" | "success" | "danger"; title?: string | null };
   content: TipTapBlockNode[];
 }
 
@@ -71,9 +118,27 @@ export interface TipTapCommandBlockNode {
   attrs: { title: string; commands: string[] };
 }
 
+/**
+ * Table cells hold BLOCK content (normally a single paragraph), not
+ * inline text directly — confirmed against the installed
+ * @tiptap/extension-table's real `content: "block+"` and its real attrs
+ * (colspan/rowspan/colwidth/align, all with defaults TipTap always fills
+ * in on `getJSON()`). The previous contract modeled cells as
+ * `{ content: TipTapInlineNode[] }` with no attrs at all, which every
+ * table the toolbar's "Table" button actually inserts would fail to
+ * satisfy.
+ */
+export interface TipTapTableCellAttrs {
+  colspan?: number;
+  rowspan?: number;
+  colwidth?: number[] | null;
+  align?: "left" | "center" | "right" | "justify" | null;
+}
+
 export interface TipTapTableCellNode {
   type: "tableCell" | "tableHeader";
-  content: TipTapInlineNode[];
+  attrs?: TipTapTableCellAttrs;
+  content: TipTapBlockNode[];
 }
 
 export interface TipTapTableRowNode {
@@ -103,11 +168,13 @@ export interface TipTapMermaidNode {
   attrs: { chart: string };
 }
 
-export type TipTapInlineNode = TipTapTextNode;
+export type TipTapInlineNode = TipTapTextNode | TipTapHardBreakNode;
 
 export type TipTapBlockNode =
   | TipTapHeadingNode
   | TipTapParagraphNode
+  | TipTapBlockquoteNode
+  | TipTapHorizontalRuleNode
   | TipTapBulletListNode
   | TipTapOrderedListNode
   | TipTapCodeBlockNode

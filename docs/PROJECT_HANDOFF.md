@@ -2,10 +2,10 @@
 
 **Handoff purpose:** Transfer long-term ownership of this repository to a new engineering agent without losing the original product intent, migration plan, architecture, completed work, constraints, or engineering history.
 
-**Current repository state:** Phase 5 features delivered; local production build currently blocked  
+**Current repository state:** Phase 5 features and baseline build repair delivered; runtime stabilization required  
 **Current date of handoff:** July 26, 2026  
-**Immediate required task:** Repair the Phase 5 baseline build documented in `docs/REQUIRED_BASELINE_BUILD_REPAIR.md`  
-**Next planned milestone after repair:** Phase 6, followed by ordinary iterative development and deployment work  
+**Immediate required task:** Complete `docs/PRE_PHASE_6_STABILIZATION_BRIEF.md`  
+**Next planned milestone after stabilization:** Phase 6, followed by ordinary iterative development and deployment work  
 **This is not a Phase 6-only instruction document.** It is the standing project context for every future task.
 
 ---
@@ -944,11 +944,12 @@ A new maintainer with local or CI access should run genuine end-to-end verificat
 
 ---
 
-## 16. Next planned work: baseline repair, then Phase 6
+## 16. Next planned work: runtime stabilization, then Phase 6
 
-Before Phase 6 begins, complete `docs/REQUIRED_BASELINE_BUILD_REPAIR.md` and obtain a clean
-TypeScript and production build. Phase 6 is the next milestone after that repair, but this
-handoff remains active after Phase 6.
+The baseline build repair is complete. Before Phase 6 begins, complete
+`docs/PRE_PHASE_6_STABILIZATION_BRIEF.md`: fix editor saving, add truthful mutation/loading
+feedback, and make individual/bulk deletion reliable. Phase 6 is the next milestone after
+that stabilization, but this handoff remains active after Phase 6.
 
 Planned Phase 6 themes:
 

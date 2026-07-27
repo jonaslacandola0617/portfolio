@@ -28,6 +28,8 @@ import type {
  */
 
 function renderMarks(node: TipTapInlineNode, key: number): React.ReactNode {
+  if (node.type === "hardBreak") return <br key={key} />;
+
   let content: React.ReactNode = node.text;
   for (const mark of node.marks ?? []) {
     content = applyMark(mark, content, key);
@@ -66,6 +68,12 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
     case "paragraph":
       return <p key={key}>{renderInline(node.content)}</p>;
 
+    case "blockquote":
+      return <blockquote key={key}>{node.content.map((n, i) => renderBlock(n, i))}</blockquote>;
+
+    case "horizontalRule":
+      return <hr key={key} />;
+
     case "bulletList":
       return (
         <ul key={key}>
@@ -88,14 +96,14 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
       return (
         <CodeBlock
           key={key}
-          language={node.attrs.language}
+          language={node.attrs.language ?? undefined}
           code={(node.content ?? []).map((n) => n.text).join("")}
         />
       );
 
     case "callout":
       return (
-        <Callout key={key} type={node.attrs.variant} title={node.attrs.title}>
+        <Callout key={key} type={node.attrs.variant} title={node.attrs.title ?? undefined}>
           {node.content.map((n, i) => renderBlock(n, i))}
         </Callout>
       );
@@ -112,13 +120,22 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
           <tbody>
             {node.content.map((row, i) => (
               <tr key={i}>
-                {row.content.map((cell, j) =>
-                  cell.type === "tableHeader" ? (
-                    <th key={j}>{renderInline(cell.content)}</th>
+                {row.content.map((cell, j) => {
+                  // Real TipTap table cells hold block content (usually
+                  // one paragraph) — see types/tiptap.ts's
+                  // TipTapTableCellNode comment.
+                  const cellChildren = cell.content.map((n, k) => renderBlock(n, k));
+                  const style = cell.attrs?.align ? { textAlign: cell.attrs.align } : undefined;
+                  return cell.type === "tableHeader" ? (
+                    <th key={j} colSpan={cell.attrs?.colspan} rowSpan={cell.attrs?.rowspan} style={style}>
+                      {cellChildren}
+                    </th>
                   ) : (
-                    <td key={j}>{renderInline(cell.content)}</td>
-                  )
-                )}
+                    <td key={j} colSpan={cell.attrs?.colspan} rowSpan={cell.attrs?.rowspan} style={style}>
+                      {cellChildren}
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

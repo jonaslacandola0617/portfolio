@@ -1,12 +1,18 @@
-import type { TipTapBlockNode, TipTapDoc } from "@/types/tiptap";
+import type { TipTapBlockNode, TipTapDoc, TipTapInlineNode } from "@/types/tiptap";
 
 const WORDS_PER_MINUTE = 200;
+
+function extractInlineText(nodes: TipTapInlineNode[] | undefined): string {
+  return (nodes ?? []).map((n) => (n.type === "text" ? n.text : "")).join(" ");
+}
 
 function extractText(node: TipTapBlockNode): string {
   switch (node.type) {
     case "heading":
     case "paragraph":
-      return (node.content ?? []).map((n) => n.text).join(" ");
+      return extractInlineText(node.content);
+    case "blockquote":
+      return node.content.map(extractText).join(" ");
     case "bulletList":
     case "orderedList":
       return node.content.map((li) => li.content.map(extractText).join(" ")).join(" ");
@@ -17,6 +23,7 @@ function extractText(node: TipTapBlockNode): string {
     case "commandBlock":
       return node.attrs.commands.join(" ");
     case "mermaid":
+    case "horizontalRule":
       return "";
     default:
       return "";

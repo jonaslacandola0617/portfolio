@@ -2,13 +2,16 @@
 
 import { useFormState } from "react-dom";
 import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { JSONContent } from "@tiptap/react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { EditorShell } from "@/components/editor/editor-shell";
+import { SubmitButton } from "@/components/admin/submit-button";
+import { FormMessage } from "@/components/admin/form-message";
+import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
 import {
   createArticleAction,
@@ -42,6 +45,10 @@ function FieldError({ errors }: { errors?: string[] }) {
 }
 
 export function ArticleForm({ mode, article }: ArticleFormProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const justCreated = mode === "edit" && searchParams.get("created") === "1";
+
   const action = mode === "create" ? createArticleAction : updateArticleAction.bind(null, article!.id);
   const [state, formAction] = useFormState(action, initialState);
   const [title, setTitle] = useState(article?.title ?? "");
@@ -52,6 +59,10 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
   return (
     <div className="space-y-8">
       <form action={formAction} className="space-y-6">
+        {justCreated && <FormMessage variant="success">Journal entry created — autosave is on below.</FormMessage>}
+        {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
+        {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+
         <Card>
           <CardContent className="space-y-5 pt-6">
             <div className="grid gap-4 sm:grid-cols-2">
@@ -114,11 +125,15 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
         </Card>
 
         <div className="flex items-center justify-between">
-          <Button type="submit">{mode === "create" ? "Create entry" : "Save changes"}</Button>
-          {mode === "edit" && (
-            <form action={async () => { if (confirm("Delete this journal entry? This can't be undone.")) await deleteArticleAction(article!.id); }}>
-              <Button type="submit" variant="destructive">Delete</Button>
-            </form>
+          <SubmitButton pendingLabel={mode === "create" ? "Creating..." : "Saving..."}>
+            {mode === "create" ? "Create entry" : "Save changes"}
+          </SubmitButton>
+          {mode === "edit" && article && (
+            <DeleteButton
+              confirmMessage="Delete this journal entry? This can't be undone."
+              onDelete={() => deleteArticleAction(article.id)}
+              onSuccess={() => router.push("/admin/journal")}
+            />
           )}
         </div>
       </form>

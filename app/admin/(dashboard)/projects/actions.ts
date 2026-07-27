@@ -9,9 +9,12 @@ import {
   updateProjectMetadata,
   updateProjectContent,
   deleteProject,
+  deleteProjects,
 } from "@/lib/services/project-admin-service";
 import { projectFormSchema, projectContentSchema } from "@/lib/validations/project";
-import type { ActionResult } from "@/types/admin";
+import { bulkDeleteSchema } from "@/lib/validations/admin";
+import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
+import type { ActionResult, AutosaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
 
 export type { ActionResult };
 
@@ -54,8 +57,14 @@ export async function createProjectAction(_prevState: ActionResult, formData: Fo
     return { success: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  const project = await createProject(parsed.data);
-  redirect(`/admin/projects/${project.id}`);
+  let project;
+  try {
+    project = await createProject(parsed.data);
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, { operation: "create", contentType: "project" });
+  }
+  redirect(`/admin/projects/${project.id}?created=1`);
 }
 
 export async function updateProjectAction(
@@ -70,27 +79,86 @@ export async function updateProjectAction(
     return { success: false, errors: parsed.error.flatten().fieldErrors };
   }
 
-  await updateProjectMetadata(id, parsed.data);
+  try {
+    await updateProjectMetadata(id, parsed.data);
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, { operation: "update", contentType: "project", recordId: id });
+  }
+
   revalidatePath(`/admin/projects/${id}`);
-  return { success: true, recordId: id };
+  return { success: true, recordId: id, message: "Changes saved." };
 }
 
 /** Called from the editor's autosave hook, not a form submit — a much
- *  higher-frequency, narrower write than the metadata action above. */
-export async function autosaveProjectContentAction(id: string, content: JSONContent) {
+ *  higher-frequency, narrower write than the metadata action above.
+ *  Returns a structured AutosaveResult rather than throwing (see
+ *  hooks/use-autosave.ts and docs/PRE_PHASE_6_STABILIZATION_REPORT.md
+ *  Workstream A) — a thrown error here used to leave the editor with no
+ *  safe, displayable reason for a failed save. */
+export async function autosaveProjectContentAction(id: string, content: JSONContent): Promise<AutosaveResult> {
   await requireAdmin();
 
   const parsed = projectContentSchema.safeParse(content);
   if (!parsed.success) {
-    throw new Error(`Invalid content: ${parsed.error.message}`);
+    console.error("[admin:project:autosave] content failed validation", {
+      recordId: id,
+      issues: parsed.error.issues,
+    });
+    return {
+      success: false,
+      message: "This content couldn't be saved — it contains something the editor doesn't recognize.",
+      code: "INVALID_CONTENT",
+    };
   }
 
-  await updateProjectContent(id, parsed.data as JSONContent);
+  try {
+    await updateProjectContent(id, parsed.data as JSONContent);
+  } catch (error) {
+    const result = classifyServiceError(error, { operation: "autosave", contentType: "project", recordId: id });
+    return { success: false, message: result.message, code: result.code };
+  }
+
+  return { success: true, savedAt: new Date().toISOString() };
 }
 
-export async function deleteProjectAction(id: string) {
+/** Single-record delete. Does not redirect — used from both the edit
+ *  page (which navigates away on success) and a management-list row
+ *  (which just refreshes in place); see types/admin.ts's DeleteResult. */
+export async function deleteProjectAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
-  await deleteProject(id);
+
+  try {
+    await deleteProject(id);
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, { operation: "delete", contentType: "project", recordId: id });
+  }
+
   revalidatePath("/admin/projects");
-  redirect("/admin/projects");
+  revalidatePath("/projects");
+  revalidatePath("/");
+  return { success: true };
+}
+
+export async function bulkDeleteProjectsAction(ids: string[]): Promise<BulkDeleteResult> {
+  await requireAdmin();
+
+  const parsed = bulkDeleteSchema.safeParse({ ids });
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid selection." };
+  }
+
+  let deletedCount: number;
+  try {
+    deletedCount = await deleteProjects(parsed.data.ids);
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, { operation: "bulkDelete", contentType: "project" });
+  }
+
+  revalidatePath("/admin/projects");
+  revalidatePath("/projects");
+  revalidatePath("/");
+  return { success: true, deletedCount };
 }

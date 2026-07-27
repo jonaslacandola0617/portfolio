@@ -1,15 +1,29 @@
 import Link from "next/link";
 import { Plus, GitCommitHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/admin/empty-state";
+import { FormMessage } from "@/components/admin/form-message";
+import { ManagementList, type ManagementListRow } from "@/components/admin/management-list";
 import { getAllTimelineForAdmin } from "@/lib/services/timeline-admin-service";
 import { formatDate } from "@/lib/utils";
+import { deleteTimelineAction, bulkDeleteTimelineAction } from "./actions";
 
 const statusVariant = { DRAFT: "default", PUBLISHED: "success", ARCHIVED: "outline", SCHEDULED: "warning" } as const;
 
-export default async function AdminTimelinePage() {
+export default async function AdminTimelinePage({
+  searchParams,
+}: {
+  searchParams: { created?: string; updated?: string };
+}) {
   const entries = await getAllTimelineForAdmin();
+
+  const rows: ManagementListRow[] = entries.map((e) => ({
+    id: e.id,
+    title: e.title,
+    subtitle: formatDate(e.date.toISOString().slice(0, 10)),
+    badgeLabel: e.publishStatus,
+    badgeVariant: statusVariant[e.publishStatus as keyof typeof statusVariant],
+  }));
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
@@ -23,22 +37,24 @@ export default async function AdminTimelinePage() {
         </Button>
       </div>
 
+      {searchParams.created === "1" && (
+        <FormMessage variant="success" className="mb-4">Timeline entry created.</FormMessage>
+      )}
+      {searchParams.updated === "1" && (
+        <FormMessage variant="success" className="mb-4">Timeline entry updated.</FormMessage>
+      )}
+
       {entries.length === 0 ? (
         <EmptyState icon={GitCommitHorizontal} title="No timeline entries yet" description="Add your first milestone to get started." />
       ) : (
-        <div className="divide-y divide-border rounded-lg border border-border">
-          {entries.map((e) => (
-            <Link key={e.id} href={`/admin/timeline/${e.id}`} className="flex items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-accent">
-              <div className="min-w-0">
-                <div className="truncate text-sm font-medium text-foreground">{e.title}</div>
-                <div className="mt-0.5 font-mono text-[0.68rem] text-muted-foreground">
-                  {formatDate(e.date.toISOString().slice(0, 10))}
-                </div>
-              </div>
-              <Badge variant={statusVariant[e.publishStatus as keyof typeof statusVariant]}>{e.publishStatus}</Badge>
-            </Link>
-          ))}
-        </div>
+        <ManagementList
+          rows={rows}
+          basePath="/admin/timeline"
+          itemLabelSingular="entry"
+          itemLabelPlural="entries"
+          deleteOneAction={deleteTimelineAction}
+          deleteManyAction={bulkDeleteTimelineAction}
+        />
       )}
     </div>
   );

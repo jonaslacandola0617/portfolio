@@ -2,11 +2,14 @@
 
 import { useFormState } from "react-dom";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { SubmitButton } from "@/components/admin/submit-button";
+import { FormMessage } from "@/components/admin/form-message";
+import { DeleteButton } from "@/components/admin/delete-button";
 import {
   createTimelineAction,
   updateTimelineAction,
@@ -36,12 +39,19 @@ function FieldError({ errors }: { errors?: string[] }) {
 }
 
 export function TimelineForm({ mode, entry }: TimelineFormProps) {
+  const router = useRouter();
   const action = mode === "create" ? createTimelineAction : updateTimelineAction.bind(null, entry!.id);
   const [state, formAction] = useFormState(action, initialState);
   const [publishStatus, setPublishStatus] = useState(entry?.publishStatus ?? "PUBLISHED");
 
   return (
     <form action={formAction} className="space-y-6">
+      {/* This action redirects to /admin/timeline?created=1 / ?updated=1
+          on success (see actions.ts) — a success message here would
+          never actually render, since the component unmounts on
+          navigation. Only the failure path renders locally. */}
+      {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+
       <Card>
         <CardContent className="space-y-5 pt-6">
           <div>
@@ -99,11 +109,15 @@ export function TimelineForm({ mode, entry }: TimelineFormProps) {
       </Card>
 
       <div className="flex items-center justify-between">
-        <Button type="submit">{mode === "create" ? "Create entry" : "Save changes"}</Button>
-        {mode === "edit" && (
-          <form action={async () => { if (confirm("Delete this timeline entry? This can't be undone.")) await deleteTimelineAction(entry!.id); }}>
-            <Button type="submit" variant="destructive">Delete</Button>
-          </form>
+        <SubmitButton pendingLabel={mode === "create" ? "Creating..." : "Saving..."}>
+          {mode === "create" ? "Create entry" : "Save changes"}
+        </SubmitButton>
+        {mode === "edit" && entry && (
+          <DeleteButton
+            confirmMessage="Delete this timeline entry? This can't be undone."
+            onDelete={() => deleteTimelineAction(entry.id)}
+            onSuccess={() => router.push("/admin/timeline")}
+          />
         )}
       </div>
     </form>

@@ -1,6 +1,7 @@
 import "server-only";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
+import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
 import type { TimelineFormValues } from "@/lib/validations/timeline";
 
@@ -86,6 +87,18 @@ export async function updateTimelineEntry(id: string, fm: TimelineFormValues) {
 export async function deleteTimelineEntry(id: string) {
   await prisma.timelineEntry.delete({ where: { id } });
   await revalidateTimelinePaths();
+}
+
+/** Bulk delete for the management page's checkbox selection. */
+export async function deleteTimelineEntries(ids: string[]): Promise<number> {
+  const count = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const records = await tx.timelineEntry.findMany({ where: { id: { in: ids } }, select: { id: true } });
+    await tx.timelineEntry.deleteMany({ where: { id: { in: ids } } });
+    return records.length;
+  });
+
+  await revalidateTimelinePaths();
+  return count;
 }
 
 async function revalidateTimelinePaths() {
