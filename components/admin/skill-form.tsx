@@ -10,9 +10,12 @@ import { FormMessage } from "@/components/admin/form-message";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { createSkillAction, updateSkillAction, deleteSkillAction } from "@/app/admin/(dashboard)/skills/actions";
 import type { ActionResult } from "@/types/admin";
+import { SkillGroupInput } from "@/components/admin/skill-group-input";
+import { UNGROUPED_SKILL_GROUP } from "@/lib/skill-groups";
 
 interface SkillFormProps {
   mode: "create" | "edit";
+  groups: string[];
   skill?: { id: string; name: string; group: string; level: string; projects: { slug: string }[] };
 }
 
@@ -23,7 +26,7 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
 }
 
-export function SkillForm({ mode, skill }: SkillFormProps) {
+export function SkillForm({ mode, skill, groups }: SkillFormProps) {
   const router = useRouter();
   const action = mode === "create" ? createSkillAction : updateSkillAction.bind(null, skill!.id);
   const [state, formAction] = useFormState(action, initialState);
@@ -46,7 +49,7 @@ export function SkillForm({ mode, skill }: SkillFormProps) {
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="group">Group</Label>
-                <Input id="group" name="group" defaultValue={skill?.group} placeholder="Networking" required />
+                <SkillGroupInput groups={groups} defaultValue={skill?.group ?? UNGROUPED_SKILL_GROUP} />
                 <FieldError errors={state.errors?.group} />
               </div>
               <div>

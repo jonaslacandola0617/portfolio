@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import type { SkillFormValues } from "@/lib/validations/skill";
 import { revalidateContent } from "@/lib/services/content-revalidation";
+import { UNGROUPED_SKILL_GROUP, cleanSkillGroup, skillGroupKey } from "@/lib/skill-groups";
 
 interface AdminSkillListItem {
   id: string;
@@ -26,14 +27,44 @@ export async function getSkillForEdit(id: string): Promise<AdminSkillListItem | 
   }) as Promise<AdminSkillListItem | null>;
 }
 
+export async function getExistingSkillGroups(): Promise<string[]> {
+  const rows = await prisma.skill.findMany({
+    distinct: ["group"],
+    select: { group: true },
+    orderBy: { group: "asc" },
+  });
+  const groups = new Map<string, string>();
+  for (const row of rows) {
+    const cleaned = cleanSkillGroup(row.group);
+    groups.set(skillGroupKey(cleaned), cleaned);
+  }
+  groups.set(skillGroupKey(UNGROUPED_SKILL_GROUP), UNGROUPED_SKILL_GROUP);
+  return [...groups.values()].sort((left, right) => {
+    if (left === UNGROUPED_SKILL_GROUP) return 1;
+    if (right === UNGROUPED_SKILL_GROUP) return -1;
+    return left.localeCompare(right);
+  });
+}
+
+async function resolveSkillGroup(input: string): Promise<string> {
+  const requested = cleanSkillGroup(input);
+  const existing = await prisma.skill.findFirst({
+    where: { group: { equals: requested, mode: "insensitive" } },
+    select: { group: true },
+  });
+  return existing ? cleanSkillGroup(existing.group) : requested;
+}
+
 export async function createSkill(fm: SkillFormValues) {
-  const skill = await prisma.skill.create({ data: fm });
+  const group = await resolveSkillGroup(fm.group);
+  const skill = await prisma.skill.create({ data: { ...fm, group } });
   revalidateContent("skill");
   return skill;
 }
 
 export async function updateSkill(id: string, fm: SkillFormValues) {
-  const skill = await prisma.skill.update({ where: { id }, data: fm });
+  const group = await resolveSkillGroup(fm.group);
+  const skill = await prisma.skill.update({ where: { id }, data: { ...fm, group } });
   revalidateContent("skill");
   return skill;
 }
@@ -55,4 +86,15 @@ export async function deleteSkills(ids: string[]): Promise<number> {
 
   revalidateContent("skill");
   return count;
+}
+
+export async function updateSkillGroup(id: string, input: string) {
+  const group = await resolveSkillGroup(input);
+  const skill = await prisma.skill.update({
+    where: { id },
+    data: { group },
+    select: { id: true, group: true },
+  });
+  revalidateContent("skill");
+  return skill;
 }

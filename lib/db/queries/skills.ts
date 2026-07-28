@@ -3,6 +3,7 @@ import { cache } from "react";
 import { prisma } from "@/lib/db";
 import { readWithPolicy } from "@/lib/db/read-policy";
 import type { SkillCategory } from "@/types";
+import { isUngroupedSkillGroup } from "@/lib/skill-groups";
 
 interface SkillRow {
   name: string;
@@ -31,14 +32,15 @@ export const getAllSkillCategories = cache(async (): Promise<SkillCategory[]> =>
 
     const grouped = new Map<string, SkillCategory>();
     for (const skill of skills) {
-      if (!grouped.has(skill.group)) {
-        grouped.set(skill.group, {
-          category: skill.group,
-          icon: iconForGroup[skill.group] ?? "Network",
+      const publicGroup = isUngroupedSkillGroup(skill.group) ? "" : skill.group;
+      if (!grouped.has(publicGroup)) {
+        grouped.set(publicGroup, {
+          category: publicGroup,
+          icon: iconForGroup[publicGroup] ?? "Network",
           skills: [],
         });
       }
-      grouped.get(skill.group)!.skills.push({
+      grouped.get(publicGroup)!.skills.push({
         name: skill.name,
         level: skill.level as SkillCategory["skills"][number]["level"],
         relatedProjectSlugs: skill.projects.map((project) => project.slug),

@@ -12,12 +12,14 @@ function errorCode(error: unknown): string | undefined {
 }
 
 function errorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message.split(/\r?\n/, 1)[0].slice(0, 240);
+  if (error instanceof Error) {
+    return (error.message.split(/\r?\n/).find((line) => line.trim()) ?? error.name).slice(0, 240);
+  }
   return String(error).slice(0, 240);
 }
 
 export function isTransientReadError(error: unknown): boolean {
-  if (errorCode(error) === "P1017") return true;
+  if (errorCode(error) === "P1001" || errorCode(error) === "P1017") return true;
   const message = errorMessage(error).toLowerCase();
   return (
     message.includes("server has closed the connection") ||

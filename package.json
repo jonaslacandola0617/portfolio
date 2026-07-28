@@ -22,6 +22,7 @@
     "verify:revalidation": "tsx scripts/verify-revalidation.ts",
     "verify:phase6-data": "tsx scripts/verify-phase-6-data.ts",
     "verify:post-phase6": "tsx scripts/verify-post-phase6.ts",
+    "verify:requested-audit": "tsx scripts/verify-requested-audit.ts",
     "verify:save-pipeline": "tsx scripts/verify-save-pipeline.ts",
     "verify:site": "tsx scripts/verify-running-site.ts"
   },

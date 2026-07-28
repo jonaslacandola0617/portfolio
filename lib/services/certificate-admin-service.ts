@@ -8,6 +8,7 @@ import { emptyTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
 import { revalidateContent } from "@/lib/services/content-revalidation";
 import { skillRelationInput } from "@/lib/services/skill-relations";
+import { UNGROUPED_SKILL_GROUP } from "@/lib/skill-groups";
 
 interface AdminCertificateListItem {
   id: string;
@@ -23,13 +24,12 @@ interface AdminCertificateDetail {
   slug: string;
   issuer: string;
   logo: string;
+  logoMediaId: string | null;
+  logoMedia: { id: string; url: string; filename: string; type: string } | null;
   content: unknown;
-  progressStatus: string;
   publishStatus: string;
-  progressLabel: string;
-  progressPercent: number;
   skills: { name: string }[];
-  dateStarted: Date;
+  dateStarted: Date | null;
   dateCompleted: Date | null;
   credentialUrl: string | null;
   scheduledFor: Date | null;
@@ -44,24 +44,26 @@ export async function getAllCertificatesForAdmin(): Promise<AdminCertificateList
 export async function getCertificateForEdit(id: string): Promise<AdminCertificateDetail | null> {
   return prisma.certificate.findUnique({
     where: { id },
-    include: { skills: true },
+    include: { skills: true, logoMedia: true },
   }) as Promise<AdminCertificateDetail | null>;
 }
 
 export async function createCertificate(fm: CertificateFormValues) {
-  const skills = await skillRelationInput(fm.skills, { group: "Cybersecurity", level: "practiced" });
+  const skills = await skillRelationInput(fm.skills, { group: UNGROUPED_SKILL_GROUP, level: "practiced" });
+  await validateLogoMedia(fm.logoMediaId);
   const cert = await prisma.certificate.create({
     data: {
       name: fm.name,
       slug: fm.slug,
       issuer: fm.issuer,
-      logo: fm.logo,
-      progressStatus: fm.progressStatus,
+      logo: "default",
+      logoMediaId: fm.logoMediaId || null,
+      progressStatus: "COMPLETED",
       publishStatus: fm.publishStatus,
-      progressLabel: fm.progressLabel,
-      progressPercent: fm.progressPercent,
-      dateStarted: new Date(fm.dateStarted),
-      dateCompleted: fm.dateCompleted ? new Date(fm.dateCompleted) : null,
+      progressLabel: "Completed",
+      progressPercent: 100,
+      dateStarted: fm.dateStarted ? dateOnly(fm.dateStarted) : null,
+      dateCompleted: fm.dateCompleted ? dateOnly(fm.dateCompleted) : null,
       credentialUrl: fm.credentialUrl || null,
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
@@ -75,7 +77,8 @@ export async function createCertificate(fm: CertificateFormValues) {
 
 export async function updateCertificateMetadata(id: string, fm: CertificateFormValues) {
   const existing = await prisma.certificate.findUnique({ where: { id }, select: { publishStatus: true } });
-  const skills = await skillRelationInput(fm.skills, { group: "Cybersecurity", level: "practiced" });
+  const skills = await skillRelationInput(fm.skills, { group: UNGROUPED_SKILL_GROUP, level: "practiced" });
+  await validateLogoMedia(fm.logoMediaId);
 
   const cert = await prisma.certificate.update({
     where: { id },
@@ -83,13 +86,14 @@ export async function updateCertificateMetadata(id: string, fm: CertificateFormV
       name: fm.name,
       slug: fm.slug,
       issuer: fm.issuer,
-      logo: fm.logo,
-      progressStatus: fm.progressStatus,
+      logo: "default",
+      logoMediaId: fm.logoMediaId || null,
+      progressStatus: "COMPLETED",
       publishStatus: fm.publishStatus,
-      progressLabel: fm.progressLabel,
-      progressPercent: fm.progressPercent,
-      dateStarted: new Date(fm.dateStarted),
-      dateCompleted: fm.dateCompleted ? new Date(fm.dateCompleted) : null,
+      progressLabel: "Completed",
+      progressPercent: 100,
+      dateStarted: fm.dateStarted ? dateOnly(fm.dateStarted) : null,
+      dateCompleted: fm.dateCompleted ? dateOnly(fm.dateCompleted) : null,
       credentialUrl: fm.credentialUrl || null,
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       ...(fm.publishStatus === "PUBLISHED" && existing?.publishStatus !== "PUBLISHED"
@@ -112,6 +116,16 @@ export async function updateCertificateContent(id: string, content: TipTapDoc) {
   if (cert.publishStatus === "PUBLISHED") revalidateContent("certificate");
   const readBack = await prisma.certificate.findUnique({ where: { id }, select: { content: true } });
   return readBack?.content;
+}
+
+function dateOnly(value: string): Date {
+  return new Date(`${value}T00:00:00.000Z`);
+}
+
+async function validateLogoMedia(id?: string): Promise<void> {
+  if (!id) return;
+  const media = await prisma.media.findFirst({ where: { id, type: "IMAGE" }, select: { id: true } });
+  if (!media) throw new Error("VALIDATION: Select a valid image from the Media Library.");
 }
 
 export async function deleteCertificate(id: string) {

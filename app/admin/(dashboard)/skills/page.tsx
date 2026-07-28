@@ -3,24 +3,15 @@ import { Plus, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/admin/empty-state";
 import { FormMessage } from "@/components/admin/form-message";
-import { ManagementList, type ManagementListRow } from "@/components/admin/management-list";
-import { getAllSkillsForAdmin } from "@/lib/services/skill-admin-service";
-import { deleteSkillAction, bulkDeleteSkillsAction } from "./actions";
+import { GroupedSkillsManager } from "@/components/admin/grouped-skills-manager";
+import { getAllSkillsForAdmin, getExistingSkillGroups } from "@/lib/services/skill-admin-service";
 
 export default async function AdminSkillsPage({
   searchParams,
 }: {
   searchParams: { created?: string; updated?: string };
 }) {
-  const skills = await getAllSkillsForAdmin();
-
-  const rows: ManagementListRow[] = skills.map((s) => ({
-    id: s.id,
-    title: s.name,
-    subtitle: `${s.group} · used by ${s.projects.length} project${s.projects.length === 1 ? "" : "s"}`,
-    badgeLabel: s.level,
-    badgeVariant: "default",
-  }));
+  const [skills, groups] = await Promise.all([getAllSkillsForAdmin(), getExistingSkillGroups()]);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
@@ -40,13 +31,15 @@ export default async function AdminSkillsPage({
       {skills.length === 0 ? (
         <EmptyState icon={Layers} title="No skills yet" description="Add your first skill to get started." />
       ) : (
-        <ManagementList
-          rows={rows}
-          basePath="/admin/skills"
-          itemLabelSingular="skill"
-          itemLabelPlural="skills"
-          deleteOneAction={deleteSkillAction}
-          deleteManyAction={bulkDeleteSkillsAction}
+        <GroupedSkillsManager
+          groups={groups}
+          initialSkills={skills.map((skill) => ({
+            id: skill.id,
+            name: skill.name,
+            group: skill.group,
+            level: skill.level,
+            projectCount: skill.projects.length,
+          }))}
         />
       )}
     </div>

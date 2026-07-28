@@ -41,12 +41,6 @@ export const siteConfig = {
     "Wireshark",
   ],
 
-  stats: [
-    { label: "Labs logged", value: "24" },
-    { label: "Projects shipped", value: "6" },
-    { label: "Journal entries", value: "18" },
-    { label: "Certifications in progress", value: "2" },
-  ],
 } as const;
 
 export const navItems = [

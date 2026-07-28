@@ -96,14 +96,11 @@ export interface SaveContentPayload {
 export type DashboardSection<T> = { ok: true; data: T } | { ok: false; message: string };
 
 export interface ContentTypeMetric {
-  key: "projects" | "labs" | "articles" | "certificates" | "timeline" | "skills";
+  key: "projects" | "labs" | "articles" | "certificates";
   label: string;
   href: string;
   total: number;
-  details: Array<{ label: string; value: string | number }>;
 }
-
-export type PublicationStatusTotals = Record<"PUBLISHED" | "DRAFT" | "SCHEDULED" | "ARCHIVED", number>;
 
 export interface RecentlyUpdatedItem {
   id: string;
@@ -114,23 +111,9 @@ export interface RecentlyUpdatedItem {
   href: string;
 }
 
-export interface AttentionItem {
-  id: string;
-  count: number;
-  label: string;
-  detail: string;
-  href: string;
-  severity: "info" | "warning" | "critical";
-}
-
-export type DatabaseHealth = "connected" | "degraded" | "unavailable";
-
 export interface DashboardOverview {
-  health: DatabaseHealth;
   metrics: DashboardSection<ContentTypeMetric[]>;
-  publication: DashboardSection<PublicationStatusTotals>;
   recentlyUpdated: DashboardSection<RecentlyUpdatedItem[]>;
-  attention: DashboardSection<AttentionItem[]>;
 }
 
 /** Kept as a compatibility alias for callers outside the editor. */

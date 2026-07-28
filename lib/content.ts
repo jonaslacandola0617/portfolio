@@ -106,7 +106,7 @@ export async function getSearchIndex() {
   const certificates = allCertificates.map((certificate) => ({
     type: "certificate" as const,
     title: certificate.name,
-    summary: `${certificate.issuer} — ${certificate.progressLabel}`,
+    summary: `${certificate.issuer} — completed certification`,
     href: "/certifications",
     tags: certificate.skills,
   }));

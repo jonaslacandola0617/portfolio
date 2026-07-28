@@ -7,6 +7,7 @@ import {
   templateCatalog,
 } from "../lib/editor/templates";
 import { aboutPageSchema } from "../lib/validations/about";
+import { defaultAboutPage } from "../lib/about-defaults";
 import { validateTipTapDoc } from "../lib/validations/content";
 import { toPrismaJson } from "../lib/prisma-json";
 
@@ -60,7 +61,10 @@ async function verifyDatabase() {
   ]);
 
   assert(settings, "SiteSettings singleton is missing.");
-  assert(aboutPageSchema.safeParse(settings.aboutPage).success, "SiteSettings.aboutPage is invalid.");
+  assert(
+    aboutPageSchema.safeParse(settings.aboutPage ?? defaultAboutPage).success,
+    "SiteSettings.aboutPage and its runtime fallback are invalid."
+  );
 
   const collections = [
     ["Project", projects],

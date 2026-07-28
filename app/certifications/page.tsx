@@ -12,8 +12,8 @@ export default async function CertificationsPage() {
     <div className="mx-auto max-w-3xl px-6 py-14 md:px-10">
       <PageHeader
         eyebrow="Certifications"
-        title="Certifications & Coursework"
-        description="What I'm currently working through, and how far along each one is — updated as courses progress rather than only when they're finished."
+        title="Certifications"
+        description="Completed credentials and the practical skills developed through each certification."
       />
 
       {certifications.length === 0 ? (

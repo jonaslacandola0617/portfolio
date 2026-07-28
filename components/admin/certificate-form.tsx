@@ -15,6 +15,8 @@ import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination"
 import { useMetadataAction } from "@/hooks/use-metadata-action";
 import { TaxonomyMultiCombobox } from "@/components/admin/taxonomy-combobox";
 import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
+import { CertificateLogoPicker } from "@/components/admin/certificate-logo-picker";
+import { DateSelector } from "@/components/admin/date-selector";
 import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import {
   createCertificateAction,
@@ -31,11 +33,8 @@ interface CertificateFormProps {
     name: string;
     slug: string;
     issuer: string;
-    logo: string;
-    progressStatus: string;
+    logoMediaId: string;
     publishStatus: string;
-    progressLabel: string;
-    progressPercent: number;
     skills: string[];
     dateStarted: string;
     dateCompleted: string;
@@ -90,51 +89,27 @@ export function CertificateForm({ mode, certificate, media = [] }: CertificateFo
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <div>
+              <div className="sm:col-span-2">
                 <Label htmlFor="issuer">Issuer</Label>
                 <Input id="issuer" name="issuer" defaultValue={certificate?.issuer} required />
                 <FieldError errors={state.errors?.issuer} />
               </div>
-              <div>
-                <Label htmlFor="logo">Logo</Label>
-                <select id="logo" name="logo" defaultValue={certificate?.logo ?? "google"} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
-                  <option value="google">Google</option>
-                  <option value="cisco">Cisco</option>
-                  <option value="linux">Linux</option>
-                  <option value="python">Python</option>
-                </select>
+              <div className="sm:col-span-2">
+                <Label>Certificate Logo</Label>
+                <p className="mb-2 mt-1 text-xs text-muted-foreground">Upload or choose the issuer/certification image shown publicly.</p>
+                <CertificateLogoPicker media={media} initialMediaId={certificate?.logoMediaId} />
+                <FieldError errors={state.errors?.logoMediaId} />
               </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="progressLabel">Progress label</Label>
-                <Input id="progressLabel" name="progressLabel" defaultValue={certificate?.progressLabel} placeholder="Module 8 of 17" required />
-                <FieldError errors={state.errors?.progressLabel} />
+                <DateSelector id="dateCompleted" name="dateCompleted" label="Completion Date" defaultValue={certificate?.dateCompleted} optional />
+                <FieldError errors={state.errors?.dateCompleted} />
               </div>
               <div>
-                <Label htmlFor="progressPercent">Progress %</Label>
-                <Input id="progressPercent" name="progressPercent" type="number" min={0} max={100} defaultValue={certificate?.progressPercent ?? 0} required />
-              </div>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div>
-                <Label htmlFor="progressStatus">Status</Label>
-                <select id="progressStatus" name="progressStatus" defaultValue={certificate?.progressStatus ?? "IN_PROGRESS"} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
-                  <option value="PLANNED">Planned</option>
-                  <option value="IN_PROGRESS">In progress</option>
-                  <option value="COMPLETED">Completed</option>
-                </select>
-              </div>
-              <div>
-                <Label htmlFor="dateStarted">Date started</Label>
-                <Input id="dateStarted" name="dateStarted" type="date" defaultValue={certificate?.dateStarted} required />
+                <DateSelector id="dateStarted" name="dateStarted" label="Start Date" defaultValue={certificate?.dateStarted} optional />
                 <FieldError errors={state.errors?.dateStarted} />
-              </div>
-              <div>
-                <Label htmlFor="dateCompleted">Date completed</Label>
-                <Input id="dateCompleted" name="dateCompleted" type="date" defaultValue={certificate?.dateCompleted} />
               </div>
             </div>
 

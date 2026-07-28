@@ -3,13 +3,13 @@ import { ArrowRight, Download, NotebookPen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LearningProgress } from "@/components/shared/learning-progress";
-import { GitHubCard } from "@/components/shared/github-card";
+import { RecentActivityCard } from "@/components/shared/recent-activity-card";
 import { ProjectCard } from "@/components/shared/project-card";
 import { LabCard } from "@/components/shared/lab-card";
 import { NetworkTopology } from "@/components/shared/network-topology";
 import { siteConfig } from "@/lib/site-config";
-import { githubActivity } from "@/lib/data/github";
 import { getAllProjects, getAllArticles, getAllLabs } from "@/lib/content";
+import { getHomepageOverview } from "@/lib/db/queries/homepage";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 import { formatDate } from "@/lib/utils";
 
@@ -35,11 +35,12 @@ const heroTopologyEdges = [
 ];
 
 export default async function HomePage() {
-  const [projects, allArticles, allLabs, settings] = await Promise.all([
+  const [projects, allArticles, allLabs, settings, homepage] = await Promise.all([
     getAllProjects(),
     getAllArticles(),
     getAllLabs(),
     getSiteSettings(),
+    getHomepageOverview(),
   ]);
   const featuredProjects = projects.slice(0, 3);
   const articles = allArticles.slice(0, 2);
@@ -90,7 +91,7 @@ export default async function HomePage() {
             </div>
 
             <dl className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
-              {siteConfig.stats.map((stat) => (
+              {homepage.stats.map((stat) => (
                 <div key={stat.label}>
                   <dt className="font-mono text-[0.68rem] uppercase tracking-wide text-muted-foreground">
                     {stat.label}
@@ -113,7 +114,7 @@ export default async function HomePage() {
         {/* Widgets row */}
         <div className="grid gap-5 md:grid-cols-2">
           <LearningProgress items={settings.currentlyLearning} />
-          <GitHubCard activity={githubActivity} />
+          <RecentActivityCard activity={homepage.recentActivity} />
         </div>
 
         {/* Recent projects */}

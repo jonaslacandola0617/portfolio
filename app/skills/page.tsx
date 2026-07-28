@@ -23,10 +23,12 @@ export default async function SkillsPage() {
         <div className="space-y-10">
           {skillCategories.map((cat) => (
             <div key={cat.category}>
-              <div className="mb-4 flex items-center gap-2">
-                <Icon name={cat.icon} className="h-4 w-4 text-primary" />
-                <h2 className="font-display text-lg font-semibold text-foreground">{cat.category}</h2>
-              </div>
+              {cat.category && (
+                <div className="mb-4 flex items-center gap-2">
+                  <Icon name={cat.icon} className="h-4 w-4 text-primary" />
+                  <h2 className="font-display text-lg font-semibold text-foreground">{cat.category}</h2>
+                </div>
+              )}
               <div className="grid gap-2 sm:grid-cols-2">
                 {cat.skills.map((skill) => (
                   <SkillBadge key={skill.name} skill={skill} />

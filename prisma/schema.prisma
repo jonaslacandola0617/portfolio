@@ -90,7 +90,7 @@ model Category {
 model Skill {
   id           String        @id @default(cuid())
   name         String        @unique
-  group        String
+  group        String        @default("Ungrouped")
   level        String // "learning" | "practiced" | "comfortable"
   projects     Project[]
   certificates Certificate[]
@@ -105,6 +105,7 @@ model Media {
   uploadedAt  DateTime  @default(now())
   usedAsThumb Project[] @relation("ProjectThumbnail")
   downloads   Download[]
+  certificateLogos Certificate[] @relation("CertificateLogo")
 }
 
 /// Scoped to Project for now (the only content type with a Downloads
@@ -214,13 +215,15 @@ model Certificate {
   // aren't suitable for that, so slug carries it instead.
   name            String
   issuer          String
-  logo            String // icon key consumed by CertificateCard ("google" | "cisco" | "linux" | "python")
+  logo            String         @default("default") // legacy fallback icon key
+  logoMedia       Media?         @relation("CertificateLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
+  logoMediaId     String?
   content         Json? // optional longer write-up; card view uses the scalar fields below
-  progressStatus  ProgressStatus @default(IN_PROGRESS)
+  progressStatus  ProgressStatus @default(COMPLETED)
   publishStatus   PublishStatus  @default(DRAFT)
-  progressLabel   String
-  progressPercent Int            @default(0)
-  dateStarted     DateTime
+  progressLabel   String         @default("Completed")
+  progressPercent Int            @default(100)
+  dateStarted     DateTime?
   dateCompleted   DateTime?
   credentialUrl   String?
   skills          Skill[]
@@ -229,6 +232,8 @@ model Certificate {
   scheduledFor    DateTime?
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+
+  @@index([logoMediaId])
 }
 
 model TimelineEntry {

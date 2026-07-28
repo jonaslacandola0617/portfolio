@@ -255,20 +255,31 @@ Full schema: `prisma/schema.prisma`. Summary of the decisions that aren't obviou
 - **`Skill` has no `publishStatus` and no `content` field** — it's pure taxonomy (name, group,
   level), always visible wherever it's referenced, not a standalone piece of content with its own
   publish lifecycle. Its admin form (`components/admin/skill-form.tsx`) is correspondingly the
-  simplest of the six — no status selector, no editor, no scheduling.
+  simplest of the six — no status selector, no editor, no scheduling. New Skills normalize to
+  the single `Ungrouped` sentinel. Existing names are reused case-insensitively to prevent
+  capitalization/spacing duplicates. Admin tables, the quick selector, drag/drop, form
+  suggestions, and public grouping all share `lib/skill-groups.ts`; public rendering omits the
+  `Ungrouped` heading.
+- **Certificates are completed credentials, not progress trackers.** `publishStatus` remains the
+  independent CMS visibility control. Legacy progress columns remain with completed-only defaults
+  for safe production compatibility, but forms, public types, queries, and cards do not accept or
+  display progress. `dateStarted` is nullable and `dateCompleted` is the primary displayed date.
+  `Certificate.logoMediaId` is an optional `Media` relation with `onDelete: SetNull`; the
+  authenticated Certificate form reuses the Media Library upload flow, and removing the
+  association never removes the shared Media row.
 - **Reserved, not yet implemented** (commented in `schema.prisma`, not modeled as tables — adding
   them later is purely additive, no existing column changes):
   - **Revision history** — one table per content type (`ProjectRevision`, etc.), mirroring the
     existing non-polymorphic `Download` pattern rather than one generic polymorphic table.
   - **Activity Log** — `lib/db/queries/activity.ts` remains a typed, empty reserved seam. The
-    dashboard deliberately does not present it as implemented. Its “Recently Updated Content”
-    panel is derived only from real `updatedAt` columns and is labeled accordingly; it is not an
+    dashboard deliberately does not present it as implemented. Its “Recent Activity”
+    panel is derived only from real `updatedAt` columns and is not an
     audit trail. A real `ActivityLog` table remains a separately approved additive feature.
   - **Site Settings** — the `SiteSettings` singleton table has existed since Phase 0. `/admin/about`
     now edits its structured `aboutPage` JSON while `/admin/settings` owns identity/contact fields.
     Public `/about` reads through `lib/db/queries/about.ts` and uses version-controlled defaults on
-    an ordinary runtime read failure; strict builds still fail. Home-page stat counters remain
-    intentionally static.
+    an ordinary runtime read failure; strict builds still fail. Home-page stat counters and
+    Recent Activity are database-backed published-content reads.
 
 ## 6. Folder structure
 
@@ -406,7 +417,7 @@ auth.ts          Auth.js config
    layers.
 6. **Public runtime reads may fail open; production build reads must fail closed.**
    `lib/db/read-policy.ts` is the shared policy boundary. It retries only confirmed transient,
-   idempotent read failures (P1017/connection-closed signatures), at most three total attempts
+   idempotent read failures (P1001 reachability, P1017/connection-closed signatures), at most three total attempts
    with short exponential backoff and jitter. Normal runtime may then return the caller's
    `[]`/`undefined`/Settings fallback. With `STRICT_BUILD_DATA=1`, the same exhausted or permanent
    error is rethrown. `npm run build` always enables strict mode and runs `verify:build-data`
@@ -483,12 +494,10 @@ auth.ts          Auth.js config
     diagnostics. `npm run migrate:content` is dry-run by default; `--write` backs up affected rows,
     validates deterministic normalization, and updates only affected records transactionally.
 16. **Dashboard pages call one server-only service, not Prisma directly.**
-    `lib/services/dashboard-service.ts` composes focused count, grouping, recent-record, attention,
-    and health queries in parallel. Each panel is a typed success/failure section, so an optional
-    panel can fail without becoming a fake zero or taking down successful panels. The dedicated
-    `SELECT 1` health probe distinguishes Connected, Degraded, and Unavailable without exposing a
-    database host. Metrics use counts/groupings rather than loading full collections, and Recently
-    Updated is capped before merging.
+    `lib/services/dashboard-service.ts` composes exactly four focused counts (Projects, Labs,
+    Articles, Certificates) and limited recent-record reads in parallel. The two sections retain
+    typed success/failure results, so a failed query is not presented as a fake zero. “Recent
+    Activity” is a timestamp-derived view of real CMS records, not a persistent Activity Log.
 17. **Mutation revalidation comes from one typed target matrix.**
     `lib/revalidation-targets.ts` declares the admin, collection, detail, tag, root-layout/search,
     settings-consumer, and sitemap surfaces for each content type.

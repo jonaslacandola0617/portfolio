@@ -76,14 +76,12 @@ export interface Certification {
   id: string;
   name: string;
   issuer: string;
-  status: ContentStatus;
-  progressLabel: string;
-  progressPercent: number;
-  dateStarted: string;
+  dateStarted?: string;
   dateCompleted?: string;
   credentialUrl?: string;
   skills: string[];
   logo: string;
+  logoUrl?: string;
   content?: unknown;
 }
 
@@ -112,12 +110,4 @@ export interface NavItem {
   label: string;
   href: string;
   icon: string;
-}
-
-export interface GitHubActivity {
-  repo: string;
-  description: string;
-  language: string;
-  updatedAt: string;
-  url: string;
 }
