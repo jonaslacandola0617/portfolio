@@ -25,6 +25,7 @@ export const projectFormSchema = z.object({
   completionDate: z.string().min(1, "Completion date is required"),
   githubUrl: z.string().url().optional().or(z.literal("")),
   scheduledFor: z.string().optional().or(z.literal("")),
+  templateId: z.enum(["project-blank", "project-web", "project-software", "project-networking", "project-cybersecurity", "project-migration"]).default("project-blank"),
 });
 
 export type ProjectFormValues = z.infer<typeof projectFormSchema>;

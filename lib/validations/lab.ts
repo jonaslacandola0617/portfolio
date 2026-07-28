@@ -15,6 +15,7 @@ export const labFormSchema = z.object({
   tags: z.array(z.string().min(1)).default([]),
   labDate: z.string().min(1, "Lab date is required"),
   scheduledFor: z.string().optional().or(z.literal("")),
+  templateId: z.enum(["lab-blank", "lab-networking", "lab-cybersecurity", "lab-troubleshooting", "lab-packet-analysis"]).default("lab-blank"),
 });
 
 export type LabFormValues = z.infer<typeof labFormSchema>;

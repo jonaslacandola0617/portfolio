@@ -3,13 +3,14 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ProjectForm } from "@/components/admin/project-form";
 import { getProjectForEdit } from "@/lib/services/project-admin-service";
+import { getAllMedia } from "@/lib/services/media-admin-service";
 
 export default async function EditProjectPage({ params }: { params: { id: string } }) {
-  const project = await getProjectForEdit(params.id);
+  const [project, media] = await Promise.all([getProjectForEdit(params.id), getAllMedia()]);
   if (!project) notFound();
 
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10 md:px-10">
+    <div className="mx-auto max-w-[1600px] px-4 py-8 md:px-8">
       <Link
         href="/admin/projects"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
@@ -19,6 +20,7 @@ export default async function EditProjectPage({ params }: { params: { id: string
       <h1 className="mb-6 font-display text-2xl font-semibold text-foreground">{project.title}</h1>
       <ProjectForm
         mode="edit"
+        media={media}
         project={{
           id: project.id,
           title: project.title,

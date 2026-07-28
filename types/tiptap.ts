@@ -181,6 +181,30 @@ export interface TipTapMermaidNode {
   attrs: { chart: string };
 }
 
+export interface TipTapMediaImageNode {
+  type: "mediaImage";
+  attrs: {
+    mediaId: string;
+    src: string;
+    alt: string;
+    caption?: string | null;
+    alignment: "left" | "center" | "right" | "wide";
+    size: "small" | "medium" | "large" | "full";
+  };
+}
+
+export interface TipTapMediaAttachmentNode {
+  type: "mediaAttachment";
+  attrs: {
+    mediaId: string;
+    url: string;
+    displayName: string;
+    description?: string | null;
+    fileType: "VIDEO" | "PACKET_TRACER" | "PCAP" | "PDF" | "ZIP" | "OTHER";
+    fileSize: number;
+  };
+}
+
 export type TipTapInlineNode = TipTapTextNode | TipTapHardBreakNode;
 
 export type TipTapBlockNode =
@@ -194,6 +218,8 @@ export type TipTapBlockNode =
   | TipTapCalloutNode
   | TipTapCommandBlockNode
   | TipTapMermaidNode
+  | TipTapMediaImageNode
+  | TipTapMediaAttachmentNode
   | TipTapTableNode
   | TipTapTaskListNode;
 

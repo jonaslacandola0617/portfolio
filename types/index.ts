@@ -5,7 +5,9 @@ export type ContentStatus = "completed" | "in-progress" | "planned";
 export interface DownloadLink {
   label: string;
   href: string;
-  type: "packet-tracer" | "config" | "github" | "pdf" | "other";
+  type: "packet-tracer" | "pcap" | "config" | "github" | "pdf" | "zip" | "other";
+  description?: string;
+  size?: number;
 }
 
 export interface ProjectFrontmatter {
@@ -36,6 +38,7 @@ export interface LabFrontmatter {
   difficulty: Difficulty;
   tags: string[];
   category: string;
+  downloads?: DownloadLink[];
 }
 
 export interface ArticleFrontmatter {

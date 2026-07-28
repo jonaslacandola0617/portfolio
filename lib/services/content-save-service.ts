@@ -6,6 +6,7 @@ import { saveContentPayloadSchema } from "@/lib/validations/content";
 import { diagnoseTipTapDocument } from "@/lib/content-diagnostics";
 import type { SaveContentPayload, SaveResult } from "@/types/admin";
 import type { TipTapDoc } from "@/types/tiptap";
+import { validateContentMediaReferences } from "@/lib/services/content-media-service";
 
 type ContentType = "project" | "lab" | "article" | "certificate";
 
@@ -58,6 +59,24 @@ export async function saveEditorContent(
       code: "VALIDATION_ERROR",
       message: `The editor content is invalid at ${diagnostic.path}: ${diagnostic.reason}.`,
       revision: input?.clientRevision,
+    };
+  }
+
+  try {
+    await validateContentMediaReferences(parsed.data.content as TipTapDoc);
+  } catch (error) {
+    console.error(`[admin:${contentType}:autosave] media validation failed`, {
+      contentType,
+      recordId: parsed.data.id,
+      operation: "autosave",
+      validationStage: "media-reference",
+      message: error instanceof Error ? error.message : "Unknown media validation failure",
+    });
+    return {
+      success: false,
+      code: "VALIDATION_ERROR",
+      message: "One or more inserted Media Library items are no longer valid.",
+      revision: parsed.data.clientRevision,
     };
   }
 

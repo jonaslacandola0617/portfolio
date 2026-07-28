@@ -13,6 +13,9 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
+import { TaxonomyMultiCombobox } from "@/components/admin/taxonomy-combobox";
+import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
+import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import {
   createCertificateAction,
   updateCertificateAction,
@@ -22,6 +25,7 @@ import {
 
 interface CertificateFormProps {
   mode: "create" | "edit";
+  media?: AdminMediaItem[];
   certificate?: {
     id: string;
     name: string;
@@ -46,7 +50,7 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
 }
 
-export function CertificateForm({ mode, certificate }: CertificateFormProps) {
+export function CertificateForm({ mode, certificate, media = [] }: CertificateFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
@@ -63,7 +67,7 @@ export function CertificateForm({ mode, certificate }: CertificateFormProps) {
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <div className="space-y-8">
+    <AuthoringWorkspace enabled={mode === "edit"} storageKey="cms:certificate:inspector">
       <form onSubmit={editorForm.onSubmit} className="space-y-6">
         {justCreated && <FormMessage variant="success">Certificate created — autosave is on below.</FormMessage>}
 
@@ -136,8 +140,8 @@ export function CertificateForm({ mode, certificate }: CertificateFormProps) {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="skills">Skills learned (comma-separated)</Label>
-                <Input id="skills" name="skills" defaultValue={certificate?.skills.join(", ")} />
+                <Label>Skills learned</Label>
+                <TaxonomyMultiCombobox name="skills" kind="skill" label="Skills learned" defaultValues={certificate?.skills} />
               </div>
               <div>
                 <Label htmlFor="credentialUrl">Credential URL</Label>
@@ -160,7 +164,7 @@ export function CertificateForm({ mode, certificate }: CertificateFormProps) {
           </CardContent>
         </Card>
 
-        <div className="space-y-3">
+        <div className="sticky bottom-0 z-10 space-y-3 border-t border-border bg-card/95 py-3 backdrop-blur">
           {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
           {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
           {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
@@ -197,6 +201,7 @@ export function CertificateForm({ mode, certificate }: CertificateFormProps) {
             contentType="certificate"
             onSave={autosaveCertificateContentAction}
             onReady={editorForm.registerEditor}
+            media={media}
           />
         </div>
       )}
@@ -204,6 +209,6 @@ export function CertificateForm({ mode, certificate }: CertificateFormProps) {
       {mode === "create" && (
         <p className="text-sm text-muted-foreground">Save the certificate first to add an optional longer write-up.</p>
       )}
-    </div>
+    </AuthoringWorkspace>
   );
 }

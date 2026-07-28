@@ -24,7 +24,19 @@ import { PrismaClient } from "@prisma/client";
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function createPrismaClient(): PrismaClient {
+  let databaseUrl = process.env.DATABASE_URL;
+  if (databaseUrl && process.env.STRICT_BUILD_DATA === "1") {
+    const url = new URL(databaseUrl);
+    if (!url.searchParams.has("connection_limit")) {
+      url.searchParams.set("connection_limit", "5");
+    }
+    if (!url.searchParams.has("pool_timeout")) {
+      url.searchParams.set("pool_timeout", "30");
+    }
+    databaseUrl = url.toString();
+  }
   return new PrismaClient({
+    ...(databaseUrl ? { datasources: { db: { url: databaseUrl } } } : {}),
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
   });
 }

@@ -19,8 +19,15 @@ import {
   Undo2,
   Redo2,
   Info,
+  ImagePlus,
+  Paperclip,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { MediaPickerDialog, type MediaAttachmentInsert, type MediaImageInsert } from "@/components/editor/media-picker-dialog";
+import type { AdminMediaItem } from "@/lib/services/media-admin-service";
+import { useState } from "react";
+import { EditorTemplateDialog } from "@/components/editor/editor-template-dialog";
+import type { ContentTemplate, TemplateContentType } from "@/lib/editor/templates";
 
 function ToolbarButton({
   onClick,
@@ -56,7 +63,18 @@ function Divider() {
   return <div className="mx-1 h-5 w-px bg-border" />;
 }
 
-export function EditorToolbar({ editor }: { editor: Editor | null }) {
+export function EditorToolbar({
+  editor,
+  media = [],
+  contentType,
+  onApplyTemplate,
+}: {
+  editor: Editor | null;
+  media?: AdminMediaItem[];
+  contentType?: TemplateContentType;
+  onApplyTemplate?: (template: ContentTemplate) => void;
+}) {
+  const [picker, setPicker] = useState<"image" | "attachment" | null>(null);
   if (!editor) return null;
 
   const setLink = () => {
@@ -68,6 +86,21 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
       return;
     }
     editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
+  };
+
+  const insertImage = (attrs: MediaImageInsert) => {
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(editor.state.selection.to, { type: "mediaImage", attrs })
+      .run();
+  };
+  const insertAttachment = (attrs: MediaAttachmentInsert) => {
+    editor
+      .chain()
+      .focus()
+      .insertContentAt(editor.state.selection.to, { type: "mediaAttachment", attrs })
+      .run();
   };
 
   return (
@@ -150,6 +183,12 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
       >
         <Waypoints className="h-4 w-4" />
       </ToolbarButton>
+      <ToolbarButton label="Insert image" onClick={() => setPicker("image")}>
+        <ImagePlus className="h-4 w-4" />
+      </ToolbarButton>
+      <ToolbarButton label="Insert downloadable file" onClick={() => setPicker("attachment")}>
+        <Paperclip className="h-4 w-4" />
+      </ToolbarButton>
       <ToolbarButton label="Horizontal rule" onClick={() => editor.chain().focus().setHorizontalRule().run()}>
         <Minus className="h-4 w-4" />
       </ToolbarButton>
@@ -162,6 +201,21 @@ export function EditorToolbar({ editor }: { editor: Editor | null }) {
       <ToolbarButton label="Redo" disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()}>
         <Redo2 className="h-4 w-4" />
       </ToolbarButton>
+      {contentType && onApplyTemplate && (
+        <EditorTemplateDialog
+          contentType={contentType}
+          hasContent={!editor.isEmpty}
+          onApply={onApplyTemplate}
+        />
+      )}
+      <MediaPickerDialog
+        open={picker !== null}
+        mode={picker ?? "image"}
+        initialMedia={media}
+        onOpenChange={(open) => { if (!open) setPicker(null); }}
+        onInsertImage={insertImage}
+        onInsertAttachment={insertAttachment}
+      />
     </div>
   );
 }

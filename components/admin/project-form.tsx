@@ -14,6 +14,11 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
+import { TaxonomyCombobox, TaxonomyMultiCombobox } from "@/components/admin/taxonomy-combobox";
+import { TemplateSelector } from "@/components/admin/template-selector";
+import { projectTemplates } from "@/lib/editor/templates";
+import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
+import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import {
   createProjectAction,
   updateProjectAction,
@@ -23,6 +28,7 @@ import {
 
 interface ProjectFormProps {
   mode: "create" | "edit";
+  media?: AdminMediaItem[];
   project?: {
     id: string;
     title: string;
@@ -48,7 +54,7 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
 }
 
-export function ProjectForm({ mode, project }: ProjectFormProps) {
+export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
@@ -65,7 +71,7 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <div className="space-y-8">
+    <AuthoringWorkspace enabled={mode === "edit"} storageKey="cms:project:inspector">
       <form onSubmit={editorForm.onSubmit} className="space-y-6">
         {justCreated && <FormMessage variant="success">Project created — autosave is on below.</FormMessage>}
 
@@ -111,7 +117,7 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Input id="category" name="category" defaultValue={project?.category} required />
+                <TaxonomyCombobox name="category" kind="category" label="Category" defaultValue={project?.category} required />
                 <FieldError errors={state.errors?.category} />
               </div>
               <div>
@@ -144,12 +150,12 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
 
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
-                <Label htmlFor="tags">Tags (comma-separated)</Label>
-                <Input id="tags" name="tags" defaultValue={project?.tags.join(", ")} />
+                <Label>Tags</Label>
+                <TaxonomyMultiCombobox name="tags" kind="tag" label="Tags" defaultValues={project?.tags} />
               </div>
               <div>
-                <Label htmlFor="skills">Skills (comma-separated)</Label>
-                <Input id="skills" name="skills" defaultValue={project?.skills.join(", ")} />
+                <Label>Skills</Label>
+                <TaxonomyMultiCombobox name="skills" kind="skill" label="Skills" defaultValues={project?.skills} />
               </div>
               <div>
                 <Label htmlFor="technologies">Technologies (comma-separated)</Label>
@@ -200,7 +206,9 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
           </CardContent>
         </Card>
 
-        <div className="space-y-3">
+        {mode === "create" && <TemplateSelector templates={projectTemplates} />}
+
+        <div className="sticky bottom-0 z-10 space-y-3 border-t border-border bg-card/95 py-3 backdrop-blur">
           {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
           {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
           {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
@@ -240,6 +248,7 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
             contentType="project"
             onSave={autosaveProjectContentAction}
             onReady={editorForm.registerEditor}
+            media={media}
           />
         </div>
       )}
@@ -249,6 +258,6 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
           Save the project first — the content editor opens once it has an id to autosave against.
         </p>
       )}
-    </div>
+    </AuthoringWorkspace>
   );
 }

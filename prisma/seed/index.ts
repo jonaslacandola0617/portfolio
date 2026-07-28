@@ -10,6 +10,8 @@ import { certifications } from "@/lib/data/certifications";
 import { timelineEntries } from "@/lib/data/timeline";
 import { slugify } from "@/lib/utils";
 import { seedCmsShowcaseProject } from "./cms-showcase";
+import { siteConfig } from "@/lib/site-config";
+import { defaultAboutPage } from "@/lib/about-defaults";
 
 const prisma = new PrismaClient();
 
@@ -354,6 +356,26 @@ async function seedSkills() {
   }
 }
 
+async function seedSiteSettings() {
+  await prisma.siteSettings.upsert({
+    where: { id: "singleton" },
+    create: {
+      id: "singleton",
+      name: siteConfig.name,
+      role: siteConfig.role,
+      tagline: siteConfig.tagline,
+      email: siteConfig.email,
+      githubUrl: siteConfig.social.github,
+      linkedinUrl: siteConfig.social.linkedin,
+      resumeUrl: siteConfig.resumeUrl,
+      currentlyLearning: toPrismaJson([...siteConfig.currentlyLearning]),
+      aboutPage: toPrismaJson(defaultAboutPage),
+    },
+    update: {},
+  });
+  console.log("  ✓ SiteSettings singleton");
+}
+
 async function main() {
   await seedProjects();
   const showcase = await seedCmsShowcaseProject(prisma);
@@ -364,6 +386,7 @@ async function main() {
   await seedCertificates();
   await reconcileProjectCertificates();
   await seedTimeline();
+  await seedSiteSettings();
   console.log("\nDone.\n");
 }
 

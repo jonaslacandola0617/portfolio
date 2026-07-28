@@ -29,6 +29,10 @@ function extractText(node: TipTapBlockNode): string {
         .join(" ");
     case "taskList":
       return node.content.map((item) => item.content.map(extractText).join(" ")).join(" ");
+    case "mediaImage":
+      return node.attrs.caption ?? node.attrs.alt;
+    case "mediaAttachment":
+      return `${node.attrs.displayName} ${node.attrs.description ?? ""}`;
     case "mermaid":
     case "horizontalRule":
       return "";

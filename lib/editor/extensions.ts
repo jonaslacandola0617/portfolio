@@ -10,6 +10,7 @@ import Placeholder from "@tiptap/extension-placeholder";
 import { CalloutExtension } from "./extensions/callout";
 import { CommandBlockExtension } from "./extensions/command-block";
 import { MermaidExtension } from "./extensions/mermaid";
+import { MediaAttachmentExtension, MediaImageExtension } from "./extensions/media";
 
 /**
  * The runtime counterpart to types/tiptap.ts + lib/validations/content.ts.
@@ -78,5 +79,7 @@ export function getEditorExtensions() {
     CalloutExtension,
     CommandBlockExtension,
     MermaidExtension,
+    MediaImageExtension,
+    MediaAttachmentExtension,
   ];
 }

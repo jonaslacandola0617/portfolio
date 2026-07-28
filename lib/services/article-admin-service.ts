@@ -5,7 +5,7 @@ import { slugify } from "@/lib/utils";
 import type { ArticleFormValues } from "@/lib/validations/article";
 import type { TipTapDoc } from "@/types/tiptap";
 
-import { articleTemplate } from "@/lib/editor/templates";
+import { getTemplateDocument } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
 import { revalidateContent } from "@/lib/services/content-revalidation";
 
@@ -71,7 +71,7 @@ export async function createArticle(fm: ArticleFormValues) {
       date: new Date(fm.date),
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
-      content: toPrismaJson(articleTemplate),
+      content: toPrismaJson(getTemplateDocument(fm.templateId, "article")),
       ...relationInput(fm),
     },
   });

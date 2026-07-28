@@ -30,7 +30,7 @@ const collectionTargets: Record<RevalidationContentType, RevalidationTarget[]> =
   timeline: [{ path: "/admin" }, { path: "/admin/timeline" }, { path: "/timeline" }],
   skill: [{ path: "/admin" }, { path: "/admin/skills" }, { path: "/skills" }, { path: "/projects" }],
   settings: [
-    { path: "/admin/settings" }, { path: "/" }, { path: "/about" }, { path: "/contact" },
+    { path: "/admin/settings" }, { path: "/admin/about" }, { path: "/" }, { path: "/about" }, { path: "/contact" },
     { path: "/resume" }, { path: "/", type: "layout" },
   ],
   media: [{ path: "/admin/media" }],

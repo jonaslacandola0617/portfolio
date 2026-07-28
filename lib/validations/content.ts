@@ -83,6 +83,30 @@ const mermaidNodeSchema = z.object({
   attrs: z.object({ chart: z.string() }),
 });
 
+const mediaImageNodeSchema = z.object({
+  type: z.literal("mediaImage"),
+  attrs: z.object({
+    mediaId: z.string().min(1).max(128),
+    src: z.string().url(),
+    alt: z.string().trim().min(1, "Image alternative text is required").max(300),
+    caption: z.string().max(500).nullable().optional(),
+    alignment: z.enum(["left", "center", "right", "wide"]),
+    size: z.enum(["small", "medium", "large", "full"]),
+  }),
+});
+
+const mediaAttachmentNodeSchema = z.object({
+  type: z.literal("mediaAttachment"),
+  attrs: z.object({
+    mediaId: z.string().min(1).max(128),
+    url: z.string().url(),
+    displayName: z.string().trim().min(1).max(200),
+    description: z.string().max(500).nullable().optional(),
+    fileType: z.enum(["VIDEO", "PACKET_TRACER", "PCAP", "PDF", "ZIP", "OTHER"]),
+    fileSize: z.number().int().positive().max(1_000_000_000),
+  }),
+});
+
 /** Real attrs confirmed against the installed @tiptap/extension-table —
  *  TipTap always fills these in with defaults on getJSON(), but `.default()`
  *  on each field (and on the attrs object itself) also accepts older
@@ -139,6 +163,8 @@ const blockNodeSchema: z.ZodType<any> = z.lazy(() =>
     calloutNodeSchema,
     commandBlockNodeSchema,
     mermaidNodeSchema,
+    mediaImageNodeSchema,
+    mediaAttachmentNodeSchema,
     tableNodeSchema,
     taskListNodeSchema,
   ])

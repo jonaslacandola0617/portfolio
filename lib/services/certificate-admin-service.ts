@@ -7,6 +7,7 @@ import type { TipTapDoc } from "@/types/tiptap";
 import { emptyTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
 import { revalidateContent } from "@/lib/services/content-revalidation";
+import { skillRelationInput } from "@/lib/services/skill-relations";
 
 interface AdminCertificateListItem {
   id: string;
@@ -34,15 +35,6 @@ interface AdminCertificateDetail {
   scheduledFor: Date | null;
 }
 
-function skillsInput(fm: CertificateFormValues) {
-  return {
-    connectOrCreate: fm.skills.map((skill) => ({
-      where: { name: skill },
-      create: { name: skill, group: "Cybersecurity", level: "practiced" },
-    })),
-  };
-}
-
 export async function getAllCertificatesForAdmin(): Promise<AdminCertificateListItem[]> {
   return prisma.certificate.findMany({ orderBy: { updatedAt: "desc" } }) as Promise<
     AdminCertificateListItem[]
@@ -57,6 +49,7 @@ export async function getCertificateForEdit(id: string): Promise<AdminCertificat
 }
 
 export async function createCertificate(fm: CertificateFormValues) {
+  const skills = await skillRelationInput(fm.skills, { group: "Cybersecurity", level: "practiced" });
   const cert = await prisma.certificate.create({
     data: {
       name: fm.name,
@@ -73,7 +66,7 @@ export async function createCertificate(fm: CertificateFormValues) {
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
       content: toPrismaJson(emptyTemplate),
-      skills: skillsInput(fm),
+      skills,
     },
   });
   revalidateContent("certificate");
@@ -82,6 +75,7 @@ export async function createCertificate(fm: CertificateFormValues) {
 
 export async function updateCertificateMetadata(id: string, fm: CertificateFormValues) {
   const existing = await prisma.certificate.findUnique({ where: { id }, select: { publishStatus: true } });
+  const skills = await skillRelationInput(fm.skills, { group: "Cybersecurity", level: "practiced" });
 
   const cert = await prisma.certificate.update({
     where: { id },
@@ -101,7 +95,7 @@ export async function updateCertificateMetadata(id: string, fm: CertificateFormV
       ...(fm.publishStatus === "PUBLISHED" && existing?.publishStatus !== "PUBLISHED"
         ? { publishedAt: new Date() }
         : {}),
-      skills: { set: [], ...skillsInput(fm) },
+      skills: { set: [], ...skills },
     },
   });
 

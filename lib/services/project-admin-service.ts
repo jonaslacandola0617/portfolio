@@ -5,9 +5,10 @@ import { slugify } from "@/lib/utils";
 import type { ProjectFormValues } from "@/lib/validations/project";
 import type { TipTapDoc } from "@/types/tiptap";
 
-import { projectTemplate } from "@/lib/editor/templates";
+import { getTemplateDocument } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
 import { revalidateContent } from "@/lib/services/content-revalidation";
+import { skillRelationInput } from "@/lib/services/skill-relations";
 
 /**
  * Hand-written, same reasoning as lib/db/queries/projects.ts's
@@ -51,7 +52,7 @@ interface AdminProjectDetail {
  * which the query layer's contract explicitly doesn't.
  */
 
-function relationInput(fm: ProjectFormValues) {
+async function relationInput(fm: ProjectFormValues) {
   return {
     category: {
       connectOrCreate: {
@@ -65,12 +66,7 @@ function relationInput(fm: ProjectFormValues) {
         create: { name: tag, slug: slugify(tag) },
       })),
     },
-    skills: {
-      connectOrCreate: fm.skills.map((skill) => ({
-        where: { name: skill },
-        create: { name: skill, group: "Networking", level: "practiced" },
-      })),
-    },
+    skills: await skillRelationInput(fm.skills, { group: "Networking", level: "practiced" }),
   };
 }
 
@@ -89,6 +85,7 @@ export async function getProjectForEdit(id: string): Promise<AdminProjectDetail 
 }
 
 export async function createProject(fm: ProjectFormValues) {
+  const relations = await relationInput(fm);
   const project = await prisma.project.create({
     data: {
       title: fm.title,
@@ -103,8 +100,8 @@ export async function createProject(fm: ProjectFormValues) {
       githubUrl: fm.githubUrl || null,
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
-      content: toPrismaJson(projectTemplate),
-      ...relationInput(fm),
+      content: toPrismaJson(getTemplateDocument(fm.templateId, "project")),
+      ...relations,
     },
   });
 
@@ -114,6 +111,7 @@ export async function createProject(fm: ProjectFormValues) {
 
 export async function updateProjectMetadata(id: string, fm: ProjectFormValues) {
   const existing = await prisma.project.findUnique({ where: { id }, select: { slug: true, publishStatus: true } });
+  const relations = await relationInput(fm);
 
   const project = await prisma.project.update({
     where: { id },
@@ -136,9 +134,9 @@ export async function updateProjectMetadata(id: string, fm: ProjectFormValues) {
       ...(fm.publishStatus === "PUBLISHED" && existing?.publishStatus !== "PUBLISHED"
         ? { publishedAt: new Date() }
         : {}),
-      category: relationInput(fm).category,
-      tags: { set: [], ...relationInput(fm).tags },
-      skills: { set: [], ...relationInput(fm).skills },
+      category: relations.category,
+      tags: { set: [], ...relations.tags },
+      skills: { set: [], ...relations.skills },
     },
   });
 

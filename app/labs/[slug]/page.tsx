@@ -11,6 +11,7 @@ import { StatusBadge, DifficultyBadge } from "@/components/shared/status-badges"
 import { Badge } from "@/components/ui/badge";
 import { getAllLabSlugs, getAllLabs, getLabBySlug } from "@/lib/content";
 import { formatDate } from "@/lib/utils";
+import { DownloadCard } from "@/components/shared/download-card";
 
 export async function generateStaticParams() {
   const slugs = await getAllLabSlugs();
@@ -78,6 +79,16 @@ export default async function LabPage({ params }: { params: { slug: string } }) 
                 }}
               />
             </div>
+
+            {frontmatter.downloads && frontmatter.downloads.length > 0 && (
+              <section className="mt-10 border-t border-border pt-8">
+                <h2 className="font-display text-lg font-semibold text-foreground">Lab Resources</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Download the files used in this lab.</p>
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {frontmatter.downloads.map((download) => <DownloadCard key={`${download.href}-${download.label}`} item={download} />)}
+                </div>
+              </section>
+            )}
 
             <RelatedContent
               title="Related Labs"

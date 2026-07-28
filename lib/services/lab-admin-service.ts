@@ -5,7 +5,7 @@ import { slugify } from "@/lib/utils";
 import type { LabFormValues } from "@/lib/validations/lab";
 import type { TipTapDoc } from "@/types/tiptap";
 
-import { labTemplate } from "@/lib/editor/templates";
+import { getTemplateDocument } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
 import { revalidateContent } from "@/lib/services/content-revalidation";
 
@@ -33,6 +33,14 @@ interface AdminLabDetail {
   tags: { name: string }[];
   labDate: Date;
   scheduledFor: Date | null;
+  downloads: {
+    id: string;
+    label: string;
+    description: string | null;
+    sortOrder: number;
+    mediaId: string | null;
+    media: { id: string; url: string; filename: string; type: string; size: number } | null;
+  }[];
 }
 
 function relationInput(fm: LabFormValues) {
@@ -54,7 +62,11 @@ function relationInput(fm: LabFormValues) {
 
 export async function getAllLabsForAdmin(): Promise<AdminLabListItem[]> {
   return prisma.lab.findMany({
-    include: { category: true, tags: true },
+    include: {
+      category: true,
+      tags: true,
+      downloads: { include: { media: true }, orderBy: { sortOrder: "asc" } },
+    },
     orderBy: { updatedAt: "desc" },
   }) as Promise<AdminLabListItem[]>;
 }
@@ -62,7 +74,14 @@ export async function getAllLabsForAdmin(): Promise<AdminLabListItem[]> {
 export async function getLabForEdit(id: string): Promise<AdminLabDetail | null> {
   return prisma.lab.findUnique({
     where: { id },
-    include: { category: true, tags: true },
+    include: {
+      category: true,
+      tags: true,
+      downloads: {
+        include: { media: true },
+        orderBy: { sortOrder: "asc" },
+      },
+    },
   }) as Promise<AdminLabDetail | null>;
 }
 
@@ -78,7 +97,7 @@ export async function createLab(fm: LabFormValues) {
       labDate: new Date(fm.labDate),
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
-      content: toPrismaJson(labTemplate),
+      content: toPrismaJson(getTemplateDocument(fm.templateId, "lab")),
       ...relationInput(fm),
     },
   });
@@ -121,6 +140,47 @@ export async function updateLabContent(id: string, content: TipTapDoc) {
   if (lab.publishStatus === "PUBLISHED") revalidateContent("lab", [lab.slug]);
   const readBack = await prisma.lab.findUnique({ where: { id }, select: { content: true } });
   return readBack?.content;
+}
+
+export async function updateLabResources(
+  labId: string,
+  resources: Array<{ mediaId: string; label: string; description: string; sortOrder: number }>
+) {
+  const lab = await prisma.lab.findUnique({ where: { id: labId }, select: { slug: true } });
+  if (!lab) throw new Error("Lab not found");
+  const ids = [...new Set(resources.map((resource) => resource.mediaId))];
+  const media = await prisma.media.findMany({
+    where: { id: { in: ids }, type: { not: "IMAGE" } },
+    select: { id: true, url: true, type: true },
+  });
+  if (media.length !== ids.length) throw new Error("One or more selected resources are invalid.");
+  const byId = new Map(media.map((item) => [item.id, item]));
+  await prisma.$transaction(async (tx) => {
+    await tx.download.deleteMany({ where: { labId } });
+    if (resources.length) {
+      await tx.download.createMany({
+        data: resources.map((resource) => {
+          const item = byId.get(resource.mediaId)!;
+          const type =
+            item.type === "PACKET_TRACER" ? "packet-tracer" :
+            item.type === "PCAP" ? "pcap" :
+            item.type === "PDF" ? "pdf" :
+            item.type === "ZIP" ? "zip" :
+            item.type === "OTHER" ? "config" : "other";
+          return {
+            labId,
+            mediaId: item.id,
+            label: resource.label,
+            description: resource.description || null,
+            sortOrder: resource.sortOrder,
+            url: item.url,
+            type,
+          };
+        }),
+      });
+    }
+  });
+  revalidateContent("lab", [lab.slug]);
 }
 
 export async function deleteLab(id: string) {

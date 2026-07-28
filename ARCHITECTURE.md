@@ -5,8 +5,9 @@ transition plan and history; this document is the current-and-target architectur
 implement. Phase reports (`docs/PHASE_0_REPORT.md`, `docs/PHASE_1_REPORT.md`, ...) are the
 execution log of what actually happened at each step.
 
-**Status: Phase 6 complete
-(July 28, 2026 — see `docs/PHASE_6_REPORT.md`).** Media
+**Status: Phase 6 complete; post-Phase-6 production-audit enhancements implemented
+(July 28, 2026 — see `docs/PHASE_6_REPORT.md` and
+`docs/POST_PHASE_6_PRODUCTION_AUDIT_IMPLEMENTATION_REPORT.md`).** Media
 Library (Vercel Blob), content templates, admin search, and a live Settings screen are all built on
 top of the full CRUD from Phase 4. The public site now reads identity/contact fields (name, role,
 tagline, email, social links, resume path, "Currently Learning") from the database via
@@ -219,6 +220,9 @@ Full schema: `prisma/schema.prisma`. Summary of the decisions that aren't obviou
 - **Neon URL roles are explicit.** `DATABASE_URL` is the pooled `-pooler` endpoint used by Prisma
   Client; `DIRECT_URL` is the distinct unpooled endpoint used by Prisma schema/migration tooling.
   Both require SSL. `lib/db.ts` still creates one lazy global Prisma Client per Node process.
+  Strict static generation adds a build-only `connection_limit=5`/`pool_timeout=30`, and Next's build worker count is
+  bounded to one, preventing parallel prerender workers from exhausting a small Neon compute. This
+  does not change the pooled runtime URL or direct migration role.
 - **`Tag`/`Category`/`Skill` are shared taxonomy tables**, not per-content-type — `Tag` and
   `Skill` are many-to-many with every content type that uses them; `Category` is one-per-item,
   matching the current MDX frontmatter's cardinality exactly.
@@ -226,7 +230,12 @@ Full schema: `prisma/schema.prisma`. Summary of the decisions that aren't obviou
   display name and only matching published Project/Lab/Article title/slug summaries. Static tag
   generation no longer loads every full collection once per tag.
 - **`Media` is one table**, not separate `Image`/`Media` models — an upload's `type` enum is the
-  only real difference; one table is simpler to query for a Media Library grid.
+  only real difference. TipTap `mediaImage` and `mediaAttachment` nodes retain the Media id plus
+  rendering metadata; every save verifies id, URL, size, and type against the Media row. Media
+  deletion scans thumbnails, Downloads, and editor JSON so referenced files cannot be removed.
+- **`Download` has explicit optional Project and Lab owners.** This is an additive pair of nullable
+  foreign keys, not an uncontrolled polymorphic owner column. Removing a Lab resource deletes
+  only the association; the shared Media row and Blob remain.
 - **`Certificate.slug` is separate from its `id`** — the original static data used a readable id
   like `"ccna"` as a stable cross-reference from `Project.relatedCertification`; cuid()s aren't
   suitable for that, so `slug` carries the same role `id` used to. `id`/`slug` splits like this
@@ -255,11 +264,11 @@ Full schema: `prisma/schema.prisma`. Summary of the decisions that aren't obviou
     dashboard deliberately does not present it as implemented. Its “Recently Updated Content”
     panel is derived only from real `updatedAt` columns and is labeled accordingly; it is not an
     audit trail. A real `ActivityLog` table remains a separately approved additive feature.
-  - **Site Settings** — the `SiteSettings` singleton table has existed since Phase 0; the editor
-    screen for it (`/admin/settings`) is real as of Phase 5, and the public site actually reads
-    from it now (§2, §3's sibling note). What's still not built: any UI to edit
-    `siteConfig.currentFocusStack`/`.stats` (the About-page focus badges and home-page stat
-    counters) — deliberately left static, see `docs/PHASE_5_REPORT.md` §2.
+  - **Site Settings** — the `SiteSettings` singleton table has existed since Phase 0. `/admin/about`
+    now edits its structured `aboutPage` JSON while `/admin/settings` owns identity/contact fields.
+    Public `/about` reads through `lib/db/queries/about.ts` and uses version-controlled defaults on
+    an ordinary runtime read failure; strict builds still fail. Home-page stat counters remain
+    intentionally static.
 
 ## 6. Folder structure
 
@@ -460,14 +469,11 @@ auth.ts          Auth.js config
     result, and revalidates its affected routes. Bulk delete
     (`components/admin/management-list.tsx` + each service's `deleteXs(ids)`) follows the same
     result-returning shape and transactional service behavior.
-13. **Loading boundaries match the destination route.** The admin segment keeps a dashboard-shaped
-    root fallback, while list, rich editor, structured form, media, and Settings routes define
-    small `loading.tsx` files that select the appropriate reusable skeleton. Public project, lab,
-    journal, certification, and tag routes similarly choose list- or detail-shaped fallbacks.
-    Layouts remain mounted, so navigation and the admin sidebar do not disappear. A client wrapper
-    in the admin content area provides a two-pixel progress line immediately after internal link
-    clicks; route Suspense remains the source of truth for actual loading. `error.tsx` remains a
-    Client Component inside the admin layout and exposes safe Retry / Return to dashboard actions.
+13. **There are no route-level loading or skeleton pages.** The owner rejected the Phase 6
+    skeleton system, so all `loading.tsx` files, route-only skeleton components, and the navigation
+    progress wrapper were removed. Normal App Router navigation keeps the current page visible
+    until the destination resolves. Mutation-local pending, upload, autosave, dialog, and error
+    feedback remains intact. Styled `error.tsx` boundaries remain.
 14. **Repeated identical public reads use React `cache()` only.** Collection, slug, Settings,
     Timeline, Skills, Certificate, and Tag query functions are request/render memoized by their
     arguments. There is no persistent data cache, so admin revalidation semantics are unchanged.
@@ -497,6 +503,25 @@ auth.ts          Auth.js config
 19. **The CMS showcase has a non-destructive seed.**
     `prisma/seed/cms-showcase.ts` creates the published showcase only when its stable slug is
     absent. A rerun never overwrites owner edits.
+20. **Long-form editing uses one authoring-workspace shell.**
+    `components/admin/authoring-workspace.tsx` docks a collapsible metadata inspector beside a
+    wide editor on desktop and presents it as a Radix Dialog/Sheet-style overlay on smaller
+    screens. Collapse state is session-scoped. Paragraphs retain a readable measure; tables,
+    media, diagrams, code, and attachments may use the wider canvas. The toolbar is sticky, and
+    revision-ordered autosave/manual-save behavior is unchanged.
+21. **Templates are typed code constants and require an explicit choice.**
+    `lib/editor/templates.ts` owns Blank plus five Project templates, Blank plus five Article
+    templates, and Blank plus four focused Lab templates. Creation submits a `templateId`; Blank
+    is the default. Preview does not insert, and applying a template to non-empty editor content
+    requires a custom confirmation dialog.
+22. **Taxonomy suggestions are focused authenticated reads.**
+    Category single-select and Tag/Skill multi-select comboboxes call a Zod-validated Server Action
+    with kind, search term, and limit. Queries are case-insensitive and bounded. Admin services
+    reuse normalized records so capitalization or whitespace cannot create parallel relations.
+23. **Admin navigation derives active state from the pathname.**
+    `components/admin/admin-nav.tsx` matches Dashboard exactly and nested management routes by
+    prefix, exposes exactly one `aria-current="page"`, and applies active styling to icon, label,
+    border, and background. Pages do not pass manual active keys.
 
 ## 8. Migration roadmap (condensed — full detail in `docs/CMS_MIGRATION_PLAN.md`)
 

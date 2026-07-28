@@ -8,12 +8,14 @@ import {
   updateLabContent,
   deleteLab,
   deleteLabs,
+  updateLabResources,
 } from "@/lib/services/lab-admin-service";
 import { labFormSchema } from "@/lib/validations/lab";
 import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
 import { saveEditorContent } from "@/lib/services/content-save-service";
 import type { ActionResult, SaveContentPayload, SaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
+import { labResourcesPayloadSchema, type LabResourcesPayload } from "@/lib/validations/lab-resources";
 
 function parseFormData(formData: FormData) {
   return {
@@ -27,6 +29,7 @@ function parseFormData(formData: FormData) {
     tags: (formData.get("tags") as string)?.split(",").map((t) => t.trim()).filter(Boolean) ?? [],
     labDate: formData.get("labDate"),
     scheduledFor: formData.get("scheduledFor") ?? "",
+    templateId: formData.get("templateId") ?? "lab-blank",
   };
 }
 
@@ -85,6 +88,28 @@ export async function updateLabAction(
 
 export async function autosaveLabContentAction(payload: SaveContentPayload): Promise<SaveResult> {
   return saveEditorContent("lab", payload, updateLabContent);
+}
+
+export async function updateLabResourcesAction(payload: LabResourcesPayload): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+  } catch {
+    return { success: false, code: "AUTH_ERROR", message: "Your admin session has expired." };
+  }
+  const parsed = labResourcesPayloadSchema.safeParse(payload);
+  if (!parsed.success) {
+    return { success: false, code: "VALIDATION_ERROR", message: "Review the selected Lab resources." };
+  }
+  try {
+    await updateLabResources(parsed.data.labId, parsed.data.resources);
+    return { success: true, message: "Lab resources saved." };
+  } catch (error) {
+    return classifyServiceError(error, {
+      operation: "update-resources",
+      contentType: "lab",
+      recordId: parsed.data.labId,
+    });
+  }
 }
 
 export async function deleteLabAction(id: string): Promise<DeleteResult> {

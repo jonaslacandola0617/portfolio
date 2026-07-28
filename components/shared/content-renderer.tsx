@@ -2,6 +2,8 @@ import { Callout } from "@/components/shared/callout";
 import { CommandBlock } from "@/components/shared/command-block";
 import { MermaidDiagram } from "@/components/shared/mermaid-diagram";
 import { CodeBlock } from "@/components/shared/code-block";
+import { MediaImage } from "@/components/shared/media-image";
+import { MediaAttachment } from "@/components/shared/media-attachment";
 import { validateTipTapDoc } from "@/lib/validations/content";
 import {
   diagnoseTipTapDocument,
@@ -118,6 +120,12 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
 
     case "mermaid":
       return <MermaidDiagram key={key} chart={node.attrs.chart} />;
+
+    case "mediaImage":
+      return <MediaImage key={key} {...node.attrs} />;
+
+    case "mediaAttachment":
+      return <MediaAttachment key={key} {...node.attrs} />;
 
     case "table":
       return (

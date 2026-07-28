@@ -14,6 +14,12 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
+import { TaxonomyCombobox, TaxonomyMultiCombobox } from "@/components/admin/taxonomy-combobox";
+import { TemplateSelector } from "@/components/admin/template-selector";
+import { labTemplates } from "@/lib/editor/templates";
+import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
+import type { AdminMediaItem } from "@/lib/services/media-admin-service";
+import { LabResourcesEditor } from "@/components/admin/lab-resources-editor";
 import {
   createLabAction,
   updateLabAction,
@@ -23,6 +29,7 @@ import {
 
 interface LabFormProps {
   mode: "create" | "edit";
+  media?: AdminMediaItem[];
   lab?: {
     id: string;
     title: string;
@@ -36,6 +43,7 @@ interface LabFormProps {
     labDate: string;
     scheduledFor: string;
     content: JSONContent;
+    downloads: Array<{ mediaId: string; label: string; description: string }>;
   };
 }
 
@@ -44,7 +52,7 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
 }
 
-export function LabForm({ mode, lab }: LabFormProps) {
+export function LabForm({ mode, lab, media = [] }: LabFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
@@ -61,7 +69,7 @@ export function LabForm({ mode, lab }: LabFormProps) {
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <div className="space-y-8">
+    <AuthoringWorkspace enabled={mode === "edit"} storageKey="cms:lab:inspector">
       <form onSubmit={editorForm.onSubmit} className="space-y-6">
         {justCreated && <FormMessage variant="success">Lab created — autosave is on below.</FormMessage>}
 
@@ -92,7 +100,7 @@ export function LabForm({ mode, lab }: LabFormProps) {
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Input id="category" name="category" defaultValue={lab?.category} required />
+                <TaxonomyCombobox name="category" kind="category" label="Category" defaultValue={lab?.category} required />
                 <FieldError errors={state.errors?.category} />
               </div>
               <div>
@@ -115,8 +123,8 @@ export function LabForm({ mode, lab }: LabFormProps) {
 
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
-                <Label htmlFor="tags">Tags (comma-separated)</Label>
-                <Input id="tags" name="tags" defaultValue={lab?.tags.join(", ")} />
+                <Label>Tags</Label>
+                <TaxonomyMultiCombobox name="tags" kind="tag" label="Tags" defaultValues={lab?.tags} />
               </div>
               <div>
                 <Label htmlFor="labDate">Lab date</Label>
@@ -139,7 +147,16 @@ export function LabForm({ mode, lab }: LabFormProps) {
           </CardContent>
         </Card>
 
-        <div className="space-y-3">
+        {mode === "create" && <TemplateSelector templates={labTemplates} />}
+        {mode === "edit" && lab && (
+          <LabResourcesEditor
+            labId={lab.id}
+            media={media}
+            initialResources={lab.downloads}
+          />
+        )}
+
+        <div className="sticky bottom-0 z-10 space-y-3 border-t border-border bg-card/95 py-3 backdrop-blur">
           {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
           {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
           {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
@@ -174,6 +191,7 @@ export function LabForm({ mode, lab }: LabFormProps) {
             contentType="lab"
             onSave={autosaveLabContentAction}
             onReady={editorForm.registerEditor}
+            media={media}
           />
         </div>
       )}
@@ -181,6 +199,6 @@ export function LabForm({ mode, lab }: LabFormProps) {
       {mode === "create" && (
         <p className="text-sm text-muted-foreground">Save the lab first — the content editor opens once it has an id to autosave against.</p>
       )}
-    </div>
+    </AuthoringWorkspace>
   );
 }

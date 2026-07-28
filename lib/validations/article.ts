@@ -13,6 +13,7 @@ export const articleFormSchema = z.object({
   tags: z.array(z.string().min(1)).default([]),
   date: z.string().min(1, "Date is required"),
   scheduledFor: z.string().optional().or(z.literal("")),
+  templateId: z.enum(["article-blank", "article-learning", "article-tutorial", "article-concept", "article-retrospective", "article-course"]).default("article-blank"),
 });
 
 export type ArticleFormValues = z.infer<typeof articleFormSchema>;

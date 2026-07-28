@@ -14,6 +14,11 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
+import { TaxonomyCombobox, TaxonomyMultiCombobox } from "@/components/admin/taxonomy-combobox";
+import { TemplateSelector } from "@/components/admin/template-selector";
+import { articleTemplates } from "@/lib/editor/templates";
+import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
+import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import {
   createArticleAction,
   updateArticleAction,
@@ -23,6 +28,7 @@ import {
 
 interface ArticleFormProps {
   mode: "create" | "edit";
+  media?: AdminMediaItem[];
   article?: {
     id: string;
     title: string;
@@ -42,7 +48,7 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
 }
 
-export function ArticleForm({ mode, article }: ArticleFormProps) {
+export function ArticleForm({ mode, article, media = [] }: ArticleFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
@@ -59,7 +65,7 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <div className="space-y-8">
+    <AuthoringWorkspace enabled={mode === "edit"} storageKey="cms:article:inspector">
       <form onSubmit={editorForm.onSubmit} className="space-y-6">
         {justCreated && <FormMessage variant="success">Journal entry created — autosave is on below.</FormMessage>}
 
@@ -90,12 +96,12 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <Label htmlFor="category">Category</Label>
-                <Input id="category" name="category" defaultValue={article?.category} required />
+                <TaxonomyCombobox name="category" kind="category" label="Category" defaultValue={article?.category} required />
                 <FieldError errors={state.errors?.category} />
               </div>
               <div>
-                <Label htmlFor="tags">Tags (comma-separated)</Label>
-                <Input id="tags" name="tags" defaultValue={article?.tags.join(", ")} />
+                <Label>Tags</Label>
+                <TaxonomyMultiCombobox name="tags" kind="tag" label="Tags" defaultValues={article?.tags} />
               </div>
               <div>
                 <Label htmlFor="date">Date</Label>
@@ -118,7 +124,9 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
           </CardContent>
         </Card>
 
-        <div className="space-y-3">
+        {mode === "create" && <TemplateSelector templates={articleTemplates} />}
+
+        <div className="sticky bottom-0 z-10 space-y-3 border-t border-border bg-card/95 py-3 backdrop-blur">
           {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
           {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
           {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
@@ -153,6 +161,7 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
             contentType="article"
             onSave={autosaveArticleContentAction}
             onReady={editorForm.registerEditor}
+            media={media}
           />
         </div>
       )}
@@ -160,6 +169,6 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
       {mode === "create" && (
         <p className="text-sm text-muted-foreground">Save the entry first — the content editor opens once it has an id to autosave against.</p>
       )}
-    </div>
+    </AuthoringWorkspace>
   );
 }

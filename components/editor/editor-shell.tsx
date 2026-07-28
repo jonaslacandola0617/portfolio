@@ -11,6 +11,8 @@ import {
   TipTapSerializationError,
 } from "@/lib/editor/serialize-content";
 import type { SaveContentPayload, SaveResult } from "@/types/admin";
+import type { AdminMediaItem } from "@/lib/services/media-admin-service";
+import type { ContentTemplate, TemplateContentType } from "@/lib/editor/templates";
 
 export interface EditorSaveController {
   flush: () => Promise<SaveResult>;
@@ -23,6 +25,7 @@ interface EditorShellProps {
   contentType: "project" | "lab" | "article" | "certificate";
   onSave: (payload: SaveContentPayload) => Promise<SaveResult>;
   onReady?: (controller: EditorSaveController | null) => void;
+  media?: AdminMediaItem[];
 }
 
 export function EditorShell({
@@ -31,6 +34,7 @@ export function EditorShell({
   contentType,
   onSave,
   onReady,
+  media = [],
 }: EditorShellProps) {
   const invokeSave = useCallback(
     async (editorOutput: unknown, clientRevision: number): Promise<SaveResult> => {
@@ -89,6 +93,12 @@ export function EditorShell({
     return flush(editor.getJSON());
   }, [editor, flush]);
 
+  const applyTemplate = useCallback((template: ContentTemplate) => {
+    if (!editor) return;
+    editor.commands.setContent(template.document, { emitUpdate: true });
+    editor.commands.focus();
+  }, [editor]);
+
   useEffect(() => {
     if (!onReady) return;
     if (!editor) {
@@ -100,11 +110,16 @@ export function EditorShell({
   }, [editor, flushCurrent, hasUnsavedChanges, onReady]);
 
   return (
-    <div>
-      <div className="mb-2 flex items-center justify-between">
-        <EditorToolbar editor={editor} />
+    <div className="editor-workspace">
+      <div className="sticky top-0 z-20 mb-2 flex items-center justify-between border-b border-border/70 bg-background/95 py-2 backdrop-blur">
+        <EditorToolbar
+          editor={editor}
+          media={media}
+          contentType={contentType === "certificate" ? undefined : contentType as TemplateContentType}
+          onApplyTemplate={contentType === "certificate" ? undefined : applyTemplate}
+        />
       </div>
-      <div className="rounded-b-lg border border-border bg-background">
+      <div className="overflow-x-auto rounded-b-lg border border-border bg-background">
         <EditorContent editor={editor} />
       </div>
       <div className="mt-2 flex items-start justify-between gap-4">

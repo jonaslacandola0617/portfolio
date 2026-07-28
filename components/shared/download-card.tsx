@@ -1,11 +1,13 @@
-import { Download, Github, FileText, FileCode2, File } from "lucide-react";
+import { Download, Github, FileText, FileCode2, File, Network, Archive } from "lucide-react";
 import type { DownloadLink } from "@/types";
 
 const typeConfig: Record<DownloadLink["type"], { icon: typeof Download; label: string }> = {
   "packet-tracer": { icon: FileCode2, label: "Packet Tracer" },
+  pcap: { icon: Network, label: "PCAP" },
   config: { icon: FileText, label: "Config" },
   github: { icon: Github, label: "Repository" },
   pdf: { icon: File, label: "PDF" },
+  zip: { icon: Archive, label: "ZIP archive" },
   other: { icon: Download, label: "File" },
 };
 
@@ -25,6 +27,7 @@ export function DownloadCard({ item }: { item: DownloadLink }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium text-foreground">{item.label}</div>
+        {item.description && <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{item.description}</div>}
         <div className="font-mono text-[0.68rem] text-muted-foreground">{config.label}</div>
       </div>
       <Download className="h-4 w-4 shrink-0 text-muted-foreground/60 transition-colors group-hover:text-primary" />

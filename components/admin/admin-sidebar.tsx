@@ -1,33 +1,11 @@
 import Link from "next/link";
-import {
-  LayoutDashboard,
-  FolderGit2,
-  FlaskConical,
-  NotebookPen,
-  BadgeCheck,
-  GitCommitHorizontal,
-  Layers,
-  ImageIcon,
-  Settings,
-  ExternalLink,
-} from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import { auth } from "@/auth";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 import { AdminSearchDialog } from "@/components/admin/admin-search-dialog";
 import { Separator } from "@/components/ui/separator";
-
-const adminNavItems = [
-  { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
-  { label: "Projects", href: "/admin/projects", icon: FolderGit2 },
-  { label: "Labs", href: "/admin/labs", icon: FlaskConical },
-  { label: "Journal", href: "/admin/journal", icon: NotebookPen },
-  { label: "Certificates", href: "/admin/certificates", icon: BadgeCheck },
-  { label: "Timeline", href: "/admin/timeline", icon: GitCommitHorizontal },
-  { label: "Skills", href: "/admin/skills", icon: Layers },
-  { label: "Media Library", href: "/admin/media", icon: ImageIcon },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
-] as const;
+import { AdminNav } from "@/components/admin/admin-nav";
 
 export async function AdminSidebar() {
   const session = await auth();
@@ -53,18 +31,7 @@ export async function AdminSidebar() {
 
         <AdminSearchDialog />
 
-        <nav className="flex-1 space-y-0.5 overflow-y-auto scrollbar-thin">
-          {adminNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="group flex items-center gap-3 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            >
-              <item.icon className="h-4 w-4 shrink-0 text-muted-foreground/80 group-hover:text-foreground" />
-              <span className="truncate">{item.label}</span>
-            </Link>
-          ))}
-        </nav>
+        <AdminNav />
 
         <Separator className="my-4" />
 

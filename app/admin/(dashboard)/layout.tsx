@@ -1,6 +1,5 @@
 import { requireAdmin } from "@/lib/services/auth-service";
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { NavigationProgress } from "@/components/admin/navigation-progress";
 
 /**
  * Added during the pre-Phase-6 stabilization pass after a real `npm run
@@ -33,7 +32,7 @@ export default async function AdminDashboardLayout({
   return (
     <div>
       <AdminSidebar />
-      <main className="lg:pl-[272px]"><NavigationProgress>{children}</NavigationProgress></main>
+      <main className="lg:pl-[272px]">{children}</main>
     </div>
   );
 }

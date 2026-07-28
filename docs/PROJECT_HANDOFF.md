@@ -2,11 +2,11 @@
 
 **Handoff purpose:** Transfer long-term ownership of this repository to a new engineering agent without losing the original product intent, migration plan, architecture, completed work, constraints, or engineering history.
 
-**Current repository state:** Phase 6 implemented and verified
+**Current repository state:** Phase 6 verified; post-Phase-6 production-audit enhancement pass implemented
 
 **Current date of handoff:** July 28, 2026
 
-**Immediate required task:** Preserve the Phase 6 strict build/data and revalidation guarantees
+**Immediate required task:** Deploy the additive post-Phase-6 migration after reviewing the isolated-schema verification report
 
 **Next planned milestone:** Ordinary iterative development and deployment hardening
 **This is not a Phase 6-only instruction document.** It is the standing project context for every future task.
@@ -823,20 +823,15 @@ Some architecture text may still say that `lib/content.ts` currently reads `fs +
 
 That describes the original system, not the current Phase 5 runtime. Update the document rather than reverting the application.
 
-### Media picker discrepancy
+### Media picker status
 
-The original migration roadmap lists a Media picker as part of Phase 5.
+The post-Phase-6 audit pass completed the reusable Media Library picker:
 
-What exists:
-
-- Upload
-- Browse
-- Copy URL
-- Delete
-
-What does not exist:
-
-- A reusable picker integrated into Project/Lab/Article/Certificate forms
+- Upload, browse, and search/filter by insertion mode
+- Image insertion with required alt text, optional caption, alignment, and size
+- Structured file-attachment insertion
+- Project, Lab, Article, and optional Certificate editor integration
+- Server-side Media-row verification before content persistence
 
 ### MDX dependency discrepancy
 
@@ -923,9 +918,7 @@ new, separately approved feature with authenticated promotion and route invalida
 
 ### Functional gaps
 
-- Media picker in content forms
 - Project-to-Certificate relation editor
-- Editable current-focus stack
 - Editable home-page stat counters
 - Persistent Activity Log
 - Revision history

@@ -166,3 +166,17 @@
 .prose-docs td {
   @apply border border-border px-3 py-2 align-top;
 }
+
+.editor-workspace .prose-docs {
+  max-width: none;
+}
+.editor-workspace .prose-docs > p,
+.editor-workspace .prose-docs > h1,
+.editor-workspace .prose-docs > h2,
+.editor-workspace .prose-docs > h3,
+.editor-workspace .prose-docs > h4,
+.editor-workspace .prose-docs > blockquote,
+.editor-workspace .prose-docs > ul,
+.editor-workspace .prose-docs > ol {
+  max-width: 72ch;
+}

@@ -21,6 +21,7 @@
     "verify:build-data": "tsx scripts/verify-build-data.ts",
     "verify:revalidation": "tsx scripts/verify-revalidation.ts",
     "verify:phase6-data": "tsx scripts/verify-phase-6-data.ts",
+    "verify:post-phase6": "tsx scripts/verify-post-phase6.ts",
     "verify:save-pipeline": "tsx scripts/verify-save-pipeline.ts",
     "verify:site": "tsx scripts/verify-running-site.ts"
   },

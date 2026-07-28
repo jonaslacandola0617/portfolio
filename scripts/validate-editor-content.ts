@@ -236,6 +236,40 @@ const fixtures: Fixture[] = [
     doc: { type: "doc", content: [{ type: "mermaid", attrs: { chart: "graph LR\n  A --> B" } }] },
   },
   {
+    name: "Media Library image",
+    doc: {
+      type: "doc",
+      content: [{
+        type: "mediaImage",
+        attrs: {
+          mediaId: "media-image-1",
+          src: "https://example.public.blob.vercel-storage.com/diagram.png",
+          alt: "Network topology diagram",
+          caption: "Lab topology",
+          alignment: "center",
+          size: "large",
+        },
+      }],
+    },
+  },
+  {
+    name: "Media Library attachment",
+    doc: {
+      type: "doc",
+      content: [{
+        type: "mediaAttachment",
+        attrs: {
+          mediaId: "media-file-1",
+          url: "https://example.public.blob.vercel-storage.com/lab.pkt",
+          displayName: "Packet Tracer lab",
+          description: "Completed topology",
+          fileType: "PACKET_TRACER",
+          fileSize: 4096,
+        },
+      }],
+    },
+  },
+  {
     name: "horizontal rule",
     doc: {
       type: "doc",

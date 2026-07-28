@@ -25,6 +25,7 @@ function parseFormData(formData: FormData) {
     tags: (formData.get("tags") as string)?.split(",").map((t) => t.trim()).filter(Boolean) ?? [],
     date: formData.get("date"),
     scheduledFor: formData.get("scheduledFor") ?? "",
+    templateId: formData.get("templateId") ?? "article-blank",
   };
 }
 

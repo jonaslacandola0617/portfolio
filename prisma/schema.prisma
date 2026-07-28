@@ -104,6 +104,7 @@ model Media {
   size        Int // bytes
   uploadedAt  DateTime  @default(now())
   usedAsThumb Project[] @relation("ProjectThumbnail")
+  downloads   Download[]
 }
 
 /// Scoped to Project for now (the only content type with a Downloads
@@ -111,12 +112,22 @@ model Media {
 /// doesn't support true polymorphism cleanly; add labId/articleId nullable
 /// FKs here if Labs/Articles need downloads later.
 model Download {
-  id        String   @id @default(cuid())
-  label     String
-  url       String
-  type      String // "packet-tracer" | "config" | "github" | "pdf" | "other"
-  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  projectId String?
+  id          String   @id @default(cuid())
+  label       String
+  url         String
+  type        String // "packet-tracer" | "config" | "github" | "pdf" | "other"
+  description String?
+  sortOrder   Int      @default(0)
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
+  lab         Lab?     @relation(fields: [labId], references: [id], onDelete: Cascade)
+  labId       String?
+  media       Media?   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  mediaId     String?
+
+  @@index([projectId, sortOrder])
+  @@index([labId, sortOrder])
+  @@index([mediaId])
 }
 
 // ─────────────────────────────────────────────────────────
@@ -165,6 +176,7 @@ model Lab {
   category       Category?      @relation(fields: [categoryId], references: [id])
   categoryId     String?
   tags           Tag[]
+  downloads      Download[]
   labDate        DateTime // the "date" a lab was performed, distinct from createdAt/updatedAt
   publishedAt    DateTime?
   scheduledFor   DateTime?
@@ -248,6 +260,7 @@ model SiteSettings {
   linkedinUrl       String
   resumeUrl         String
   currentlyLearning Json // [{ label: string, href: string }]
+  aboutPage        Json?
   updatedAt         DateTime @updatedAt
 }
 
