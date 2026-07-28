@@ -2,7 +2,7 @@
 
 Date: 2026-07-28
 
-## 1. Previous UI problems -
+## 1. Previous UI problems
 
 - Individual, row, bulk, and media deletion used `window.confirm()` / `confirm()`.
 - The parent admin loading boundary showed one list-shaped placeholder for dashboards, editors,
