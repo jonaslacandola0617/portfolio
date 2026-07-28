@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/services/auth-service";
 import {
@@ -96,9 +95,6 @@ export async function deleteArticleAction(id: string): Promise<DeleteResult> {
     if (isNextControlFlowError(error)) throw error;
     return classifyServiceError(error, { operation: "delete", contentType: "article", recordId: parsed.data });
   }
-  revalidatePath("/admin/journal");
-  revalidatePath("/journal");
-  revalidatePath("/");
   return { success: true };
 }
 
@@ -115,8 +111,5 @@ export async function bulkDeleteArticlesAction(ids: string[]): Promise<BulkDelet
     return classifyServiceError(error, { operation: "bulkDelete", contentType: "article" });
   }
 
-  revalidatePath("/admin/journal");
-  revalidatePath("/journal");
-  revalidatePath("/");
   return { success: true, deletedCount };
 }

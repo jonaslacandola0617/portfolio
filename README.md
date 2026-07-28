@@ -22,7 +22,7 @@ Then run:
 ```bash
 npm ci
 npm run db:generate
-npm run db:migrate
+npm run db:migrate:deploy
 npm run db:seed
 npm run dev
 ```
@@ -36,6 +36,8 @@ npm run validate:editor-content
 npm run verify:save-pipeline
 npm run audit:content
 npm run verify:build-data
+npm run verify:revalidation
+npm run verify:phase6-data
 npm run build
 npm run start
 ```
@@ -43,6 +45,16 @@ npm run start
 `npm run build` is intentionally strict. It runs the content/database preflight and sets
 `STRICT_BUILD_DATA=1` for `next build`; a database read failure cannot silently become empty
 static pages.
+
+Phase 6 deliberately supports manual publishing only. The admin forms expose Draft, Published,
+and Archived; the legacy database enum remains compatible with migration history, but Scheduled
+records are migrated to Draft because no secure publishing scheduler is configured.
+
+The standalone CMS showcase seed is safe to rerun and never overwrites an existing showcase:
+
+```bash
+npm run db:seed:showcase
+```
 
 To verify a running production build against real database records:
 
@@ -81,7 +93,7 @@ Public routes include `/projects`, `/labs`, `/journal`, `/certifications`, `/tim
 ## Architecture
 
 See [ARCHITECTURE.md](ARCHITECTURE.md), [docs/PROJECT_HANDOFF.md](docs/PROJECT_HANDOFF.md), and
-[docs/CODEX_BUILD_DATA_STABILIZATION_REPORT.md](docs/CODEX_BUILD_DATA_STABILIZATION_REPORT.md).
+[docs/PHASE_6_REPORT.md](docs/PHASE_6_REPORT.md).
 
 The public design, routes, authentication model, server-side TipTap renderer, and CMS architecture
 are intentional. Continue them in place rather than replacing the application.

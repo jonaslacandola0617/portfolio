@@ -10,13 +10,17 @@
     "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed/index.ts",
+    "db:seed:showcase": "tsx scripts/seed-cms-showcase.ts",
     "validate:editor-content": "tsx scripts/validate-editor-content.ts",
     "audit:content": "tsx scripts/audit-content.ts",
     "migrate:content": "tsx scripts/migrate-content.ts",
     "verify:build-data": "tsx scripts/verify-build-data.ts",
+    "verify:revalidation": "tsx scripts/verify-revalidation.ts",
+    "verify:phase6-data": "tsx scripts/verify-phase-6-data.ts",
     "verify:save-pipeline": "tsx scripts/verify-save-pipeline.ts",
     "verify:site": "tsx scripts/verify-running-site.ts"
   },
@@ -45,7 +49,6 @@
     "@vercel/blob": "^2.6.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
-    "framer-motion": "^11.11.17",
     "lucide-react": "^0.454.0",
     "mermaid": "^11.4.0",
     "next": "14.2.35",
@@ -58,7 +61,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/mdx": "^2.0.13",
     "@types/node": "^22.9.0",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",

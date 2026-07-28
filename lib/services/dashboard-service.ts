@@ -23,7 +23,7 @@ async function getMetrics(): Promise<ContentTypeMetric[]> {
   const [
     projects, projectPublished, projectDraft, projectInProgress,
     labs, labPublished, labDraft, labInProgress,
-    articles, articlePublished, articleDraft, articleScheduled,
+    articles, articlePublished, articleDraft, articleArchived,
     certificates, certificatePublished, certificateInProgress, certificateCompleted,
     timeline, timelinePublished, timelineDraft, latestTimeline,
     skills, skillGroups, advancedSkills,
@@ -39,7 +39,7 @@ async function getMetrics(): Promise<ContentTypeMetric[]> {
     prisma.article.count(),
     prisma.article.count({ where: { publishStatus: "PUBLISHED" } }),
     prisma.article.count({ where: { publishStatus: "DRAFT" } }),
-    prisma.article.count({ where: { publishStatus: "SCHEDULED" } }),
+    prisma.article.count({ where: { publishStatus: "ARCHIVED" } }),
     prisma.certificate.count(),
     prisma.certificate.count({ where: { publishStatus: "PUBLISHED" } }),
     prisma.certificate.count({ where: { progressStatus: "IN_PROGRESS" } }),
@@ -56,7 +56,7 @@ async function getMetrics(): Promise<ContentTypeMetric[]> {
   return [
     { key: "projects", label: "Projects", href: "/admin/projects", total: projects, details: [{ label: "Published", value: projectPublished }, { label: "Draft", value: projectDraft }, { label: "In progress", value: projectInProgress }] },
     { key: "labs", label: "Labs", href: "/admin/labs", total: labs, details: [{ label: "Published", value: labPublished }, { label: "Draft", value: labDraft }, { label: "In progress", value: labInProgress }] },
-    { key: "articles", label: "Articles", href: "/admin/journal", total: articles, details: [{ label: "Published", value: articlePublished }, { label: "Draft", value: articleDraft }, { label: "Scheduled", value: articleScheduled }] },
+    { key: "articles", label: "Articles", href: "/admin/journal", total: articles, details: [{ label: "Published", value: articlePublished }, { label: "Draft", value: articleDraft }, { label: "Archived", value: articleArchived }] },
     { key: "certificates", label: "Certificates", href: "/admin/certificates", total: certificates, details: [{ label: "Published", value: certificatePublished }, { label: "In progress", value: certificateInProgress }, { label: "Completed", value: certificateCompleted }] },
     { key: "timeline", label: "Timeline Entries", href: "/admin/timeline", total: timeline, details: [{ label: "Published", value: timelinePublished }, { label: "Draft", value: timelineDraft }, { label: "Latest entry", value: latestTimeline ? latestTimeline.date.toLocaleDateString("en", { month: "short", year: "numeric" }) : "—" }] },
     { key: "skills", label: "Skills", href: "/admin/skills", total: skills, details: [{ label: "Groups", value: skillGroups.length }, { label: "Advanced", value: advancedSkills }, { label: "Largest group", value: largestGroup ? `${largestGroup.group} (${largestGroup._count._all})` : "—" }] },
@@ -122,7 +122,7 @@ async function getAttentionItems(): Promise<AttentionItem[]> {
     { id: "project-tags", count: noProjectTags, label: "Untagged projects", detail: "Published projects with no searchable tags.", href: "/admin/projects", severity: "info" as const },
     { id: "lab-tags", count: noLabTags, label: "Untagged labs", detail: "Published labs with no searchable tags.", href: "/admin/labs", severity: "info" as const },
     { id: "article-tags", count: noArticleTags, label: "Untagged articles", detail: "Published articles with no searchable tags.", href: "/admin/journal", severity: "info" as const },
-    { id: "scheduled", count: scheduled, label: "Scheduled content", detail: "Automatic publishing is not configured.", href: "/admin/projects", severity: "warning" as const },
+    { id: "scheduled", count: scheduled, label: "Legacy scheduled content", detail: "Scheduling is disabled; return these records to Draft.", href: "/admin/projects", severity: "warning" as const },
     { id: "certificate-links", count: noCredential, label: "Certificates without credential links", detail: "Completed published certificates missing verification URLs.", href: "/admin/certificates", severity: "warning" as const },
   ].filter((item) => item.count > 0);
 }

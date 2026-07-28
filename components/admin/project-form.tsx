@@ -193,15 +193,9 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
                   <option value="DRAFT">Draft</option>
                   <option value="PUBLISHED">Published</option>
                   <option value="ARCHIVED">Archived</option>
-                  <option value="SCHEDULED">Scheduled</option>
                 </select>
+                <p className="mt-1.5 text-xs text-muted-foreground">Publish manually when the project is ready.</p>
               </div>
-              {publishStatus === "SCHEDULED" && (
-                <div>
-                  <Label htmlFor="scheduledFor">Scheduled for</Label>
-                  <Input id="scheduledFor" name="scheduledFor" type="datetime-local" defaultValue={project?.scheduledFor} />
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>

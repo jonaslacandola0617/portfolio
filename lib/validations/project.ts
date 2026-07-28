@@ -17,7 +17,7 @@ export const projectFormSchema = z.object({
   category: z.string().min(1, "Category is required"),
   difficulty: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
   progressStatus: z.enum(["PLANNED", "IN_PROGRESS", "COMPLETED"]),
-  publishStatus: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED", "SCHEDULED"]),
+  publishStatus: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
   tags: z.array(z.string().min(1)).default([]),
   skills: z.array(z.string().min(1)).default([]),
   technologies: z.array(z.string().min(1)).default([]),

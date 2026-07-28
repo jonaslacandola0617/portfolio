@@ -1,9 +1,9 @@
 import "server-only";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
 import type { TimelineFormValues } from "@/lib/validations/timeline";
+import { revalidateContent } from "@/lib/services/content-revalidation";
 
 interface AdminTimelineListItem {
   id: string;
@@ -58,7 +58,7 @@ export async function createTimelineEntry(fm: TimelineFormValues) {
       tags: tagsInput(fm),
     },
   });
-  await revalidateTimelinePaths();
+  revalidateContent("timeline");
   return entry;
 }
 
@@ -80,13 +80,13 @@ export async function updateTimelineEntry(id: string, fm: TimelineFormValues) {
       tags: { set: [], ...tagsInput(fm) },
     },
   });
-  await revalidateTimelinePaths();
+  revalidateContent("timeline");
   return entry;
 }
 
 export async function deleteTimelineEntry(id: string) {
   await prisma.timelineEntry.delete({ where: { id } });
-  await revalidateTimelinePaths();
+  revalidateContent("timeline");
 }
 
 /** Bulk delete for the management page's checkbox selection. */
@@ -97,11 +97,6 @@ export async function deleteTimelineEntries(ids: string[]): Promise<number> {
     return records.length;
   });
 
-  await revalidateTimelinePaths();
+  revalidateContent("timeline");
   return count;
-}
-
-async function revalidateTimelinePaths() {
-  revalidatePath("/timeline");
-  revalidatePath("/sitemap.xml");
 }

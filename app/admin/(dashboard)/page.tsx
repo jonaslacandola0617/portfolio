@@ -130,7 +130,7 @@ export default async function AdminDashboardPage() {
               })}
               {publicationData.SCHEDULED > 0 && (
                 <p className="rounded-md border border-warning/25 bg-warning/5 px-3 py-2 text-xs text-warning">
-                  Items can be marked Scheduled, but automatic publishing is not configured.
+                  Legacy Scheduled records remain. Scheduling is disabled; return these items to Draft.
                 </p>
               )}
             </div>

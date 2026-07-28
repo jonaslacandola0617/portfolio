@@ -9,7 +9,7 @@ export const certificateFormSchema = z.object({
   issuer: z.string().min(1, "Issuer is required"),
   logo: z.enum(["google", "cisco", "linux", "python"]),
   progressStatus: z.enum(["PLANNED", "IN_PROGRESS", "COMPLETED"]),
-  publishStatus: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED", "SCHEDULED"]),
+  publishStatus: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
   progressLabel: z.string().min(1, "Progress label is required"),
   progressPercent: z.coerce.number().min(0).max(100),
   skills: z.array(z.string().min(1)).default([]),

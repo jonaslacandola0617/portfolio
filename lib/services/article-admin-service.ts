@@ -1,5 +1,4 @@
 import "server-only";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
@@ -8,6 +7,7 @@ import type { TipTapDoc } from "@/types/tiptap";
 
 import { articleTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
+import { revalidateContent } from "@/lib/services/content-revalidation";
 
 interface AdminArticleListItem {
   id: string;
@@ -75,7 +75,7 @@ export async function createArticle(fm: ArticleFormValues) {
       ...relationInput(fm),
     },
   });
-  await revalidateArticlePaths(article.slug);
+  revalidateContent("article", [article.slug]);
   return article;
 }
 
@@ -99,8 +99,7 @@ export async function updateArticleMetadata(id: string, fm: ArticleFormValues) {
     },
   });
 
-  await revalidateArticlePaths(article.slug);
-  if (existing && existing.slug !== article.slug) await revalidateArticlePaths(existing.slug);
+  revalidateContent("article", existing ? [existing.slug, article.slug] : [article.slug]);
   return article;
 }
 
@@ -110,14 +109,14 @@ export async function updateArticleContent(id: string, content: TipTapDoc) {
     data: { content: toPrismaJson(content) },
     select: { slug: true, publishStatus: true },
   });
-  if (article.publishStatus === "PUBLISHED") await revalidateArticlePaths(article.slug);
+  if (article.publishStatus === "PUBLISHED") revalidateContent("article", [article.slug]);
   const readBack = await prisma.article.findUnique({ where: { id }, select: { content: true } });
   return readBack?.content;
 }
 
 export async function deleteArticle(id: string) {
   const article = await prisma.article.delete({ where: { id }, select: { slug: true } });
-  await revalidateArticlePaths(article.slug);
+  revalidateContent("article", [article.slug]);
 }
 
 /** Bulk delete for the management page's checkbox selection — same
@@ -130,20 +129,7 @@ export async function deleteArticles(ids: string[]): Promise<number> {
     return records.map((r: { slug: string }) => r.slug);
   });
 
-  for (const slug of slugs) {
-    revalidatePath(`/journal/${slug}`);
-  }
-  revalidatePath("/journal");
-  revalidatePath("/");
-  revalidatePath("/sitemap.xml");
+  revalidateContent("article", slugs);
 
   return slugs.length;
-}
-
-async function revalidateArticlePaths(slug: string) {
-  revalidatePath("/journal");
-  revalidatePath(`/journal/${slug}`);
-  revalidatePath("/tags/[tag]", "page");
-  revalidatePath("/");
-  revalidatePath("/sitemap.xml");
 }

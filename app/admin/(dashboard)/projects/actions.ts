@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/services/auth-service";
 import {
@@ -131,9 +130,6 @@ export async function deleteProjectAction(id: string): Promise<DeleteResult> {
     return classifyServiceError(error, { operation: "delete", contentType: "project", recordId: parsed.data });
   }
 
-  revalidatePath("/admin/projects");
-  revalidatePath("/projects");
-  revalidatePath("/");
   return { success: true };
 }
 
@@ -153,8 +149,5 @@ export async function bulkDeleteProjectsAction(ids: string[]): Promise<BulkDelet
     return classifyServiceError(error, { operation: "bulkDelete", contentType: "project" });
   }
 
-  revalidatePath("/admin/projects");
-  revalidatePath("/projects");
-  revalidatePath("/");
   return { success: true, deletedCount };
 }

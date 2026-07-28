@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/services/auth-service";
 import {
@@ -101,9 +100,6 @@ export async function deleteCertificateAction(id: string): Promise<DeleteResult>
     if (isNextControlFlowError(error)) throw error;
     return classifyServiceError(error, { operation: "delete", contentType: "certificate", recordId: parsed.data });
   }
-  revalidatePath("/admin/certificates");
-  revalidatePath("/certifications");
-  revalidatePath("/");
   return { success: true };
 }
 
@@ -120,8 +116,5 @@ export async function bulkDeleteCertificatesAction(ids: string[]): Promise<BulkD
     return classifyServiceError(error, { operation: "bulkDelete", contentType: "certificate" });
   }
 
-  revalidatePath("/admin/certificates");
-  revalidatePath("/certifications");
-  revalidatePath("/");
   return { success: true, deletedCount };
 }

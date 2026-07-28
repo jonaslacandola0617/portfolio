@@ -73,9 +73,9 @@ function mapProject(project: ProjectWithRelations): DbContentItem<ProjectFrontma
   };
 }
 
-export async function getProjectCount(): Promise<number> {
-  return readWithPolicy("projects.getProjectCount", 0, () => prisma.project.count());
-}
+export const getProjectCount = cache(async (): Promise<number> =>
+  readWithPolicy("projects.getProjectCount", 0, () => prisma.project.count())
+);
 
 export const getAllProjects = cache(async (): Promise<DbContentItem<ProjectFrontmatter>[]> =>
   readWithPolicy("projects.getAllProjects", [], async () => {

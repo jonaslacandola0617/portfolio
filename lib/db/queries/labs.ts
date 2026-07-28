@@ -42,9 +42,9 @@ function mapLab(lab: LabWithRelations): DbContentItem<LabFrontmatter> {
   };
 }
 
-export async function getLabCount(): Promise<number> {
-  return readWithPolicy("labs.getLabCount", 0, () => prisma.lab.count());
-}
+export const getLabCount = cache(async (): Promise<number> =>
+  readWithPolicy("labs.getLabCount", 0, () => prisma.lab.count())
+);
 
 export const getAllLabs = cache(async (): Promise<DbContentItem<LabFrontmatter>[]> =>
   readWithPolicy("labs.getAllLabs", [], async () => {

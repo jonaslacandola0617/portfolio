@@ -9,7 +9,7 @@ export const articleFormSchema = z.object({
     .regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, "Use lowercase letters, numbers, and hyphens only"),
   summary: z.string().min(1, "Summary is required").max(500),
   category: z.string().min(1, "Category is required"),
-  publishStatus: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED", "SCHEDULED"]),
+  publishStatus: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
   tags: z.array(z.string().min(1)).default([]),
   date: z.string().min(1, "Date is required"),
   scheduledFor: z.string().optional().or(z.literal("")),

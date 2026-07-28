@@ -1,5 +1,4 @@
 import "server-only";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
@@ -8,6 +7,7 @@ import type { TipTapDoc } from "@/types/tiptap";
 
 import { projectTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
+import { revalidateContent } from "@/lib/services/content-revalidation";
 
 /**
  * Hand-written, same reasoning as lib/db/queries/projects.ts's
@@ -108,7 +108,7 @@ export async function createProject(fm: ProjectFormValues) {
     },
   });
 
-  await revalidateProjectPaths(project.slug);
+  revalidateContent("project", [project.slug]);
   return project;
 }
 
@@ -142,8 +142,7 @@ export async function updateProjectMetadata(id: string, fm: ProjectFormValues) {
     },
   });
 
-  await revalidateProjectPaths(project.slug);
-  if (existing && existing.slug !== project.slug) await revalidateProjectPaths(existing.slug);
+  revalidateContent("project", existing ? [existing.slug, project.slug] : [project.slug]);
   return project;
 }
 
@@ -156,14 +155,14 @@ export async function updateProjectContent(id: string, content: TipTapDoc) {
     data: { content: toPrismaJson(content) },
     select: { slug: true, publishStatus: true },
   });
-  if (project.publishStatus === "PUBLISHED") await revalidateProjectPaths(project.slug);
+  if (project.publishStatus === "PUBLISHED") revalidateContent("project", [project.slug]);
   const readBack = await prisma.project.findUnique({ where: { id }, select: { content: true } });
   return readBack?.content;
 }
 
 export async function deleteProject(id: string) {
   const project = await prisma.project.delete({ where: { id }, select: { slug: true } });
-  await revalidateProjectPaths(project.slug);
+  revalidateContent("project", [project.slug]);
 }
 
 /** Bulk delete for the management page's checkbox selection (added
@@ -182,20 +181,7 @@ export async function deleteProjects(ids: string[]): Promise<number> {
     return records.map((r: { slug: string }) => r.slug);
   });
 
-  for (const slug of slugs) {
-    revalidatePath(`/projects/${slug}`);
-  }
-  revalidatePath("/projects");
-  revalidatePath("/");
-  revalidatePath("/sitemap.xml");
+  revalidateContent("project", slugs);
 
   return slugs.length;
-}
-
-async function revalidateProjectPaths(slug: string) {
-  revalidatePath("/projects");
-  revalidatePath(`/projects/${slug}`);
-  revalidatePath("/tags/[tag]", "page");
-  revalidatePath("/");
-  revalidatePath("/sitemap.xml");
 }

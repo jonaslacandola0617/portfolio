@@ -95,15 +95,9 @@ export function TimelineForm({ mode, entry }: TimelineFormProps) {
                 <option value="DRAFT">Draft</option>
                 <option value="PUBLISHED">Published</option>
                 <option value="ARCHIVED">Archived</option>
-                <option value="SCHEDULED">Scheduled</option>
               </select>
+              <p className="mt-1.5 text-xs text-muted-foreground">Publish manually when the entry is ready.</p>
             </div>
-            {publishStatus === "SCHEDULED" && (
-              <div>
-                <Label htmlFor="scheduledFor">Scheduled for</Label>
-                <Input id="scheduledFor" name="scheduledFor" type="datetime-local" defaultValue={entry?.scheduledFor} />
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>

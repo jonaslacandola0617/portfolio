@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { del } from "@vercel/blob";
 import { requireAdmin } from "@/lib/services/auth-service";
 import { prisma } from "@/lib/db";
@@ -8,6 +7,7 @@ import { createMediaSchema, type CreateMediaValues } from "@/lib/validations/med
 import { deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError } from "@/lib/services/action-errors";
 import type { DeleteResult } from "@/types/admin";
+import { revalidateContent } from "@/lib/services/content-revalidation";
 
 interface AdminMediaItem {
   id: string;
@@ -29,7 +29,7 @@ export async function createMediaRecordAction(values: CreateMediaValues) {
   if (!parsed.success) throw new Error(`Invalid media record: ${parsed.error.message}`);
 
   const media = await prisma.media.create({ data: parsed.data });
-  revalidatePath("/admin/media");
+  revalidateContent("media");
   return media;
 }
 
@@ -50,6 +50,6 @@ export async function deleteMediaAction(id: string): Promise<DeleteResult> {
       recordId: parsed.data,
     });
   }
-  revalidatePath("/admin/media");
+  revalidateContent("media");
   return { success: true };
 }

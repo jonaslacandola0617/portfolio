@@ -1,5 +1,4 @@
 import "server-only";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import type { CertificateFormValues } from "@/lib/validations/certificate";
@@ -7,6 +6,7 @@ import type { TipTapDoc } from "@/types/tiptap";
 
 import { emptyTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
+import { revalidateContent } from "@/lib/services/content-revalidation";
 
 interface AdminCertificateListItem {
   id: string;
@@ -76,7 +76,7 @@ export async function createCertificate(fm: CertificateFormValues) {
       skills: skillsInput(fm),
     },
   });
-  await revalidateCertificatePaths();
+  revalidateContent("certificate");
   return cert;
 }
 
@@ -105,7 +105,7 @@ export async function updateCertificateMetadata(id: string, fm: CertificateFormV
     },
   });
 
-  await revalidateCertificatePaths();
+  revalidateContent("certificate");
   return cert;
 }
 
@@ -115,14 +115,14 @@ export async function updateCertificateContent(id: string, content: TipTapDoc) {
     data: { content: toPrismaJson(content) },
     select: { publishStatus: true },
   });
-  if (cert.publishStatus === "PUBLISHED") await revalidateCertificatePaths();
+  if (cert.publishStatus === "PUBLISHED") revalidateContent("certificate");
   const readBack = await prisma.certificate.findUnique({ where: { id }, select: { content: true } });
   return readBack?.content;
 }
 
 export async function deleteCertificate(id: string) {
   await prisma.certificate.delete({ where: { id } });
-  await revalidateCertificatePaths();
+  revalidateContent("certificate");
 }
 
 /** Bulk delete for the management page's checkbox selection. No slugs
@@ -135,12 +135,6 @@ export async function deleteCertificates(ids: string[]): Promise<number> {
     return records.length;
   });
 
-  await revalidateCertificatePaths();
+  revalidateContent("certificate");
   return count;
-}
-
-async function revalidateCertificatePaths() {
-  revalidatePath("/certifications");
-  revalidatePath("/");
-  revalidatePath("/sitemap.xml");
 }

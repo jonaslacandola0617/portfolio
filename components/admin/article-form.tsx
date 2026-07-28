@@ -111,15 +111,9 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
                   <option value="DRAFT">Draft</option>
                   <option value="PUBLISHED">Published</option>
                   <option value="ARCHIVED">Archived</option>
-                  <option value="SCHEDULED">Scheduled</option>
                 </select>
+                <p className="mt-1.5 text-xs text-muted-foreground">Publish manually when the article is ready.</p>
               </div>
-              {publishStatus === "SCHEDULED" && (
-                <div>
-                  <Label htmlFor="scheduledFor">Scheduled for</Label>
-                  <Input id="scheduledFor" name="scheduledFor" type="datetime-local" defaultValue={article?.scheduledFor} />
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>

@@ -1,8 +1,8 @@
 import "server-only";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { SettingsFormValues } from "@/lib/validations/settings";
 import { toPrismaJson } from "@/lib/prisma-json";
+import { revalidateContent } from "@/lib/services/content-revalidation";
 
 export async function upsertSiteSettings(fm: SettingsFormValues) {
   // `currentlyLearning` is the one non-TipTap Json field in the schema
@@ -16,5 +16,5 @@ export async function upsertSiteSettings(fm: SettingsFormValues) {
     create: { id: "singleton", ...data },
     update: { ...data },
   });
-  revalidatePath("/", "layout");
+  revalidateContent("settings");
 }

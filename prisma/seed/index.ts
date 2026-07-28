@@ -9,6 +9,7 @@ import { skillCategories } from "@/lib/data/skills";
 import { certifications } from "@/lib/data/certifications";
 import { timelineEntries } from "@/lib/data/timeline";
 import { slugify } from "@/lib/utils";
+import { seedCmsShowcaseProject } from "./cms-showcase";
 
 const prisma = new PrismaClient();
 
@@ -355,6 +356,8 @@ async function seedSkills() {
 
 async function main() {
   await seedProjects();
+  const showcase = await seedCmsShowcaseProject(prisma);
+  console.log(`  ${showcase.created ? "✓" : "="} Cybersecurity Portfolio CMS (${showcase.created ? "created" : "already seeded"})`);
   await seedLabs();
   await seedArticles();
   await seedSkills();

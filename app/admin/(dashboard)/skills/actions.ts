@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/services/auth-service";
 import { createSkill, updateSkill, deleteSkill, deleteSkills } from "@/lib/services/skill-admin-service";
@@ -59,9 +58,6 @@ export async function deleteSkillAction(id: string): Promise<DeleteResult> {
     if (isNextControlFlowError(error)) throw error;
     return classifyServiceError(error, { operation: "delete", contentType: "skill", recordId: parsed.data });
   }
-  revalidatePath("/admin/skills");
-  revalidatePath("/skills");
-  revalidatePath("/projects");
   return { success: true };
 }
 
@@ -78,8 +74,5 @@ export async function bulkDeleteSkillsAction(ids: string[]): Promise<BulkDeleteR
     return classifyServiceError(error, { operation: "bulkDelete", contentType: "skill" });
   }
 
-  revalidatePath("/admin/skills");
-  revalidatePath("/skills");
-  revalidatePath("/projects");
   return { success: true, deletedCount };
 }

@@ -1,8 +1,8 @@
 import "server-only";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import type { SkillFormValues } from "@/lib/validations/skill";
+import { revalidateContent } from "@/lib/services/content-revalidation";
 
 interface AdminSkillListItem {
   id: string;
@@ -28,19 +28,19 @@ export async function getSkillForEdit(id: string): Promise<AdminSkillListItem | 
 
 export async function createSkill(fm: SkillFormValues) {
   const skill = await prisma.skill.create({ data: fm });
-  await revalidateSkillPaths();
+  revalidateContent("skill");
   return skill;
 }
 
 export async function updateSkill(id: string, fm: SkillFormValues) {
   const skill = await prisma.skill.update({ where: { id }, data: fm });
-  await revalidateSkillPaths();
+  revalidateContent("skill");
   return skill;
 }
 
 export async function deleteSkill(id: string) {
   await prisma.skill.delete({ where: { id } });
-  await revalidateSkillPaths();
+  revalidateContent("skill");
 }
 
 /** Bulk delete for the management page's checkbox selection. Prisma
@@ -53,11 +53,6 @@ export async function deleteSkills(ids: string[]): Promise<number> {
     return records.length;
   });
 
-  await revalidateSkillPaths();
+  revalidateContent("skill");
   return count;
-}
-
-async function revalidateSkillPaths() {
-  revalidatePath("/skills");
-  revalidatePath("/projects");
 }

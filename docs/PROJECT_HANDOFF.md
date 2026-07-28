@@ -2,13 +2,13 @@
 
 **Handoff purpose:** Transfer long-term ownership of this repository to a new engineering agent without losing the original product intent, migration plan, architecture, completed work, constraints, or engineering history.
 
-**Current repository state:** Phase 5 and build/data stabilization verified; Phase 6 not started
+**Current repository state:** Phase 6 implemented and verified
 
 **Current date of handoff:** July 28, 2026
 
-**Immediate required task:** Preserve the strict build/data gate during future work
+**Immediate required task:** Preserve the Phase 6 strict build/data and revalidation guarantees
 
-**Next planned milestone:** Phase 6, followed by ordinary iterative development and deployment work
+**Next planned milestone:** Ordinary iterative development and deployment hardening
 **This is not a Phase 6-only instruction document.** It is the standing project context for every future task.
 
 ---
@@ -210,9 +210,10 @@ The migration was divided into stopping points where the public site should rema
 | **4 — Editor and CRUD** | TipTap editor, autosave, publish workflow and Projects CRUD | Complete |
 | **4B — CRUD replication** | Apply CRUD pattern to Labs, Articles, Certificates, Timeline and Skills | Complete |
 | **5 — CMS utilities** | Media Library, content templates, admin search and Settings | Complete |
-| **6 — Cleanup and polish** | Caching, revalidation verification, cleanup and CMS showcase entry | Next planned milestone |
+| **6 — Cleanup and polish** | Caching, revalidation verification, cleanup and CMS showcase entry | Complete |
 
-Phase 6 is the next task, not the end of the project. After Phase 6, continue with deployment, usability fixes, owner-requested enhancements, and carefully prioritized backlog items.
+Phase 6 is complete, not the end of the project. Continue with deployment, usability fixes,
+owner-requested enhancements, and carefully prioritized backlog items.
 
 ---
 
@@ -730,7 +731,8 @@ Media records represent uploaded files and metadata. One model supports multiple
 
 These are intentionally separate.
 
-- **Publication status:** Draft, Published, Archived, Scheduled.
+- **Publication status:** Draft, Published, Archived. The database retains a legacy Scheduled enum
+  value for migration compatibility, but it is not a supported UI workflow.
 - **Progress status:** Planned, In Progress, Completed.
 
 A public Lab may still be In Progress, so the two concepts must not be merged.
@@ -905,31 +907,19 @@ consecutive real-data builds completed without P1017 or content fallbacks.
 
 These are known at handoff time.
 
-### Immediate correctness or consistency work
+### Completed consistency work
 
-- Dashboard stat cards cover only four of six managed content types.
-- Dashboard database connectivity can be reported incorrectly because count queries swallow errors and return zero.
-- Dashboard copy contains old phase wording.
-- README and sections of architecture documentation are stale.
-- Caching has not received its planned systematic pass.
-- Revalidation behavior needs a complete audit.
-- The CMS itself has not yet been added as a showcased Project entry.
+- The dashboard covers all six managed content types and uses a dedicated health probe.
+- README and architecture documentation reflect the database-backed runtime.
+- Public reads received a systematic request-cache pass.
+- Mutation revalidation uses a verified typed matrix.
+- The CMS itself is a published Project created by an idempotent seed.
 
-### Scheduled publishing gap
+### Scheduled publishing policy
 
-The data model and forms support:
-
-- `publishStatus = SCHEDULED`
-- `scheduledFor`
-
-However, public queries normally return only `PUBLISHED` records, and no promotion job or due-date publication mechanism is currently established.
-
-Do not describe scheduled publishing as operational.
-
-A future implementation must either:
-
-- Implement a secure scheduler/cron and revalidation process, or
-- Disable/remove the misleading status until implemented.
+No automatic scheduler exists. Phase 6 removed Scheduled from validation and admin forms, migrated
+legacy Scheduled rows to Draft, and cleared scheduled timestamps. A future scheduler would be a
+new, separately approved feature with authenticated promotion and route invalidation.
 
 ### Functional gaps
 
@@ -960,23 +950,25 @@ A new maintainer with local or CI access should run genuine end-to-end verificat
 
 ---
 
-## 16. Next planned work: Phase 6
+## 16. Completed work: Phase 6
 
-The pre-Phase-6 editor/admin stabilization and the subsequent real-data build stabilization are
-complete. The build/data gate passes; Phase 6 is the next milestone, but it has not been started.
-This handoff remains active after Phase 6.
+Phase 6 was completed on July 28, 2026. The implementation and verification record is
+`docs/PHASE_6_REPORT.md`. This handoff remains active after Phase 6.
 
-Planned Phase 6 themes:
+Completed Phase 6 themes:
 
 ### 16.1 Caching
 
-- Add safe server request-level memoization where repeated reads occur.
-- Preserve error handling.
-- Avoid stale persistent caches without reliable invalidation.
+- Repeated public reads and counts use React request/render memoization.
+- Existing strict error handling is preserved.
+- No persistent application data cache was added.
 
 ### 16.2 Revalidation audit
 
-Confirm create, update, status change, delete, slug change and Settings update invalidate all affected routes.
+Create, update, status change, delete, slug change, and Settings update use one typed target
+matrix. Slug changes include old and new details; root-layout invalidation refreshes search data.
+The sitemap is dynamic and `no-store` after live testing exposed stale Next.js 14 static sitemap
+output.
 
 Potentially affected surfaces include:
 
@@ -991,33 +983,31 @@ Potentially affected surfaces include:
 
 ### 16.3 Cleanup
 
-- Correct stale README and architecture descriptions.
-- Remove genuinely unused dependencies only.
-- Retain seed dependencies.
-- Refresh old phase comments and dashboard copy.
-- Recheck dependency security using current official information.
+- README and architecture descriptions were corrected.
+- Unused `framer-motion` and `@types/mdx` were removed.
+- MDX/remark dependencies used by the recovery seed were retained.
+- Dependency security was reviewed without forcing a framework-major upgrade.
 
 ### 16.4 Dashboard consistency
 
-- Add Timeline and Skills statistics.
-- Correct the database connection indicator.
-- Keep the current dashboard visual language.
+Completed in the immediately preceding dashboard polish pass and preserved by Phase 6.
 
 ### 16.5 CMS showcase Project
 
-Create a truthful Project write-up explaining how this portfolio was migrated into a CMS.
-
-It must be added through an idempotent seed path so a clean database can reproduce it.
+The published `Cybersecurity Portfolio CMS` Project is created by an idempotent seed that does not
+overwrite an existing record.
 
 ### 16.6 Scheduled status resolution
 
-Either implement secure scheduled publishing or stop presenting the option as functional.
+Scheduled publishing was removed from product validation/forms. Legacy Scheduled records are
+migrated to Draft because no secure scheduler exists.
 
 ### 16.7 Report
 
-Create `docs/PHASE_6_REPORT.md` and update `ARCHITECTURE.md`.
+Completed.
 
-Do not treat this list as a permanent prohibition against future priorities. The owner may request different work. This section records the currently planned next milestone.
+Do not treat this list as a permanent prohibition against future priorities. The owner may request
+different work. This section records the completed milestone and its design decisions.
 
 ---
 

@@ -40,9 +40,9 @@ function mapCertificate(cert: CertificateWithRelations): Certification {
   };
 }
 
-export async function getCertificateCount(): Promise<number> {
-  return readWithPolicy("certificates.getCertificateCount", 0, () => prisma.certificate.count());
-}
+export const getCertificateCount = cache(async (): Promise<number> =>
+  readWithPolicy("certificates.getCertificateCount", 0, () => prisma.certificate.count())
+);
 
 export const getAllCertificates = cache(async (): Promise<Certification[]> =>
   readWithPolicy("certificates.getAllCertificates", [], async () => {

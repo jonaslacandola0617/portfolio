@@ -38,9 +38,9 @@ function mapArticle(article: ArticleWithRelations): DbContentItem<ArticleFrontma
   };
 }
 
-export async function getArticleCount(): Promise<number> {
-  return readWithPolicy("articles.getArticleCount", 0, () => prisma.article.count());
-}
+export const getArticleCount = cache(async (): Promise<number> =>
+  readWithPolicy("articles.getArticleCount", 0, () => prisma.article.count())
+);
 
 export const getAllArticles = cache(async (): Promise<DbContentItem<ArticleFrontmatter>[]> =>
   readWithPolicy("articles.getAllArticles", [], async () => {

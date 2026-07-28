@@ -153,15 +153,9 @@ export function CertificateForm({ mode, certificate }: CertificateFormProps) {
                   <option value="DRAFT">Draft</option>
                   <option value="PUBLISHED">Published</option>
                   <option value="ARCHIVED">Archived</option>
-                  <option value="SCHEDULED">Scheduled</option>
                 </select>
+                <p className="mt-1.5 text-xs text-muted-foreground">Publish manually when the certificate is ready.</p>
               </div>
-              {publishStatus === "SCHEDULED" && (
-                <div>
-                  <Label htmlFor="scheduledFor">Scheduled for</Label>
-                  <Input id="scheduledFor" name="scheduledFor" type="datetime-local" defaultValue={certificate?.scheduledFor} />
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>

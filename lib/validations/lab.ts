@@ -11,7 +11,7 @@ export const labFormSchema = z.object({
   category: z.string().min(1, "Category is required"),
   difficulty: z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]),
   progressStatus: z.enum(["PLANNED", "IN_PROGRESS", "COMPLETED"]),
-  publishStatus: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED", "SCHEDULED"]),
+  publishStatus: z.enum(["DRAFT", "PUBLISHED", "ARCHIVED"]),
   tags: z.array(z.string().min(1)).default([]),
   labDate: z.string().min(1, "Lab date is required"),
   scheduledFor: z.string().optional().or(z.literal("")),

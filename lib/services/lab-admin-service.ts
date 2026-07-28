@@ -1,5 +1,4 @@
 import "server-only";
-import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
@@ -8,6 +7,7 @@ import type { TipTapDoc } from "@/types/tiptap";
 
 import { labTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
+import { revalidateContent } from "@/lib/services/content-revalidation";
 
 /** Same pattern as lib/services/project-admin-service.ts — see that
  *  file's comments for the reasoning behind hand-rolled types,
@@ -82,7 +82,7 @@ export async function createLab(fm: LabFormValues) {
       ...relationInput(fm),
     },
   });
-  await revalidateLabPaths(lab.slug);
+  revalidateContent("lab", [lab.slug]);
   return lab;
 }
 
@@ -108,8 +108,7 @@ export async function updateLabMetadata(id: string, fm: LabFormValues) {
     },
   });
 
-  await revalidateLabPaths(lab.slug);
-  if (existing && existing.slug !== lab.slug) await revalidateLabPaths(existing.slug);
+  revalidateContent("lab", existing ? [existing.slug, lab.slug] : [lab.slug]);
   return lab;
 }
 
@@ -119,14 +118,14 @@ export async function updateLabContent(id: string, content: TipTapDoc) {
     data: { content: toPrismaJson(content) },
     select: { slug: true, publishStatus: true },
   });
-  if (lab.publishStatus === "PUBLISHED") await revalidateLabPaths(lab.slug);
+  if (lab.publishStatus === "PUBLISHED") revalidateContent("lab", [lab.slug]);
   const readBack = await prisma.lab.findUnique({ where: { id }, select: { content: true } });
   return readBack?.content;
 }
 
 export async function deleteLab(id: string) {
   const lab = await prisma.lab.delete({ where: { id }, select: { slug: true } });
-  await revalidateLabPaths(lab.slug);
+  revalidateContent("lab", [lab.slug]);
 }
 
 /** Bulk delete for the management page's checkbox selection — same
@@ -139,20 +138,7 @@ export async function deleteLabs(ids: string[]): Promise<number> {
     return records.map((r: { slug: string }) => r.slug);
   });
 
-  for (const slug of slugs) {
-    revalidatePath(`/labs/${slug}`);
-  }
-  revalidatePath("/labs");
-  revalidatePath("/");
-  revalidatePath("/sitemap.xml");
+  revalidateContent("lab", slugs);
 
   return slugs.length;
-}
-
-async function revalidateLabPaths(slug: string) {
-  revalidatePath("/labs");
-  revalidatePath(`/labs/${slug}`);
-  revalidatePath("/tags/[tag]", "page");
-  revalidatePath("/");
-  revalidatePath("/sitemap.xml");
 }

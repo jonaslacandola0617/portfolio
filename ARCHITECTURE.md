@@ -5,8 +5,8 @@ transition plan and history; this document is the current-and-target architectur
 implement. Phase reports (`docs/PHASE_0_REPORT.md`, `docs/PHASE_1_REPORT.md`, ...) are the
 execution log of what actually happened at each step.
 
-**Status: Phase 5 complete, build/data stabilization complete
-(July 28, 2026 — see `docs/CODEX_BUILD_DATA_STABILIZATION_REPORT.md`), Phase 6 not yet started.** Media
+**Status: Phase 6 complete
+(July 28, 2026 — see `docs/PHASE_6_REPORT.md`).** Media
 Library (Vercel Blob), content templates, admin search, and a live Settings screen are all built on
 top of the full CRUD from Phase 4. The public site now reads identity/contact fields (name, role,
 tagline, email, social links, resume path, "Currently Learning") from the database via
@@ -31,9 +31,9 @@ of the pieces that pass touched.
                     └───────────┬────────────┘
                                 │ read-only
                     ┌───────────▼────────────┐
-                    │   lib/content.ts        │  Today: fs + gray-matter over content/*.mdx
-                    │   (the seam)            │  Target: same function signatures, backed by
-                    │                         │  lib/db/queries/* instead
+                    │   lib/content.ts        │  Compatibility seam backed by
+                    │   (the seam)            │  lib/db/queries/*; MDX remains
+                    │                         │  seed/recovery input only
                     └───────────┬────────────┘
                                 │ (target state)
               ┌─────────────────┼──────────────────┐
@@ -471,6 +471,7 @@ auth.ts          Auth.js config
 14. **Repeated identical public reads use React `cache()` only.** Collection, slug, Settings,
     Timeline, Skills, Certificate, and Tag query functions are request/render memoized by their
     arguments. There is no persistent data cache, so admin revalidation semantics are unchanged.
+    Counts used during static generation follow the same request-only rule.
 15. **Stored TipTap data is audited independently of editor fixtures.** `npm run audit:content`
     scans all non-null Project/Lab/Article/Certificate documents and prints bounded record/path/node
     diagnostics. `npm run migrate:content` is dry-run by default; `--write` backs up affected rows,
@@ -482,6 +483,20 @@ auth.ts          Auth.js config
     `SELECT 1` health probe distinguishes Connected, Degraded, and Unavailable without exposing a
     database host. Metrics use counts/groupings rather than loading full collections, and Recently
     Updated is capped before merging.
+17. **Mutation revalidation comes from one typed target matrix.**
+    `lib/revalidation-targets.ts` declares the admin, collection, detail, tag, root-layout/search,
+    settings-consumer, and sitemap surfaces for each content type.
+    `lib/services/content-revalidation.ts` is the only service helper that executes those targets.
+    Slug-changing updates supply both old and new slugs. The sitemap is a small dynamic,
+    `no-store` XML route because live ISR testing showed that Next.js 14 retained stale output for
+    the former metadata sitemap and for a force-static route even after `revalidatePath`.
+18. **Publishing is manual.** Admin validation and forms expose Draft, Published, and Archived.
+    Phase 6 migrated legacy Scheduled rows to Draft and cleared their scheduled timestamps. The
+    Prisma enum/columns remain for migration compatibility, but the product does not claim a
+    scheduler exists.
+19. **The CMS showcase has a non-destructive seed.**
+    `prisma/seed/cms-showcase.ts` creates the published showcase only when its stable slug is
+    absent. A rerun never overwrites owner edits.
 
 ## 8. Migration roadmap (condensed — full detail in `docs/CMS_MIGRATION_PLAN.md`)
 
@@ -493,4 +508,4 @@ auth.ts          Auth.js config
 | 3 | Same pattern for Labs, Articles, Certificates, Timeline, Skills; retire MDX | ✅ Done (this phase) |
 | 4 | Admin CRUD + TipTap editor, autosave, publish workflow | ✅ Done — editor infrastructure + full CRUD for all 6 content types |
 | 5 | Media Library (Blob), templates, admin search, Settings screen | ✅ Done |
-| 6 | Cleanup, caching pass, remove unused MDX deps, CMS becomes a showcased Project | Partially done — MDX deps already removed Phase 3; caching pass and the showcased-Project entry remain |
+| 6 | Cleanup, request caching, revalidation audit, dependency review, scheduling resolution, CMS showcase | ✅ Done |

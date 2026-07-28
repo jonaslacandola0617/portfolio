@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/services/auth-service";
 import {
@@ -68,8 +67,6 @@ export async function deleteTimelineAction(id: string): Promise<DeleteResult> {
     if (isNextControlFlowError(error)) throw error;
     return classifyServiceError(error, { operation: "delete", contentType: "timeline entry", recordId: parsed.data });
   }
-  revalidatePath("/admin/timeline");
-  revalidatePath("/timeline");
   return { success: true };
 }
 
@@ -86,7 +83,5 @@ export async function bulkDeleteTimelineAction(ids: string[]): Promise<BulkDelet
     return classifyServiceError(error, { operation: "bulkDelete", contentType: "timeline entry" });
   }
 
-  revalidatePath("/admin/timeline");
-  revalidatePath("/timeline");
   return { success: true, deletedCount };
 }
