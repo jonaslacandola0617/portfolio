@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { Search, FolderGit2, FlaskConical, NotebookPen, CornerDownLeft } from "lucide-react";
+import { Search, FolderGit2, FlaskConical, NotebookPen, Award, CornerDownLeft } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useSearch } from "@/hooks/use-search";
 import { cn } from "@/lib/utils";
@@ -11,12 +11,14 @@ const typeIcon = {
   project: FolderGit2,
   lab: FlaskConical,
   article: NotebookPen,
+  certificate: Award,
 };
 
 const typeLabel = {
   project: "Project",
   lab: "Lab",
   article: "Journal",
+  certificate: "Certificate",
 };
 
 export function SearchDialog() {
@@ -45,7 +47,7 @@ export function SearchDialog() {
             autoFocus
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search projects, labs, journal entries, tags..."
+            placeholder="Search projects, labs, journal entries, certificates, tags..."
             className="flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
           <kbd className="hidden sm:inline-flex h-5 items-center rounded border border-border px-1.5 font-mono text-[0.65rem] text-muted-foreground">
@@ -62,7 +64,7 @@ export function SearchDialog() {
             const Icon = typeIcon[item.type];
             return (
               <Link
-                key={item.href}
+                key={`${item.type}:${item.title}:${item.href}`}
                 href={item.href}
                 onClick={() => setOpen(false)}
                 className={cn(

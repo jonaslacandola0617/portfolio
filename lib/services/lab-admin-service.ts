@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
 import type { LabFormValues } from "@/lib/validations/lab";
-import type { JSONContent } from "@tiptap/react";
+import type { TipTapDoc } from "@/types/tiptap";
 
 import { labTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
@@ -113,13 +113,15 @@ export async function updateLabMetadata(id: string, fm: LabFormValues) {
   return lab;
 }
 
-export async function updateLabContent(id: string, content: JSONContent) {
+export async function updateLabContent(id: string, content: TipTapDoc) {
   const lab = await prisma.lab.update({
     where: { id },
     data: { content: toPrismaJson(content) },
     select: { slug: true, publishStatus: true },
   });
   if (lab.publishStatus === "PUBLISHED") await revalidateLabPaths(lab.slug);
+  const readBack = await prisma.lab.findUnique({ where: { id }, select: { content: true } });
+  return readBack?.content;
 }
 
 export async function deleteLab(id: string) {
@@ -150,6 +152,7 @@ export async function deleteLabs(ids: string[]): Promise<number> {
 async function revalidateLabPaths(slug: string) {
   revalidatePath("/labs");
   revalidatePath(`/labs/${slug}`);
+  revalidatePath("/tags/[tag]", "page");
   revalidatePath("/");
   revalidatePath("/sitemap.xml");
 }

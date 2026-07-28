@@ -1,6 +1,5 @@
 "use client";
 
-import { useFormState } from "react-dom";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { JSONContent } from "@tiptap/react";
@@ -13,13 +12,14 @@ import { SubmitButton } from "@/components/admin/submit-button";
 import { FormMessage } from "@/components/admin/form-message";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
+import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
+import { useMetadataAction } from "@/hooks/use-metadata-action";
 import {
   createArticleAction,
   updateArticleAction,
   autosaveArticleContentAction,
   deleteArticleAction,
 } from "@/app/admin/(dashboard)/journal/actions";
-import type { ActionResult } from "@/types/admin";
 
 interface ArticleFormProps {
   mode: "create" | "edit";
@@ -37,8 +37,6 @@ interface ArticleFormProps {
   };
 }
 
-const initialState: ActionResult = { success: false };
-
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
@@ -50,18 +48,20 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
 
   const action = mode === "create" ? createArticleAction : updateArticleAction.bind(null, article!.id);
-  const [state, formAction] = useFormState(action, initialState);
+  const { state, submit: formAction } = useMetadataAction(
+    action,
+    mode === "edit" ? `cms:article:${article!.id}:metadata` : undefined
+  );
   const [title, setTitle] = useState(article?.title ?? "");
   const [slug, setSlug] = useState(article?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(mode === "edit");
   const [publishStatus, setPublishStatus] = useState(article?.publishStatus ?? "DRAFT");
+  const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
     <div className="space-y-8">
-      <form action={formAction} className="space-y-6">
+      <form onSubmit={editorForm.onSubmit} className="space-y-6">
         {justCreated && <FormMessage variant="success">Journal entry created — autosave is on below.</FormMessage>}
-        {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
-        {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
 
         <Card>
           <CardContent className="space-y-5 pt-6">
@@ -124,24 +124,42 @@ export function ArticleForm({ mode, article }: ArticleFormProps) {
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between">
-          <SubmitButton pendingLabel={mode === "create" ? "Creating..." : "Saving..."}>
+        <div className="space-y-3">
+          {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
+          {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
+          {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+          {!state.success && state.errors && (
+            <FormMessage variant="error">Fix the highlighted metadata fields, then save again.</FormMessage>
+          )}
+          <div className="flex items-center justify-between">
+          <SubmitButton
+            pendingLabel={mode === "create" ? "Creating..." : "Saving changes..."}
+            forcePending={editorForm.isCoordinating}
+          >
             {mode === "create" ? "Create entry" : "Save changes"}
           </SubmitButton>
           {mode === "edit" && article && (
             <DeleteButton
-              confirmMessage="Delete this journal entry? This can't be undone."
+              contentType="article"
+              recordTitle={article.title}
               onDelete={() => deleteArticleAction(article.id)}
               onSuccess={() => router.push("/admin/journal")}
             />
           )}
+          </div>
         </div>
       </form>
 
       {mode === "edit" && article && (
         <div>
           <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">Content</h2>
-          <EditorShell initialContent={article.content} onSave={(content) => autosaveArticleContentAction(article.id, content)} />
+          <EditorShell
+            initialContent={article.content}
+            recordId={article.id}
+            contentType="article"
+            onSave={autosaveArticleContentAction}
+            onReady={editorForm.registerEditor}
+          />
         </div>
       )}
 

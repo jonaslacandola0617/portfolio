@@ -14,6 +14,8 @@ import {
   getArticleBySlug as dbGetArticleBySlug,
   getAllArticleSlugs as dbGetAllArticleSlugs,
 } from "@/lib/db/queries/articles";
+import { getAllCertificates } from "@/lib/db/queries/certificates";
+import { getAllPublishedTags } from "@/lib/db/queries/tags";
 
 /**
  * As of Phase 3, every content type in this file is Prisma-backed — the
@@ -68,29 +70,16 @@ export async function getAllArticleSlugs() {
 // in-between state, where this had to mix an async source with two sync
 // ones.
 export async function getAllTags(): Promise<{ tag: string; count: number }[]> {
-  const counts = new Map<string, number>();
-  const bump = (tags: string[] = []) =>
-    tags.forEach((t) => counts.set(t, (counts.get(t) ?? 0) + 1));
-
-  const [projects, labs, articles] = await Promise.all([
-    getAllProjects(),
-    getAllLabs(),
-    getAllArticles(),
-  ]);
-  projects.forEach((p) => bump(p.frontmatter.tags));
-  labs.forEach((l) => bump(l.frontmatter.tags));
-  articles.forEach((a) => bump(a.frontmatter.tags));
-
-  return Array.from(counts.entries())
-    .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count);
+  const tags = await getAllPublishedTags();
+  return tags.map(({ name, count }) => ({ tag: name, count }));
 }
 
 export async function getSearchIndex() {
-  const [allProjects, allLabs, allArticles] = await Promise.all([
+  const [allProjects, allLabs, allArticles, allCertificates] = await Promise.all([
     getAllProjects(),
     getAllLabs(),
     getAllArticles(),
+    getAllCertificates(),
   ]);
 
   const projects = allProjects.map((p) => ({
@@ -114,6 +103,13 @@ export async function getSearchIndex() {
     href: `/journal/${a.frontmatter.slug}`,
     tags: a.frontmatter.tags,
   }));
+  const certificates = allCertificates.map((certificate) => ({
+    type: "certificate" as const,
+    title: certificate.name,
+    summary: `${certificate.issuer} — ${certificate.progressLabel}`,
+    href: "/certifications",
+    tags: certificate.skills,
+  }));
 
-  return [...projects, ...labs, ...articles];
+  return [...projects, ...labs, ...articles, ...certificates];
 }

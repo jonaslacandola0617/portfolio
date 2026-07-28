@@ -5,6 +5,9 @@ import { del } from "@vercel/blob";
 import { requireAdmin } from "@/lib/services/auth-service";
 import { prisma } from "@/lib/db";
 import { createMediaSchema, type CreateMediaValues } from "@/lib/validations/media";
+import { deleteIdSchema } from "@/lib/validations/admin";
+import { classifyServiceError } from "@/lib/services/action-errors";
+import type { DeleteResult } from "@/types/admin";
 
 interface AdminMediaItem {
   id: string;
@@ -17,12 +20,7 @@ interface AdminMediaItem {
 
 export async function getAllMedia(): Promise<AdminMediaItem[]> {
   await requireAdmin();
-  try {
-    return (await prisma.media.findMany({ orderBy: { uploadedAt: "desc" } })) as AdminMediaItem[];
-  } catch (error) {
-    console.error("[media-admin-service] getAllMedia failed:", error);
-    return [];
-  }
+  return (await prisma.media.findMany({ orderBy: { uploadedAt: "desc" } })) as AdminMediaItem[];
 }
 
 export async function createMediaRecordAction(values: CreateMediaValues) {
@@ -35,17 +33,23 @@ export async function createMediaRecordAction(values: CreateMediaValues) {
   return media;
 }
 
-export async function deleteMediaAction(id: string) {
+export async function deleteMediaAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
-  const media = await prisma.media.findUnique({ where: { id } });
-  if (!media) return;
+  const parsed = deleteIdSchema.safeParse(id);
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid media id." };
 
   try {
+    const media = await prisma.media.findUnique({ where: { id: parsed.data } });
+    if (!media) return { success: false, message: "That media file no longer exists." };
     await del(media.url);
+    await prisma.media.delete({ where: { id: parsed.data } });
   } catch (error) {
-    console.error("[media-admin-service] Failed to delete blob (deleting DB row anyway):", error);
+    return classifyServiceError(error, {
+      operation: "delete",
+      contentType: "media",
+      recordId: parsed.data,
+    });
   }
-
-  await prisma.media.delete({ where: { id } });
   revalidatePath("/admin/media");
+  return { success: true };
 }

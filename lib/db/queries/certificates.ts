@@ -1,5 +1,7 @@
 import "server-only";
+import { cache } from "react";
 import { prisma } from "@/lib/db";
+import { readWithPolicy } from "@/lib/db/read-policy";
 import type { Certification } from "@/types";
 
 interface CertificateWithRelations {
@@ -14,6 +16,7 @@ interface CertificateWithRelations {
   dateCompleted: Date | null;
   credentialUrl: string | null;
   skills: { name: string }[];
+  content: unknown;
 }
 
 function toISODate(date: Date): string {
@@ -31,30 +34,23 @@ function mapCertificate(cert: CertificateWithRelations): Certification {
     dateStarted: toISODate(cert.dateStarted),
     dateCompleted: cert.dateCompleted ? toISODate(cert.dateCompleted) : undefined,
     credentialUrl: cert.credentialUrl ?? undefined,
-    skills: cert.skills.map((s) => s.name),
+    skills: cert.skills.map((skill) => skill.name),
     logo: cert.logo,
+    content: cert.content ?? undefined,
   };
 }
 
 export async function getCertificateCount(): Promise<number> {
-  try {
-    return await prisma.certificate.count();
-  } catch (error) {
-    console.error("[queries/certificates] getCertificateCount failed:", error);
-    return 0;
-  }
+  return readWithPolicy("certificates.getCertificateCount", 0, () => prisma.certificate.count());
 }
 
-export async function getAllCertificates(): Promise<Certification[]> {
-  try {
-    const certs = (await prisma.certificate.findMany({
+export const getAllCertificates = cache(async (): Promise<Certification[]> =>
+  readWithPolicy("certificates.getAllCertificates", [], async () => {
+    const certificates = (await prisma.certificate.findMany({
       where: { publishStatus: "PUBLISHED" },
       include: { skills: true },
       orderBy: { dateStarted: "asc" },
     })) as CertificateWithRelations[];
-    return certs.map(mapCertificate);
-  } catch (error) {
-    console.error("[queries/certificates] getAllCertificates failed, returning empty list:", error);
-    return [];
-  }
-}
+    return certificates.map(mapCertificate);
+  })
+);

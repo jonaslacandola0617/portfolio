@@ -4,6 +4,7 @@ import { StatusBadge } from "@/components/shared/status-badges";
 import { Badge } from "@/components/ui/badge";
 import { formatDateShort } from "@/lib/utils";
 import type { Certification } from "@/types";
+import { ContentRenderer } from "@/components/shared/content-renderer";
 
 const logoMap: Record<string, { icon: typeof GraduationCap; color: string }> = {
   google: { icon: GraduationCap, color: "text-primary" },
@@ -66,6 +67,14 @@ export function CertificateCard({ cert }: { cert: Certification }) {
           </div>
         </div>
       </div>
+      {cert.content != null && (
+        <div className="mt-5 border-t border-border pt-5">
+          <ContentRenderer
+            content={cert.content}
+            context={{ model: "Certificate", slug: cert.id, title: cert.name }}
+          />
+        </div>
+      )}
     </Card>
   );
 }

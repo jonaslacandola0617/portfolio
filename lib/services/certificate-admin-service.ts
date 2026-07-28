@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import type { CertificateFormValues } from "@/lib/validations/certificate";
-import type { JSONContent } from "@tiptap/react";
+import type { TipTapDoc } from "@/types/tiptap";
 
 import { emptyTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
@@ -109,13 +109,15 @@ export async function updateCertificateMetadata(id: string, fm: CertificateFormV
   return cert;
 }
 
-export async function updateCertificateContent(id: string, content: JSONContent) {
+export async function updateCertificateContent(id: string, content: TipTapDoc) {
   const cert = await prisma.certificate.update({
     where: { id },
     data: { content: toPrismaJson(content) },
     select: { publishStatus: true },
   });
   if (cert.publishStatus === "PUBLISHED") await revalidateCertificatePaths();
+  const readBack = await prisma.certificate.findUnique({ where: { id }, select: { content: true } });
+  return readBack?.content;
 }
 
 export async function deleteCertificate(id: string) {

@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { JSONContent } from "@tiptap/react";
 import { requireAdmin } from "@/lib/services/auth-service";
 import {
   createCertificate,
@@ -12,10 +11,10 @@ import {
   deleteCertificates,
 } from "@/lib/services/certificate-admin-service";
 import { certificateFormSchema } from "@/lib/validations/certificate";
-import { tiptapDocSchema } from "@/lib/validations/content";
-import { bulkDeleteSchema } from "@/lib/validations/admin";
+import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
-import type { ActionResult, AutosaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
+import { saveEditorContent } from "@/lib/services/content-save-service";
+import type { ActionResult, SaveContentPayload, SaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
 
 function parseFormData(formData: FormData) {
   return {
@@ -55,9 +54,28 @@ export async function updateCertificateAction(
   _prevState: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
-  await requireAdmin();
+  try {
+    await requireAdmin();
+  } catch {
+    console.error("[admin:certificate:update] authentication failed", {
+      contentType: "certificate",
+      recordId: id,
+      operation: "metadata-save",
+      validationStage: "authentication",
+    });
+    return { success: false, code: "AUTH_ERROR", message: "Your admin session expired. Sign in again." };
+  }
   const parsed = certificateFormSchema.safeParse(parseFormData(formData));
-  if (!parsed.success) return { success: false, errors: parsed.error.flatten().fieldErrors };
+  if (!parsed.success) {
+    console.error("[admin:certificate:update] validation failed", {
+      contentType: "certificate",
+      recordId: id,
+      operation: "metadata-save",
+      validationStage: "server-zod",
+      fields: Object.keys(parsed.error.flatten().fieldErrors),
+    });
+    return { success: false, errors: parsed.error.flatten().fieldErrors };
+  }
 
   try {
     await updateCertificateMetadata(id, parsed.data);
@@ -66,42 +84,22 @@ export async function updateCertificateAction(
     return classifyServiceError(error, { operation: "update", contentType: "certificate", recordId: id });
   }
 
-  revalidatePath(`/admin/certificates/${id}`);
-  return { success: true, recordId: id, message: "Changes saved." };
+  return { success: true, recordId: id, message: "Metadata changes saved." };
 }
 
-export async function autosaveCertificateContentAction(id: string, content: JSONContent): Promise<AutosaveResult> {
-  await requireAdmin();
-  const parsed = tiptapDocSchema.safeParse(content);
-  if (!parsed.success) {
-    console.error("[admin:certificate:autosave] content failed validation", {
-      recordId: id,
-      issues: parsed.error.issues,
-    });
-    return {
-      success: false,
-      message: "This content couldn't be saved — it contains something the editor doesn't recognize.",
-      code: "INVALID_CONTENT",
-    };
-  }
-
-  try {
-    await updateCertificateContent(id, parsed.data as JSONContent);
-  } catch (error) {
-    const result = classifyServiceError(error, { operation: "autosave", contentType: "certificate", recordId: id });
-    return { success: false, message: result.message, code: result.code };
-  }
-
-  return { success: true, savedAt: new Date().toISOString() };
+export async function autosaveCertificateContentAction(payload: SaveContentPayload): Promise<SaveResult> {
+  return saveEditorContent("certificate", payload, updateCertificateContent);
 }
 
 export async function deleteCertificateAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
+  const parsed = deleteIdSchema.safeParse(id);
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid certificate id." };
   try {
-    await deleteCertificate(id);
+    await deleteCertificate(parsed.data);
   } catch (error) {
     if (isNextControlFlowError(error)) throw error;
-    return classifyServiceError(error, { operation: "delete", contentType: "certificate", recordId: id });
+    return classifyServiceError(error, { operation: "delete", contentType: "certificate", recordId: parsed.data });
   }
   revalidatePath("/admin/certificates");
   revalidatePath("/certifications");

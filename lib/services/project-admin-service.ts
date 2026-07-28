@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
 import type { ProjectFormValues } from "@/lib/validations/project";
-import type { JSONContent } from "@tiptap/react";
+import type { TipTapDoc } from "@/types/tiptap";
 
 import { projectTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
@@ -150,13 +150,15 @@ export async function updateProjectMetadata(id: string, fm: ProjectFormValues) {
 /** The autosave path — only touches `content`, called far more often
  *  than the metadata form is submitted, so it's a separate, smaller
  *  write rather than reusing updateProjectMetadata for this. */
-export async function updateProjectContent(id: string, content: JSONContent) {
+export async function updateProjectContent(id: string, content: TipTapDoc) {
   const project = await prisma.project.update({
     where: { id },
     data: { content: toPrismaJson(content) },
     select: { slug: true, publishStatus: true },
   });
   if (project.publishStatus === "PUBLISHED") await revalidateProjectPaths(project.slug);
+  const readBack = await prisma.project.findUnique({ where: { id }, select: { content: true } });
+  return readBack?.content;
 }
 
 export async function deleteProject(id: string) {
@@ -193,6 +195,7 @@ export async function deleteProjects(ids: string[]): Promise<number> {
 async function revalidateProjectPaths(slug: string) {
   revalidatePath("/projects");
   revalidatePath(`/projects/${slug}`);
+  revalidatePath("/tags/[tag]", "page");
   revalidatePath("/");
   revalidatePath("/sitemap.xml");
 }

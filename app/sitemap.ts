@@ -1,6 +1,7 @@
 import type { MetadataRoute } from "next";
 import { siteConfig } from "@/lib/site-config";
 import { getAllProjectSlugs, getAllLabSlugs, getAllArticleSlugs } from "@/lib/content";
+import { getAllPublishedTags } from "@/lib/db/queries/tags";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = siteConfig.siteUrl;
@@ -17,10 +18,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/contact",
   ].map((route) => ({ url: `${base}${route}`, lastModified: new Date() }));
 
-  const [projectSlugs, labSlugs, articleSlugs] = await Promise.all([
+  const [projectSlugs, labSlugs, articleSlugs, tags] = await Promise.all([
     getAllProjectSlugs(),
     getAllLabSlugs(),
     getAllArticleSlugs(),
+    getAllPublishedTags(),
   ]);
 
   const projectRoutes = projectSlugs.map((slug) => ({
@@ -35,6 +37,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     url: `${base}/journal/${slug}`,
     lastModified: new Date(),
   }));
+  const tagRoutes = tags.map(({ slug }) => ({
+    url: `${base}/tags/${slug}`,
+    lastModified: new Date(),
+  }));
 
-  return [...staticRoutes, ...projectRoutes, ...labRoutes, ...articleRoutes];
+  return [...staticRoutes, ...projectRoutes, ...labRoutes, ...articleRoutes, ...tagRoutes];
 }

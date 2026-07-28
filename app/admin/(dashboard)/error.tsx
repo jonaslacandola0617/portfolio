@@ -22,16 +22,22 @@ export default function AdminError({ error, reset }: { error: Error & { digest?:
     // server-side logging (see lib/services/action-errors.ts for that),
     // but it's the only visibility available for a render-time error
     // that never reached a Server Action.
-    console.error("[admin] route error boundary caught:", error);
+    console.error("[admin] route error boundary caught", {
+      operation: "render",
+      errorType: error.name,
+      digest: error.digest,
+    });
   }, [error]);
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col items-center gap-4 px-6 py-24 text-center">
-      <AlertTriangle className="h-10 w-10 text-destructive" />
-      <h1 className="font-display text-xl font-semibold text-foreground">Something went wrong</h1>
+    <div role="alert" className="mx-auto mt-12 flex max-w-2xl flex-col items-center gap-4 rounded-lg border border-warning/25 bg-card px-6 py-16 text-center shadow-lg">
+      <div className="flex h-12 w-12 items-center justify-center rounded-md border border-warning/30 bg-warning/5">
+        <AlertTriangle className="h-6 w-6 text-warning" />
+      </div>
+      <h1 className="font-display text-xl font-semibold text-foreground">This page could not load</h1>
       <p className="text-sm text-muted-foreground">
-        This part of the admin dashboard hit an unexpected error. It&apos;s been logged. You can try again, or head
-        back to the dashboard.
+        The admin shell is still available, but this section could not retrieve its data. Try the request again or
+        return to the dashboard.
       </p>
       {error.digest && (
         <p className="font-mono text-xs text-muted-foreground/70">Reference: {error.digest}</p>

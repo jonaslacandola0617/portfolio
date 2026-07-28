@@ -1,6 +1,5 @@
 "use client";
 
-import { useFormState } from "react-dom";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { JSONContent } from "@tiptap/react";
@@ -12,13 +11,14 @@ import { SubmitButton } from "@/components/admin/submit-button";
 import { FormMessage } from "@/components/admin/form-message";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
+import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
+import { useMetadataAction } from "@/hooks/use-metadata-action";
 import {
   createCertificateAction,
   updateCertificateAction,
   autosaveCertificateContentAction,
   deleteCertificateAction,
 } from "@/app/admin/(dashboard)/certificates/actions";
-import type { ActionResult } from "@/types/admin";
 
 interface CertificateFormProps {
   mode: "create" | "edit";
@@ -41,8 +41,6 @@ interface CertificateFormProps {
   };
 }
 
-const initialState: ActionResult = { success: false };
-
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
@@ -54,18 +52,20 @@ export function CertificateForm({ mode, certificate }: CertificateFormProps) {
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
 
   const action = mode === "create" ? createCertificateAction : updateCertificateAction.bind(null, certificate!.id);
-  const [state, formAction] = useFormState(action, initialState);
+  const { state, submit: formAction } = useMetadataAction(
+    action,
+    mode === "edit" ? `cms:certificate:${certificate!.id}:metadata` : undefined
+  );
   const [name, setName] = useState(certificate?.name ?? "");
   const [slug, setSlug] = useState(certificate?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(mode === "edit");
   const [publishStatus, setPublishStatus] = useState(certificate?.publishStatus ?? "DRAFT");
+  const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
     <div className="space-y-8">
-      <form action={formAction} className="space-y-6">
+      <form onSubmit={editorForm.onSubmit} className="space-y-6">
         {justCreated && <FormMessage variant="success">Certificate created — autosave is on below.</FormMessage>}
-        {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
-        {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
 
         <Card>
           <CardContent className="space-y-5 pt-6">
@@ -166,17 +166,29 @@ export function CertificateForm({ mode, certificate }: CertificateFormProps) {
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between">
-          <SubmitButton pendingLabel={mode === "create" ? "Creating..." : "Saving..."}>
+        <div className="space-y-3">
+          {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
+          {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
+          {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+          {!state.success && state.errors && (
+            <FormMessage variant="error">Fix the highlighted metadata fields, then save again.</FormMessage>
+          )}
+          <div className="flex items-center justify-between">
+          <SubmitButton
+            pendingLabel={mode === "create" ? "Creating..." : "Saving changes..."}
+            forcePending={editorForm.isCoordinating}
+          >
             {mode === "create" ? "Create certificate" : "Save changes"}
           </SubmitButton>
           {mode === "edit" && certificate && (
             <DeleteButton
-              confirmMessage="Delete this certificate? This can't be undone."
+              contentType="certificate"
+              recordTitle={certificate.name}
               onDelete={() => deleteCertificateAction(certificate.id)}
               onSuccess={() => router.push("/admin/certificates")}
             />
           )}
+          </div>
         </div>
       </form>
 
@@ -185,7 +197,13 @@ export function CertificateForm({ mode, certificate }: CertificateFormProps) {
           <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
             Write-up (optional)
           </h2>
-          <EditorShell initialContent={certificate.content} onSave={(content) => autosaveCertificateContentAction(certificate.id, content)} />
+          <EditorShell
+            initialContent={certificate.content}
+            recordId={certificate.id}
+            contentType="certificate"
+            onSave={autosaveCertificateContentAction}
+            onReady={editorForm.registerEditor}
+          />
         </div>
       )}
 

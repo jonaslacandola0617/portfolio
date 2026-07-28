@@ -2,7 +2,9 @@
 
 import * as React from "react";
 import { FileText, FileArchive, Video, Network, Check, Copy, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { deleteMediaAction } from "@/lib/services/media-admin-service";
+import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 
 const typeIcon: Record<string, typeof FileText> = {
   IMAGE: FileText,
@@ -26,6 +28,7 @@ export function MediaCard({
   media: { id: string; url: string; filename: string; type: string; size: number };
 }) {
   const [copied, setCopied] = React.useState(false);
+  const router = useRouter();
   const Icon = typeIcon[media.type] ?? FileText;
 
   function copyUrl() {
@@ -57,18 +60,23 @@ export function MediaCard({
             {copied ? <Check className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3" />}
             {copied ? "copied" : "copy url"}
           </button>
-          <form
-            action={async () => {
-              if (confirm(`Delete ${media.filename}? This can't be undone.`)) {
-                await deleteMediaAction(media.id);
-              }
-            }}
-          >
-            <button className="flex items-center gap-1 rounded border border-border px-2 py-1 font-mono text-[0.65rem] text-muted-foreground hover:border-destructive/40 hover:text-destructive">
-              <Trash2 className="h-3 w-3" />
-              delete
-            </button>
-          </form>
+          <DeleteConfirmationDialog
+            contentType="media file"
+            recordTitle={media.filename}
+            description="This will permanently remove the file from storage and the media library. Content records that reference its URL may display a broken asset."
+            confirmLabel="Delete media"
+            onConfirm={() => deleteMediaAction(media.id)}
+            onSuccess={() => router.refresh()}
+            trigger={
+              <button
+                type="button"
+                className="flex items-center gap-1 rounded border border-border px-2 py-1 font-mono text-[0.65rem] text-muted-foreground hover:border-destructive/40 hover:text-destructive"
+              >
+                <Trash2 className="h-3 w-3" />
+                delete
+              </button>
+            }
+          />
         </div>
       </div>
     </div>

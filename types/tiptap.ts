@@ -31,7 +31,16 @@ export type TipTapMark =
   | { type: "bold" }
   | { type: "italic" }
   | { type: "code" }
-  | { type: "link"; attrs: { href: string } };
+  | {
+      type: "link";
+      attrs: {
+        href: string;
+        target?: string | null;
+        rel?: string | null;
+        class?: string | null;
+        title?: string | null;
+      };
+    };
 
 export interface TipTapTextNode {
   type: "text";
@@ -81,6 +90,10 @@ export interface TipTapBulletListNode {
 
 export interface TipTapOrderedListNode {
   type: "orderedList";
+  attrs?: {
+    start: number;
+    type: "1" | "a" | "A" | "i" | "I" | null;
+  };
   content: TipTapListItemNode[];
 }
 

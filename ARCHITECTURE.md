@@ -5,13 +5,13 @@ transition plan and history; this document is the current-and-target architectur
 implement. Phase reports (`docs/PHASE_0_REPORT.md`, `docs/PHASE_1_REPORT.md`, ...) are the
 execution log of what actually happened at each step.
 
-**Status: Phase 5 complete, baseline build repair complete, pre-Phase-6 stabilization complete
-(July 27, 2026 — see `docs/PRE_PHASE_6_STABILIZATION_REPORT.md`), Phase 6 not yet started.** Media
+**Status: Phase 5 complete, build/data stabilization complete
+(July 28, 2026 — see `docs/CODEX_BUILD_DATA_STABILIZATION_REPORT.md`), Phase 6 not yet started.** Media
 Library (Vercel Blob), content templates, admin search, and a live Settings screen are all built on
 top of the full CRUD from Phase 4. The public site now reads identity/contact fields (name, role,
 tagline, email, social links, resume path, "Currently Learning") from the database via
-`lib/db/queries/settings.ts`, with the original static `lib/site-config.ts` values as a fail-open
-fallback — same resilience pattern as every other query-layer function since Phase 2. Everything
+`lib/db/queries/settings.ts`, with the original static `lib/site-config.ts` values as a runtime
+fallback. Production builds run in strict-data mode and may not use that fallback. Everything
 the CMS brief originally asked for now exists in some form; `docs/PHASE_5_REPORT.md` §5 lists
 what's still a deliberate simplification rather than a gap. Two real build blockers reported from
 the owner's local environment after Phase 5 — a Prisma JSON type error and an Auth.js/Jose Edge
@@ -50,8 +50,8 @@ of the pieces that pass touched.
                     └─────────────────────────────────────────┘
 ```
 
-The CMS is the intended single source of truth once migration completes; today it's the
-foundation (DB schema + auth + shell) sitting alongside the still-active MDX system.
+The CMS database is the runtime source of truth. MDX/static arrays remain seed and recovery
+inputs only.
 
 ## 2. Content flow
 
@@ -64,13 +64,13 @@ Postgres (Project, Lab, Article, Certificate, TimelineEntry, Skill, Tag, Categor
   → every public page
 ```
 
-Content (Projects/Labs/Articles) is TipTap JSON, rendered by
+Content (Projects/Labs/Articles and optional Certificate write-ups) is TipTap JSON, rendered by
 `components/shared/content-renderer.tsx` — see §4 for why that's a plain recursive function
-rather than a live TipTap editor instance in read-only mode. Every query function fails open
-(catches its own Prisma errors, returns `[]`/`undefined` rather than throwing) — every content
-page shows an empty state instead of a 500 or a failed build if the database isn't reachable on a
-given deploy. Verified this really works, not just reads well: see `docs/PHASE_2_REPORT.md` §3
-and `docs/PHASE_3_REPORT.md` §3.
+rather than a live TipTap editor instance in read-only mode. Public reads use
+`lib/db/read-policy.ts`: normal runtime may return a documented safe fallback, but
+`STRICT_BUILD_DATA=1` throws after any applicable bounded retry. `npm run build` always sets this
+flag and first runs `verify:build-data`, so a database failure cannot silently publish empty
+static pages.
 
 **Migration mechanism.** `prisma/seed/index.ts` seeds all six content types in one run:
 Projects/Labs/Articles from `content/*.mdx` (via `prisma/seed/mdx-to-tiptap.ts`'s direct mdast →
@@ -181,18 +181,28 @@ Single admin, no user registration, no roles table — see `auth.ts`.
   `scripts/validate-editor-content.ts`. Anything the editor can produce but this triple doesn't
   cover is a shipped bug, not a future cleanup item — see the stabilization report for what it looks
   like when this rule isn't followed.**
-- **Autosave:** `hooks/use-autosave.ts` debounces `onUpdate` events (2s) and calls a Server Action
-  per content type (`autosaveProjectContentAction` for Projects) that re-validates against
-  `lib/validations/content.ts` before writing — the same Zod schema the seed script validates
-  against, so a malformed autosave payload is rejected the same way a bad migration write would be.
-  The hook serializes saves through a single run-loop (`runSave()`) rather than a plain debounce: a
-  `notifyChange()` that arrives while a save is already in flight is queued, never fired as a second
-  concurrent request, which is what makes "a newer save can't be overwritten by an older one
-  finishing late" true by construction rather than by hoping requests resolve in order. On failure,
-  the hook auto-retries twice with backoff (status `"retrying"` — genuinely retrying, not just a
-  label) before surfacing a real `"error"` status with the actual failure reason and a working
-  manual `retry()`, both driven by the Server Action's `AutosaveResult` (`types/admin.ts`) rather
-  than a thrown, unstructured error.
+- **Autosave and the Server Action serialization boundary:** ProseMirror deliberately creates
+  node/mark attribute dictionaries with a `null` prototype. `editor.getJSON()` therefore returns
+  JSON-shaped data that React will reject if it is passed directly to a Server Action.
+  `lib/editor/serialize-content.ts` is the one client boundary: it rejects cycles, accessors,
+  `undefined`, symbols, functions, non-finite numbers, and library/browser class instances; copies
+  plain and null-prototype dictionaries into normal object literals; validates the complete TipTap
+  contract; and asserts normal prototypes before returning. Valid Link and ordered-list attributes
+  are modeled and preserved. The only content argument sent to an action is
+  `{ id, content, clientRevision }`, constructed from primitives, arrays, and plain objects.
+- **Revision and manual-save coordination:** `hooks/use-autosave.ts` assigns a monotonically
+  increasing client revision to every editor change, permits one request in flight, queues edits
+  made during a request, never retries an obsolete snapshot, and reports `Saved` only when the
+  confirmed server revision equals the newest local revision. `Save changes` remains a metadata
+  operation, but `hooks/use-editor-form-coordination.ts` first flushes the editor's newest revision
+  and blocks metadata submission if that flush fails. Metadata and editor feedback remain separate
+  and survive the Server Action's revalidation refresh. A `beforeunload` warning protects a known
+  pending editor revision.
+- **Save confirmation:** all four content actions validate `SaveContentPayload`, call
+  `requireAdmin()`, write through the existing admin service, read the content back from PostgreSQL,
+  compare it structurally, revalidate the required public routes, and return the structured
+  `SaveResult` union from `types/admin.ts`. The UI cannot enter `Saved` on a thrown action, failed
+  result, mismatched revision, failed database read-back, or metadata-only success.
 - **Static generation + on-demand ISR (target):** public content pages stay statically generated
   (`generateStaticParams`, unchanged); admin Server Actions call `revalidatePath`/`revalidateTag`
   after a publish so edits go live in seconds without a redeploy.
@@ -206,9 +216,15 @@ Full schema: `prisma/schema.prisma`. Summary of the decisions that aren't obviou
   genuinely different axes; conflating them makes some real states unrepresentable (a lab can be
   published while still in-progress).
 - **No `User`/`Account`/`Session` tables** — see §3. JWT sessions mean zero auth-related tables.
+- **Neon URL roles are explicit.** `DATABASE_URL` is the pooled `-pooler` endpoint used by Prisma
+  Client; `DIRECT_URL` is the distinct unpooled endpoint used by Prisma schema/migration tooling.
+  Both require SSL. `lib/db.ts` still creates one lazy global Prisma Client per Node process.
 - **`Tag`/`Category`/`Skill` are shared taxonomy tables**, not per-content-type — `Tag` and
   `Skill` are many-to-many with every content type that uses them; `Category` is one-per-item,
   matching the current MDX frontmatter's cardinality exactly.
+- **Published tag archives query relations directly.** `lib/db/queries/tags.ts` fetches the tag
+  display name and only matching published Project/Lab/Article title/slug summaries. Static tag
+  generation no longer loads every full collection once per tag.
 - **`Media` is one table**, not separate `Image`/`Media` models — an upload's `type` enum is the
   only real difference; one table is simpler to query for a Media Library grid.
 - **`Certificate.slug` is separate from its `id`** — the original static data used a readable id
@@ -235,9 +251,10 @@ Full schema: `prisma/schema.prisma`. Summary of the decisions that aren't obviou
   them later is purely additive, no existing column changes):
   - **Revision history** — one table per content type (`ProjectRevision`, etc.), mirroring the
     existing non-polymorphic `Download` pattern rather than one generic polymorphic table.
-  - **Activity Log** — `lib/db/queries/activity.ts` already returns a typed, empty
-    `ActivityItem[]`; the dashboard already renders its empty state. Adding the real
-    `ActivityLog` table later means changing one query function's body, nothing above it.
+  - **Activity Log** — `lib/db/queries/activity.ts` remains a typed, empty reserved seam. The
+    dashboard deliberately does not present it as implemented. Its “Recently Updated Content”
+    panel is derived only from real `updatedAt` columns and is labeled accordingly; it is not an
+    audit trail. A real `ActivityLog` table remains a separately approved additive feature.
   - **Site Settings** — the `SiteSettings` singleton table has existed since Phase 0; the editor
     screen for it (`/admin/settings`) is real as of Phase 5, and the public site actually reads
     from it now (§2, §3's sibling note). What's still not built: any UI to edit
@@ -283,6 +300,7 @@ lib/editor/
                              Link + the 3 custom ones below) — the editor's runtime contract
                              with types/tiptap.ts, same way content-renderer.tsx is the
                              renderer's.
+  serialize-content.ts      The only TipTap/ProseMirror-to-Server-Action conversion boundary.
   extensions/
     callout.tsx, command-block.tsx, mermaid.tsx   Custom TipTap Node extensions with React
                                                     NodeViews, each reusing the exact display
@@ -377,14 +395,13 @@ auth.ts          Auth.js config
    is the model: a real type (`ActivityItem`), a real query function that returns `[]`, and a
    real empty-state UI — so the eventual implementation changes one function body, not multiple
    layers.
-6. **Query layer functions fail open, not closed.** Every function in `lib/db/queries/` catches
-   its own Prisma errors and returns an empty/undefined fallback rather than throwing. Found the
-   hard way in Phase 2: without this, a single unreachable database turns into a failed
-   `next build` (static generation calls query functions directly, outside any request-level
-   error boundary) — not a degraded page. `lib/db.ts`'s lazy Proxy construction (§5) and this
-   rule work together: the Proxy makes sure the failure happens *inside* a query function's
-   `try/catch` instead of at module-import time; this rule makes sure that `catch` block actually
-   returns something a page can render instead of re-throwing.
+6. **Public runtime reads may fail open; production build reads must fail closed.**
+   `lib/db/read-policy.ts` is the shared policy boundary. It retries only confirmed transient,
+   idempotent read failures (P1017/connection-closed signatures), at most three total attempts
+   with short exponential backoff and jitter. Normal runtime may then return the caller's
+   `[]`/`undefined`/Settings fallback. With `STRICT_BUILD_DATA=1`, the same exhausted or permanent
+   error is rethrown. `npm run build` always enables strict mode and runs `verify:build-data`
+   before `next build`; bypassing this wrapper for deployment is unsupported.
 7. **Seed/migration writes are idempotent, keyed on a stable identifier, not blind inserts.**
    Every upsert in `prisma/seed/index.ts` keys on something meaningful — `slug` for
    Project/Lab/Article/Certificate/Tag/Category, `name` for Skill, `(date, title)` for
@@ -435,19 +452,36 @@ auth.ts          Auth.js config
     client-side decision made by `components/admin/delete-button.tsx`'s caller, not baked into the
     action. This is also why Delete is never a nested `<form>` inside a record's metadata form —
     nested forms are invalid HTML with inconsistent browser resolution, which was the actual
-    reported cause of unreliable delete behavior before this pass; `DeleteButton` is a plain
-    `useTransition`-based sibling component instead. Bulk delete
+    reported cause of unreliable delete behavior before this pass. `DeleteButton`, row deletion,
+    bulk deletion, and media deletion all compose
+    `components/admin/delete-confirmation-dialog.tsx`, which uses the existing Radix Dialog
+    primitive for focus trapping, Escape handling, focus restoration, pending lockout, and inline
+    failure. Every action still calls `requireAdmin()`, validates its id(s), returns a structured
+    result, and revalidates its affected routes. Bulk delete
     (`components/admin/management-list.tsx` + each service's `deleteXs(ids)`) follows the same
-    result-returning shape, and wraps its find-then-delete in a single `prisma.$transaction` so the
-    revalidated paths always match exactly what was actually removed.
-13. **Route-segment `loading.tsx`/`error.tsx` are placed at the layout boundary, not duplicated per
-    page.** `app/loading.tsx` and `app/admin/(dashboard)/loading.tsx` are Suspense boundaries
-    inherited by every route in their subtree that doesn't define a more specific one of its own —
-    one file each gives real skeleton coverage across the whole public site and the whole admin
-    section without a near-duplicate file per route. `error.tsx` boundaries follow the same
-    placement and must be Client Components (a Next.js requirement — `reset()` and the error object
-    only exist client-side), rendering inside their layout so the public nav/admin sidebar stay
-    mounted through an error, not just through a loading state.
+    result-returning shape and transactional service behavior.
+13. **Loading boundaries match the destination route.** The admin segment keeps a dashboard-shaped
+    root fallback, while list, rich editor, structured form, media, and Settings routes define
+    small `loading.tsx` files that select the appropriate reusable skeleton. Public project, lab,
+    journal, certification, and tag routes similarly choose list- or detail-shaped fallbacks.
+    Layouts remain mounted, so navigation and the admin sidebar do not disappear. A client wrapper
+    in the admin content area provides a two-pixel progress line immediately after internal link
+    clicks; route Suspense remains the source of truth for actual loading. `error.tsx` remains a
+    Client Component inside the admin layout and exposes safe Retry / Return to dashboard actions.
+14. **Repeated identical public reads use React `cache()` only.** Collection, slug, Settings,
+    Timeline, Skills, Certificate, and Tag query functions are request/render memoized by their
+    arguments. There is no persistent data cache, so admin revalidation semantics are unchanged.
+15. **Stored TipTap data is audited independently of editor fixtures.** `npm run audit:content`
+    scans all non-null Project/Lab/Article/Certificate documents and prints bounded record/path/node
+    diagnostics. `npm run migrate:content` is dry-run by default; `--write` backs up affected rows,
+    validates deterministic normalization, and updates only affected records transactionally.
+16. **Dashboard pages call one server-only service, not Prisma directly.**
+    `lib/services/dashboard-service.ts` composes focused count, grouping, recent-record, attention,
+    and health queries in parallel. Each panel is a typed success/failure section, so an optional
+    panel can fail without becoming a fake zero or taking down successful panels. The dedicated
+    `SELECT 1` health probe distinguishes Connected, Degraded, and Unavailable without exposing a
+    database host. Metrics use counts/groupings rather than loading full collections, and Recently
+    Updated is capped before merging.
 
 ## 8. Migration roadmap (condensed — full detail in `docs/CMS_MIGRATION_PLAN.md`)
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { Loader2, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DeleteResult } from "@/types/admin";
+import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 
 /**
  * Replaces the invalid nested `<form>`-inside-`<form>` delete pattern
@@ -24,7 +24,9 @@ import type { DeleteResult } from "@/types/admin";
 interface DeleteButtonProps {
   onDelete: () => Promise<DeleteResult>;
   onSuccess: () => void;
-  confirmMessage: string;
+  contentType: string;
+  recordTitle: string;
+  description?: string;
   label?: string;
   variant?: "default" | "icon";
   className?: string;
@@ -33,53 +35,43 @@ interface DeleteButtonProps {
 export function DeleteButton({
   onDelete,
   onSuccess,
-  confirmMessage,
+  contentType,
+  recordTitle,
+  description,
   label = "Delete",
   variant = "default",
   className,
 }: DeleteButtonProps) {
-  const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  const handleClick = () => {
-    if (typeof window !== "undefined" && !window.confirm(confirmMessage)) return;
-    setError(null);
-    startTransition(async () => {
-      const result = await onDelete();
-      if (result.success) {
-        onSuccess();
-      } else {
-        setError(result.message ?? "Couldn't delete. Try again.");
-      }
-    });
-  };
-
   const isIcon = variant === "icon";
 
   return (
-    <div className={cn("inline-flex flex-col items-end gap-1", className)}>
-      <button
-        type="button"
-        onClick={handleClick}
-        disabled={isPending}
-        aria-disabled={isPending}
-        aria-label={isIcon ? label : undefined}
-        title={isIcon ? label : undefined}
-        className={cn(
-          "inline-flex items-center gap-1.5 rounded-md text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60",
-          isIcon
-            ? "p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-            : "border border-destructive/40 px-3 py-1.5 text-destructive hover:bg-destructive/10"
-        )}
-      >
-        {isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
-        {!isIcon && (isPending ? "Deleting..." : label)}
-      </button>
-      {error && (
-        <p role="alert" className="max-w-[16rem] text-right text-xs text-destructive">
-          {error}
-        </p>
-      )}
-    </div>
+    <DeleteConfirmationDialog
+      contentType={contentType}
+      recordTitle={recordTitle}
+      description={
+        description ??
+        `This will permanently remove the ${contentType} from the CMS and public portfolio. Shared tags, categories, certificates, and uploaded media will not be deleted.`
+      }
+      confirmLabel={`Delete ${contentType}`}
+      onConfirm={onDelete}
+      onSuccess={onSuccess}
+      trigger={
+        <button
+          type="button"
+          aria-label={isIcon ? label : undefined}
+          title={isIcon ? label : undefined}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-md text-xs font-medium transition-colors",
+            isIcon
+              ? "p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+              : "border border-destructive/40 px-3 py-1.5 text-destructive hover:bg-destructive/10",
+            className
+          )}
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          {!isIcon && label}
+        </button>
+      }
+    />
   );
 }

@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { JSONContent } from "@tiptap/react";
 import { requireAdmin } from "@/lib/services/auth-service";
 import {
   createArticle,
@@ -11,10 +10,11 @@ import {
   deleteArticle,
   deleteArticles,
 } from "@/lib/services/article-admin-service";
-import { articleFormSchema, articleContentSchema } from "@/lib/validations/article";
-import { bulkDeleteSchema } from "@/lib/validations/admin";
+import { articleFormSchema } from "@/lib/validations/article";
+import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
-import type { ActionResult, AutosaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
+import { saveEditorContent } from "@/lib/services/content-save-service";
+import type { ActionResult, SaveContentPayload, SaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
 
 function parseFormData(formData: FormData) {
   return {
@@ -49,9 +49,28 @@ export async function updateArticleAction(
   _prevState: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
-  await requireAdmin();
+  try {
+    await requireAdmin();
+  } catch {
+    console.error("[admin:article:update] authentication failed", {
+      contentType: "article",
+      recordId: id,
+      operation: "metadata-save",
+      validationStage: "authentication",
+    });
+    return { success: false, code: "AUTH_ERROR", message: "Your admin session expired. Sign in again." };
+  }
   const parsed = articleFormSchema.safeParse(parseFormData(formData));
-  if (!parsed.success) return { success: false, errors: parsed.error.flatten().fieldErrors };
+  if (!parsed.success) {
+    console.error("[admin:article:update] validation failed", {
+      contentType: "article",
+      recordId: id,
+      operation: "metadata-save",
+      validationStage: "server-zod",
+      fields: Object.keys(parsed.error.flatten().fieldErrors),
+    });
+    return { success: false, errors: parsed.error.flatten().fieldErrors };
+  }
 
   try {
     await updateArticleMetadata(id, parsed.data);
@@ -60,39 +79,22 @@ export async function updateArticleAction(
     return classifyServiceError(error, { operation: "update", contentType: "article", recordId: id });
   }
 
-  revalidatePath(`/admin/journal/${id}`);
-  return { success: true, recordId: id, message: "Changes saved." };
+  return { success: true, recordId: id, message: "Metadata changes saved." };
 }
 
-export async function autosaveArticleContentAction(id: string, content: JSONContent): Promise<AutosaveResult> {
-  await requireAdmin();
-  const parsed = articleContentSchema.safeParse(content);
-  if (!parsed.success) {
-    console.error("[admin:article:autosave] content failed validation", { recordId: id, issues: parsed.error.issues });
-    return {
-      success: false,
-      message: "This content couldn't be saved — it contains something the editor doesn't recognize.",
-      code: "INVALID_CONTENT",
-    };
-  }
-
-  try {
-    await updateArticleContent(id, parsed.data as JSONContent);
-  } catch (error) {
-    const result = classifyServiceError(error, { operation: "autosave", contentType: "article", recordId: id });
-    return { success: false, message: result.message, code: result.code };
-  }
-
-  return { success: true, savedAt: new Date().toISOString() };
+export async function autosaveArticleContentAction(payload: SaveContentPayload): Promise<SaveResult> {
+  return saveEditorContent("article", payload, updateArticleContent);
 }
 
 export async function deleteArticleAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
+  const parsed = deleteIdSchema.safeParse(id);
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid article id." };
   try {
-    await deleteArticle(id);
+    await deleteArticle(parsed.data);
   } catch (error) {
     if (isNextControlFlowError(error)) throw error;
-    return classifyServiceError(error, { operation: "delete", contentType: "article", recordId: id });
+    return classifyServiceError(error, { operation: "delete", contentType: "article", recordId: parsed.data });
   }
   revalidatePath("/admin/journal");
   revalidatePath("/journal");

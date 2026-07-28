@@ -18,9 +18,9 @@ const config: Record<SaveStatus, { label: string; className: string }> = {
   idle: { label: "", className: "" },
   unsaved: { label: "Unsaved changes", className: "text-muted-foreground" },
   saving: { label: "Saving...", className: "text-muted-foreground" },
-  retrying: { label: "Couldn't save — retrying...", className: "text-warning" },
+  retrying: { label: "Retrying...", className: "text-warning" },
   saved: { label: "Saved", className: "text-success" },
-  error: { label: "Couldn't save", className: "text-destructive" },
+  error: { label: "Save failed", className: "text-destructive" },
 };
 
 interface SaveStatusIndicatorProps {

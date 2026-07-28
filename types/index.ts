@@ -63,6 +63,7 @@ export interface ContentItem<T> {
  * treat it as opaque rather than assume it's well-formed.
  */
 export interface DbContentItem<T> {
+  recordId: string;
   frontmatter: T;
   content: unknown;
   readingTime: string;
@@ -80,6 +81,7 @@ export interface Certification {
   credentialUrl?: string;
   skills: string[];
   logo: string;
+  content?: unknown;
 }
 
 export interface TimelineEntry {

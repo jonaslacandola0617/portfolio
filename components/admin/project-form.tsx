@@ -1,6 +1,5 @@
 "use client";
 
-import { useFormState } from "react-dom";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { JSONContent } from "@tiptap/react";
@@ -13,13 +12,14 @@ import { SubmitButton } from "@/components/admin/submit-button";
 import { FormMessage } from "@/components/admin/form-message";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
+import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
+import { useMetadataAction } from "@/hooks/use-metadata-action";
 import {
   createProjectAction,
   updateProjectAction,
   autosaveProjectContentAction,
   deleteProjectAction,
 } from "@/app/admin/(dashboard)/projects/actions";
-import type { ActionResult } from "@/types/admin";
 
 interface ProjectFormProps {
   mode: "create" | "edit";
@@ -43,8 +43,6 @@ interface ProjectFormProps {
   };
 }
 
-const initialState: ActionResult = { success: false };
-
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
@@ -56,18 +54,20 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
 
   const action = mode === "create" ? createProjectAction : updateProjectAction.bind(null, project!.id);
-  const [state, formAction] = useFormState(action, initialState);
+  const { state, submit: formAction } = useMetadataAction(
+    action,
+    mode === "edit" ? `cms:project:${project!.id}:metadata` : undefined
+  );
   const [title, setTitle] = useState(project?.title ?? "");
   const [slug, setSlug] = useState(project?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(mode === "edit");
   const [publishStatus, setPublishStatus] = useState(project?.publishStatus ?? "DRAFT");
+  const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
     <div className="space-y-8">
-      <form action={formAction} className="space-y-6">
+      <form onSubmit={editorForm.onSubmit} className="space-y-6">
         {justCreated && <FormMessage variant="success">Project created — autosave is on below.</FormMessage>}
-        {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
-        {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
 
         <Card>
           <CardContent className="space-y-5 pt-6">
@@ -206,8 +206,18 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
           </CardContent>
         </Card>
 
-        <div className="flex items-center justify-between">
-          <SubmitButton pendingLabel={mode === "create" ? "Creating..." : "Saving..."}>
+        <div className="space-y-3">
+          {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
+          {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
+          {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+          {!state.success && state.errors && (
+            <FormMessage variant="error">Fix the highlighted metadata fields, then save again.</FormMessage>
+          )}
+          <div className="flex items-center justify-between">
+          <SubmitButton
+            pendingLabel={mode === "create" ? "Creating..." : "Saving changes..."}
+            forcePending={editorForm.isCoordinating}
+          >
             {mode === "create" ? "Create project" : "Save changes"}
           </SubmitButton>
           {/* Delete is a sibling of this form, not nested inside it — see
@@ -215,11 +225,13 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
               here was invalid HTML and unreliable. */}
           {mode === "edit" && project && (
             <DeleteButton
-              confirmMessage="Delete this project? This can't be undone."
+              contentType="project"
+              recordTitle={project.title}
               onDelete={() => deleteProjectAction(project.id)}
               onSuccess={() => router.push("/admin/projects")}
             />
           )}
+          </div>
         </div>
       </form>
 
@@ -230,7 +242,10 @@ export function ProjectForm({ mode, project }: ProjectFormProps) {
           </h2>
           <EditorShell
             initialContent={project.content}
-            onSave={(content) => autosaveProjectContentAction(project.id, content)}
+            recordId={project.id}
+            contentType="project"
+            onSave={autosaveProjectContentAction}
+            onReady={editorForm.registerEditor}
           />
         </div>
       )}

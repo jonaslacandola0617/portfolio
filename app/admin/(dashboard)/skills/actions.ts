@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/services/auth-service";
 import { createSkill, updateSkill, deleteSkill, deleteSkills } from "@/lib/services/skill-admin-service";
 import { skillFormSchema } from "@/lib/validations/skill";
-import { bulkDeleteSchema } from "@/lib/validations/admin";
+import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
 import type { ActionResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
 
@@ -51,11 +51,13 @@ export async function updateSkillAction(
 
 export async function deleteSkillAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
+  const parsed = deleteIdSchema.safeParse(id);
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid skill id." };
   try {
-    await deleteSkill(id);
+    await deleteSkill(parsed.data);
   } catch (error) {
     if (isNextControlFlowError(error)) throw error;
-    return classifyServiceError(error, { operation: "delete", contentType: "skill", recordId: id });
+    return classifyServiceError(error, { operation: "delete", contentType: "skill", recordId: parsed.data });
   }
   revalidatePath("/admin/skills");
   revalidatePath("/skills");

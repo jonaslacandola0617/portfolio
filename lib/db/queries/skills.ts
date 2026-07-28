@@ -1,5 +1,7 @@
 import "server-only";
+import { cache } from "react";
 import { prisma } from "@/lib/db";
+import { readWithPolicy } from "@/lib/db/read-policy";
 import type { SkillCategory } from "@/types";
 
 interface SkillRow {
@@ -15,10 +17,15 @@ const iconForGroup: Record<string, string> = {
   Programming: "Code2",
 };
 
-export async function getAllSkillCategories(): Promise<SkillCategory[]> {
-  try {
+export const getAllSkillCategories = cache(async (): Promise<SkillCategory[]> =>
+  readWithPolicy("skills.getAllSkillCategories", [], async () => {
     const skills = (await prisma.skill.findMany({
-      include: { projects: { select: { slug: true } } },
+      include: {
+        projects: {
+          where: { publishStatus: "PUBLISHED" },
+          select: { slug: true },
+        },
+      },
       orderBy: { name: "asc" },
     })) as SkillRow[];
 
@@ -34,13 +41,9 @@ export async function getAllSkillCategories(): Promise<SkillCategory[]> {
       grouped.get(skill.group)!.skills.push({
         name: skill.name,
         level: skill.level as SkillCategory["skills"][number]["level"],
-        relatedProjectSlugs: skill.projects.map((p) => p.slug),
+        relatedProjectSlugs: skill.projects.map((project) => project.slug),
       });
     }
-
     return Array.from(grouped.values());
-  } catch (error) {
-    console.error("[queries/skills] getAllSkillCategories failed, returning empty list:", error);
-    return [];
-  }
-}
+  })
+);

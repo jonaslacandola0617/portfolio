@@ -3,12 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FolderGit2, FlaskConical, NotebookPen, ArrowLeft } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
-import { getAllProjects, getAllLabs, getAllArticles, getAllTags } from "@/lib/content";
-import { slugify } from "@/lib/utils";
+import { getAllPublishedTags, getPublishedContentByTagSlug } from "@/lib/db/queries/tags";
 
 export async function generateStaticParams() {
-  const tags = await getAllTags();
-  return tags.map(({ tag }) => ({ tag: slugify(tag) }));
+  const tags = await getAllPublishedTags();
+  return tags.map(({ slug }) => ({ tag: slug }));
 }
 
 export function generateMetadata({ params }: { params: { tag: string } }): Metadata {
@@ -16,27 +15,14 @@ export function generateMetadata({ params }: { params: { tag: string } }): Metad
 }
 
 export default async function TagPage({ params }: { params: { tag: string } }) {
-  const [allProjects, allLabs, allArticles] = await Promise.all([
-    getAllProjects(),
-    getAllLabs(),
-    getAllArticles(),
-  ]);
-  const projects = allProjects.filter((p) =>
-    p.frontmatter.tags.some((t) => slugify(t) === params.tag)
-  );
-  const labs = allLabs.filter((l) => l.frontmatter.tags.some((t) => slugify(t) === params.tag));
-  const articles = allArticles.filter((a) =>
-    a.frontmatter.tags.some((t) => slugify(t) === params.tag)
-  );
+  const tagged = await getPublishedContentByTagSlug(params.tag);
+  if (!tagged) notFound();
 
+  const { projects, labs, articles } = tagged;
   const total = projects.length + labs.length + articles.length;
   if (total === 0) notFound();
 
-  const originalTag =
-    projects[0]?.frontmatter.tags.find((t) => slugify(t) === params.tag) ??
-    labs[0]?.frontmatter.tags.find((t) => slugify(t) === params.tag) ??
-    articles[0]?.frontmatter.tags.find((t) => slugify(t) === params.tag) ??
-    params.tag;
+  const originalTag = tagged.tag.name;
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-14 md:px-10">
@@ -53,9 +39,9 @@ export default async function TagPage({ params }: { params: { tag: string } }) {
             </h2>
             <ul className="space-y-2">
               {projects.map((p) => (
-                <li key={p.frontmatter.slug}>
-                  <Link href={`/projects/${p.frontmatter.slug}`} className="text-sm text-foreground hover:text-primary">
-                    {p.frontmatter.title}
+                <li key={p.slug}>
+                  <Link href={`/projects/${p.slug}`} className="text-sm text-foreground hover:text-primary">
+                    {p.title}
                   </Link>
                 </li>
               ))}
@@ -70,9 +56,9 @@ export default async function TagPage({ params }: { params: { tag: string } }) {
             </h2>
             <ul className="space-y-2">
               {labs.map((l) => (
-                <li key={l.frontmatter.slug}>
-                  <Link href={`/labs/${l.frontmatter.slug}`} className="text-sm text-foreground hover:text-primary">
-                    {l.frontmatter.title}
+                <li key={l.slug}>
+                  <Link href={`/labs/${l.slug}`} className="text-sm text-foreground hover:text-primary">
+                    {l.title}
                   </Link>
                 </li>
               ))}
@@ -87,9 +73,9 @@ export default async function TagPage({ params }: { params: { tag: string } }) {
             </h2>
             <ul className="space-y-2">
               {articles.map((a) => (
-                <li key={a.frontmatter.slug}>
-                  <Link href={`/journal/${a.frontmatter.slug}`} className="text-sm text-foreground hover:text-primary">
-                    {a.frontmatter.title}
+                <li key={a.slug}>
+                  <Link href={`/journal/${a.slug}`} className="text-sm text-foreground hover:text-primary">
+                    {a.title}
                   </Link>
                 </li>
               ))}

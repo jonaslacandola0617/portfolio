@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "node scripts/run-strict-build.mjs",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
@@ -13,7 +13,12 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:seed": "tsx prisma/seed/index.ts",
-    "validate:editor-content": "tsx scripts/validate-editor-content.ts"
+    "validate:editor-content": "tsx scripts/validate-editor-content.ts",
+    "audit:content": "tsx scripts/audit-content.ts",
+    "migrate:content": "tsx scripts/migrate-content.ts",
+    "verify:build-data": "tsx scripts/verify-build-data.ts",
+    "verify:save-pipeline": "tsx scripts/verify-save-pipeline.ts",
+    "verify:site": "tsx scripts/verify-running-site.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

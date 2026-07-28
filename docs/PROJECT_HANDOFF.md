@@ -2,10 +2,13 @@
 
 **Handoff purpose:** Transfer long-term ownership of this repository to a new engineering agent without losing the original product intent, migration plan, architecture, completed work, constraints, or engineering history.
 
-**Current repository state:** Phase 5 features and baseline build repair delivered; runtime stabilization required  
-**Current date of handoff:** July 26, 2026  
-**Immediate required task:** Complete `docs/PRE_PHASE_6_STABILIZATION_BRIEF.md`  
-**Next planned milestone after stabilization:** Phase 6, followed by ordinary iterative development and deployment work  
+**Current repository state:** Phase 5 and build/data stabilization verified; Phase 6 not started
+
+**Current date of handoff:** July 28, 2026
+
+**Immediate required task:** Preserve the strict build/data gate during future work
+
+**Next planned milestone:** Phase 6, followed by ordinary iterative development and deployment work
 **This is not a Phase 6-only instruction document.** It is the standing project context for every future task.
 
 ---
@@ -511,13 +514,16 @@ Do not rely on TypeScript alone for external form data.
 
 ### 10.4 Resilience
 
-Public read queries catch Prisma failures and return safe fallbacks:
+Public reads share `lib/db/read-policy.ts`. At normal request time they may return safe fallbacks:
 
 - Empty arrays
 - `undefined`
 - Or static Site Settings defaults
 
-This was chosen because static generation may call database reads during builds. A temporary database failure should degrade content, not automatically crash every public route.
+Production builds are deliberately different: `npm run build` runs `verify:build-data` and sets
+`STRICT_BUILD_DATA=1`. Any permanent read failure, or a confirmed transient failure that remains
+after three total attempts, is thrown so the build fails instead of publishing empty pages.
+Retries apply only to idempotent reads and confirmed P1017/connection-closed signatures.
 
 Do not apply fail-open behavior to authentication or authorization. Auth must fail closed.
 
@@ -886,6 +892,15 @@ Summary:
   Server Actions or GitHub allow-list.
 - Baseline build repair is the new maintainer's first engineering task before Phase 6.
 
+### Resolution update — July 28, 2026
+
+The later real-data degradation is resolved in
+`docs/CODEX_BUILD_DATA_STABILIZATION_REPORT.md`. Two legacy Article tables were backed up and
+idempotently normalized from direct inline table-cell text to paragraph-wrapped block content.
+All non-null database documents now pass `npm run audit:content`. Public reads now have bounded
+P1017 retry plus strict build behavior, tag pages use direct tag-specific reads, and two
+consecutive real-data builds completed without P1017 or content fallbacks.
+
 ## 15. Known current gaps and technical debt
 
 These are known at handoff time.
@@ -933,23 +948,23 @@ A future implementation must either:
 Previous Claude sandbox sessions lacked:
 
 - Prisma engine download access
-- Real Neon connectivity
 - Real Vercel Blob credentials
 - A normal interactive browser
 - GitHub OAuth credentials
 
-As a result, prior phases verified types, builds and HTTP behavior where possible, but not every real credential-dependent flow.
+Neon connectivity, real database counts, static builds, and local HTTP output were verified during
+the July 28 build/data stabilization. OAuth and Blob operations remain credential/browser
+dependent and were not exercised by that pass.
 
 A new maintainer with local or CI access should run genuine end-to-end verification.
 
 ---
 
-## 16. Next planned work: runtime stabilization, then Phase 6
+## 16. Next planned work: Phase 6
 
-The baseline build repair is complete. Before Phase 6 begins, complete
-`docs/PRE_PHASE_6_STABILIZATION_BRIEF.md`: fix editor saving, add truthful mutation/loading
-feedback, and make individual/bulk deletion reliable. Phase 6 is the next milestone after
-that stabilization, but this handoff remains active after Phase 6.
+The pre-Phase-6 editor/admin stabilization and the subsequent real-data build stabilization are
+complete. The build/data gate passes; Phase 6 is the next milestone, but it has not been started.
+This handoff remains active after Phase 6.
 
 Planned Phase 6 themes:
 

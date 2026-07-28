@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
  * (Next.js route-segment Suspense boundaries) are in effect.
  */
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-md bg-muted", className)} />;
+  return <div className={cn("animate-pulse rounded-md border border-border/30 bg-muted/70", className)} />;
 }
 
 export function PageSkeleton() {

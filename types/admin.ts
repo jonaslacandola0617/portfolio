@@ -19,7 +19,7 @@ export interface DashboardCounts {
   certificates: number;
 }
 
-export interface DashboardOverview {
+export interface LegacyDashboardOverview {
   counts: DashboardCounts;
   recentActivity: ActivityItem[];
   /** false when the DB query layer threw — lets the UI degrade gracefully
@@ -68,6 +68,70 @@ export interface BulkDeleteResult {
  *  Workstream A) — a rejected Promise carried no safe, displayable reason,
  *  and in production Next.js redacts Server Action error messages by
  *  default, so the client had nothing useful to show even before that. */
-export type AutosaveResult =
-  | { success: true; savedAt: string }
-  | { success: false; message: string; code?: string };
+export type SaveFailureCode =
+  | "SERIALIZATION_ERROR"
+  | "VALIDATION_ERROR"
+  | "AUTH_ERROR"
+  | "NOT_FOUND"
+  | "DATABASE_ERROR"
+  | "CONFLICT"
+  | "UNKNOWN_ERROR";
+
+export type SaveResult =
+  | { success: true; savedAt: string; revision: number }
+  | {
+      success: false;
+      code: SaveFailureCode;
+      message: string;
+      revision?: number;
+    };
+
+/** The only non-FormData payload accepted by long-form content actions. */
+export interface SaveContentPayload {
+  id: string;
+  content: import("@/types/tiptap").TipTapDoc;
+  clientRevision: number;
+}
+
+export type DashboardSection<T> = { ok: true; data: T } | { ok: false; message: string };
+
+export interface ContentTypeMetric {
+  key: "projects" | "labs" | "articles" | "certificates" | "timeline" | "skills";
+  label: string;
+  href: string;
+  total: number;
+  details: Array<{ label: string; value: string | number }>;
+}
+
+export type PublicationStatusTotals = Record<"PUBLISHED" | "DRAFT" | "SCHEDULED" | "ARCHIVED", number>;
+
+export interface RecentlyUpdatedItem {
+  id: string;
+  type: "PROJECT" | "LAB" | "ARTICLE" | "CERTIFICATE";
+  title: string;
+  status: string;
+  updatedAt: string;
+  href: string;
+}
+
+export interface AttentionItem {
+  id: string;
+  count: number;
+  label: string;
+  detail: string;
+  href: string;
+  severity: "info" | "warning" | "critical";
+}
+
+export type DatabaseHealth = "connected" | "degraded" | "unavailable";
+
+export interface DashboardOverview {
+  health: DatabaseHealth;
+  metrics: DashboardSection<ContentTypeMetric[]>;
+  publication: DashboardSection<PublicationStatusTotals>;
+  recentlyUpdated: DashboardSection<RecentlyUpdatedItem[]>;
+  attention: DashboardSection<AttentionItem[]>;
+}
+
+/** Kept as a compatibility alias for callers outside the editor. */
+export type AutosaveResult = SaveResult;

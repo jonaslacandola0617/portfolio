@@ -1,5 +1,7 @@
 import "server-only";
+import { cache } from "react";
 import { prisma } from "@/lib/db";
+import { readWithPolicy } from "@/lib/db/read-policy";
 import { siteConfig } from "@/lib/site-config";
 
 export interface SiteSettingsData {
@@ -26,8 +28,8 @@ function fallback(): SiteSettingsData {
   };
 }
 
-export async function getSiteSettings(): Promise<SiteSettingsData> {
-  try {
+export const getSiteSettings = cache(async (): Promise<SiteSettingsData> =>
+  readWithPolicy("settings.getSiteSettings", fallback, async () => {
     const row = await prisma.siteSettings.findUnique({ where: { id: "singleton" } });
     if (!row) return fallback();
     return {
@@ -40,8 +42,5 @@ export async function getSiteSettings(): Promise<SiteSettingsData> {
       resumeUrl: row.resumeUrl,
       currentlyLearning: row.currentlyLearning as { label: string; href: string }[],
     };
-  } catch (error) {
-    console.error("[queries/settings] getSiteSettings failed, using static fallback:", error);
-    return fallback();
-  }
-}
+  })
+);

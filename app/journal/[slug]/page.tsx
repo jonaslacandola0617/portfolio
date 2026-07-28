@@ -66,7 +66,15 @@ export default async function ArticlePage({ params }: { params: { slug: string }
             </div>
 
             <div id="article-content" className="mt-10">
-              <ContentRenderer content={content} />
+              <ContentRenderer
+                content={content}
+                context={{
+                  model: "Article",
+                  id: article.recordId,
+                  slug: frontmatter.slug,
+                  title: frontmatter.title,
+                }}
+              />
             </div>
 
             <RelatedContent

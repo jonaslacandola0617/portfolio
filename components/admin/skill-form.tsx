@@ -67,10 +67,12 @@ export function SkillForm({ mode, skill }: SkillFormProps) {
           </SubmitButton>
           {mode === "edit" && skill && (
             <DeleteButton
-              confirmMessage={
+              contentType="skill"
+              recordTitle={skill.name}
+              description={
                 skill.projects.length > 0
-                  ? `Delete "${skill.name}"? It's used by ${skill.projects.length} project${skill.projects.length === 1 ? "" : "s"}. This can't be undone.`
-                  : `Delete "${skill.name}"? This can't be undone.`
+                  ? `This skill is used by ${skill.projects.length} project${skill.projects.length === 1 ? "" : "s"}. Removing it will detach that shared relationship.`
+                  : "This will permanently remove the skill from the CMS."
               }
               onDelete={() => deleteSkillAction(skill.id)}
               onSuccess={() => router.push("/admin/skills")}

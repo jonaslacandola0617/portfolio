@@ -17,4 +17,6 @@ export const bulkDeleteSchema = z.object({
     .max(100, "Select 100 or fewer items at a time."),
 });
 
+export const deleteIdSchema = z.string().trim().min(1, "A valid record id is required.").max(128);
+
 export type BulkDeleteInput = z.infer<typeof bulkDeleteSchema>;

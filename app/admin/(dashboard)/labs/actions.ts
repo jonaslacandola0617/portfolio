@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { JSONContent } from "@tiptap/react";
 import { requireAdmin } from "@/lib/services/auth-service";
 import {
   createLab,
@@ -11,10 +10,11 @@ import {
   deleteLab,
   deleteLabs,
 } from "@/lib/services/lab-admin-service";
-import { labFormSchema, labContentSchema } from "@/lib/validations/lab";
-import { bulkDeleteSchema } from "@/lib/validations/admin";
+import { labFormSchema } from "@/lib/validations/lab";
+import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
-import type { ActionResult, AutosaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
+import { saveEditorContent } from "@/lib/services/content-save-service";
+import type { ActionResult, SaveContentPayload, SaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
 
 function parseFormData(formData: FormData) {
   return {
@@ -51,9 +51,28 @@ export async function updateLabAction(
   _prevState: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
-  await requireAdmin();
+  try {
+    await requireAdmin();
+  } catch {
+    console.error("[admin:lab:update] authentication failed", {
+      contentType: "lab",
+      recordId: id,
+      operation: "metadata-save",
+      validationStage: "authentication",
+    });
+    return { success: false, code: "AUTH_ERROR", message: "Your admin session expired. Sign in again." };
+  }
   const parsed = labFormSchema.safeParse(parseFormData(formData));
-  if (!parsed.success) return { success: false, errors: parsed.error.flatten().fieldErrors };
+  if (!parsed.success) {
+    console.error("[admin:lab:update] validation failed", {
+      contentType: "lab",
+      recordId: id,
+      operation: "metadata-save",
+      validationStage: "server-zod",
+      fields: Object.keys(parsed.error.flatten().fieldErrors),
+    });
+    return { success: false, errors: parsed.error.flatten().fieldErrors };
+  }
 
   try {
     await updateLabMetadata(id, parsed.data);
@@ -62,39 +81,22 @@ export async function updateLabAction(
     return classifyServiceError(error, { operation: "update", contentType: "lab", recordId: id });
   }
 
-  revalidatePath(`/admin/labs/${id}`);
-  return { success: true, recordId: id, message: "Changes saved." };
+  return { success: true, recordId: id, message: "Metadata changes saved." };
 }
 
-export async function autosaveLabContentAction(id: string, content: JSONContent): Promise<AutosaveResult> {
-  await requireAdmin();
-  const parsed = labContentSchema.safeParse(content);
-  if (!parsed.success) {
-    console.error("[admin:lab:autosave] content failed validation", { recordId: id, issues: parsed.error.issues });
-    return {
-      success: false,
-      message: "This content couldn't be saved — it contains something the editor doesn't recognize.",
-      code: "INVALID_CONTENT",
-    };
-  }
-
-  try {
-    await updateLabContent(id, parsed.data as JSONContent);
-  } catch (error) {
-    const result = classifyServiceError(error, { operation: "autosave", contentType: "lab", recordId: id });
-    return { success: false, message: result.message, code: result.code };
-  }
-
-  return { success: true, savedAt: new Date().toISOString() };
+export async function autosaveLabContentAction(payload: SaveContentPayload): Promise<SaveResult> {
+  return saveEditorContent("lab", payload, updateLabContent);
 }
 
 export async function deleteLabAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
+  const parsed = deleteIdSchema.safeParse(id);
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid lab id." };
   try {
-    await deleteLab(id);
+    await deleteLab(parsed.data);
   } catch (error) {
     if (isNextControlFlowError(error)) throw error;
-    return classifyServiceError(error, { operation: "delete", contentType: "lab", recordId: id });
+    return classifyServiceError(error, { operation: "delete", contentType: "lab", recordId: parsed.data });
   }
   revalidatePath("/admin/labs");
   revalidatePath("/labs");

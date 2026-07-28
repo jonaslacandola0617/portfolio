@@ -47,12 +47,15 @@ export interface ServiceErrorResult {
 export function classifyServiceError(error: unknown, context: ServiceErrorContext): ServiceErrorResult {
   const prismaCode = typeof error === "object" && error !== null && "code" in error ? (error as { code?: unknown }).code : undefined;
 
-  // Server-side only — never sent to the browser. Deliberately excludes
-  // request/session internals; see ARCHITECTURE.md's logging rule.
+  // Server-side only — never sent to the browser. The raw error is also
+  // excluded because Prisma invocation excerpts can contain document data.
   console.error(`[admin:${context.contentType}:${context.operation}] failed`, {
+    contentType: context.contentType,
     recordId: context.recordId,
+    operation: context.operation,
+    validationStage: "database",
     prismaCode,
-    error,
+    errorType: error instanceof Error ? error.name : typeof error,
   });
 
   if (prismaCode === "P2002") {

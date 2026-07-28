@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 import { slugify } from "@/lib/utils";
 import type { ArticleFormValues } from "@/lib/validations/article";
-import type { JSONContent } from "@tiptap/react";
+import type { TipTapDoc } from "@/types/tiptap";
 
 import { articleTemplate } from "@/lib/editor/templates";
 import { toPrismaJson } from "@/lib/prisma-json";
@@ -104,13 +104,15 @@ export async function updateArticleMetadata(id: string, fm: ArticleFormValues) {
   return article;
 }
 
-export async function updateArticleContent(id: string, content: JSONContent) {
+export async function updateArticleContent(id: string, content: TipTapDoc) {
   const article = await prisma.article.update({
     where: { id },
     data: { content: toPrismaJson(content) },
     select: { slug: true, publishStatus: true },
   });
   if (article.publishStatus === "PUBLISHED") await revalidateArticlePaths(article.slug);
+  const readBack = await prisma.article.findUnique({ where: { id }, select: { content: true } });
+  return readBack?.content;
 }
 
 export async function deleteArticle(id: string) {
@@ -141,6 +143,7 @@ export async function deleteArticles(ids: string[]): Promise<number> {
 async function revalidateArticlePaths(slug: string) {
   revalidatePath("/journal");
   revalidatePath(`/journal/${slug}`);
+  revalidatePath("/tags/[tag]", "page");
   revalidatePath("/");
   revalidatePath("/sitemap.xml");
 }

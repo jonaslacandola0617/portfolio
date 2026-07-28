@@ -18,7 +18,16 @@ const markSchema: z.ZodType<any> = z.discriminatedUnion("type", [
   z.object({ type: z.literal("bold") }),
   z.object({ type: z.literal("italic") }),
   z.object({ type: z.literal("code") }),
-  z.object({ type: z.literal("link"), attrs: z.object({ href: z.string() }) }),
+  z.object({
+    type: z.literal("link"),
+    attrs: z.object({
+      href: z.string(),
+      target: z.string().nullable().optional(),
+      rel: z.string().nullable().optional(),
+      class: z.string().nullable().optional(),
+      title: z.string().nullable().optional(),
+    }),
+  }),
 ]);
 
 const textNodeSchema = z.object({
@@ -144,7 +153,16 @@ const bulletListNodeSchema: z.ZodType<any> = z.lazy(() =>
 );
 
 const orderedListNodeSchema: z.ZodType<any> = z.lazy(() =>
-  z.object({ type: z.literal("orderedList"), content: z.array(listItemNodeSchema) })
+  z.object({
+    type: z.literal("orderedList"),
+    attrs: z
+      .object({
+        start: z.number().int().positive().default(1),
+        type: z.enum(["1", "a", "A", "i", "I"]).nullable().default(null),
+      })
+      .optional(),
+    content: z.array(listItemNodeSchema),
+  })
 );
 
 /** `title` is nullable, not just optional — see types/tiptap.ts's
@@ -165,6 +183,12 @@ const calloutNodeSchema: z.ZodType<any> = z.lazy(() =>
 export const tiptapDocSchema = z.object({
   type: z.literal("doc"),
   content: z.array(blockNodeSchema),
+});
+
+export const saveContentPayloadSchema = z.object({
+  id: z.string().min(1),
+  content: tiptapDocSchema,
+  clientRevision: z.number().int().nonnegative(),
 });
 
 export function validateTipTapDoc(value: unknown) {

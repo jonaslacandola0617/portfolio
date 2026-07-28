@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { Badge, type BadgeProps } from "@/components/ui/badge";
 import { DeleteButton } from "@/components/admin/delete-button";
+import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 import type { BulkDeleteResult, DeleteResult } from "@/types/admin";
 
 /**
@@ -50,8 +50,6 @@ export function ManagementList({
 }: ManagementListProps) {
   const router = useRouter();
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [isPending, startTransition] = useTransition();
-  const [bulkError, setBulkError] = useState<string | null>(null);
 
   const allSelected = rows.length > 0 && selected.size === rows.length;
   const someSelected = selected.size > 0 && !allSelected;
@@ -69,32 +67,12 @@ export function ManagementList({
     });
   };
 
-  const handleBulkDelete = () => {
-    if (selected.size === 0) return;
-    const count = selected.size;
-    const noun = count === 1 ? itemLabelSingular : itemLabelPlural;
-    if (typeof window !== "undefined" && !window.confirm(`Delete ${count} selected ${noun}? This can't be undone.`)) {
-      return;
-    }
-    setBulkError(null);
-    startTransition(async () => {
-      const result = await deleteManyAction(Array.from(selected));
-      if (result.success) {
-        setSelected(new Set());
-        router.refresh();
-      } else {
-        setBulkError(result.message ?? `Couldn't delete the selected ${itemLabelPlural}. Try again.`);
-      }
-    });
-  };
-
   return (
     <div>
       {selected.size > 0 && (
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-muted/40 px-3 py-2">
           <span className="text-sm text-foreground">{selected.size} selected</span>
           <div className="flex items-center gap-3">
-            {bulkError && <span className="text-xs text-destructive">{bulkError}</span>}
             <button
               type="button"
               onClick={() => setSelected(new Set())}
@@ -102,16 +80,25 @@ export function ManagementList({
             >
               Clear
             </button>
-            <button
-              type="button"
-              onClick={handleBulkDelete}
-              disabled={isPending}
-              aria-disabled={isPending}
-              className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-              {isPending ? "Deleting..." : "Delete selected"}
-            </button>
+            <DeleteConfirmationDialog
+              contentType={itemLabelSingular}
+              count={selected.size}
+              description={`You are about to permanently delete ${selected.size} selected ${selected.size === 1 ? itemLabelSingular : itemLabelPlural}. Shared tags, categories, certificates, and uploaded media will remain available.`}
+              confirmLabel={`Delete ${selected.size} ${selected.size === 1 ? itemLabelSingular : itemLabelPlural}`}
+              onConfirm={() => deleteManyAction(Array.from(selected))}
+              onSuccess={() => {
+                setSelected(new Set());
+                router.refresh();
+              }}
+              trigger={
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-destructive/40 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10"
+                >
+                  Delete selected
+                </button>
+              }
+            />
           </div>
         </div>
       )}
@@ -152,7 +139,8 @@ export function ManagementList({
             <DeleteButton
               variant="icon"
               label={`Delete ${row.title}`}
-              confirmMessage={`Delete "${row.title}"? This can't be undone.`}
+              contentType={itemLabelSingular}
+              recordTitle={row.title}
               onDelete={() => deleteOneAction(row.id)}
               onSuccess={() => router.refresh()}
             />

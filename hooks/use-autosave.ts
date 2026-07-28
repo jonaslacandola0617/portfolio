@@ -2,166 +2,249 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { SaveStatus } from "@/components/editor/save-status";
-import type { AutosaveResult } from "@/types/admin";
+import type { SaveResult } from "@/types/admin";
 
 const MAX_AUTO_RETRIES = 2;
 const RETRY_BACKOFF_MS = [1500, 3500];
 
-/**
- * Debounced autosave — rewritten during the pre-Phase-6 stabilization
- * pass (Workstream A5/A6/5.2) to fix two real problems the previous
- * version had:
- *
- *  1. **No structured result.** `save()` used to be a plain
- *     `Promise<void>` that just threw on failure. The caller had no safe
- *     message to show, and the status label claimed "retrying" even
- *     though nothing retried anything. `save` is now
- *     `(value: T) => Promise<AutosaveResult>` — see types/admin.ts —
- *     so failures carry a real, safe-to-display reason.
- *
- *  2. **Race condition (brief §5.2).** The old hook could start a new
- *     debounced save while an earlier one was still in flight — two
- *     concurrent requests with no ordering guarantee, so a slow older
- *     request resolving *after* a faster newer one could overwrite newer
- *     content with stale content. This version serializes saves through
- *     a simple run-loop: only one save request is ever in flight; if a
- *     newer value arrives while a save is running, it's queued and
- *     picked up the moment the current request finishes — never
- *     abandoned, never run concurrently with another.
- *
- * Retry: on failure, up to MAX_AUTO_RETRIES automatic retries with a
- * short backoff (status "retrying" — genuinely retrying, matching the
- * label). After that, status is "error" and autosave stops until the
- * user clicks the exposed `retry()` — which is real, not decorative.
- */
-export function useAutosave<T>(save: (value: T) => Promise<AutosaveResult>, delayMs = 2000) {
+const unknownFailure = (revision?: number): SaveResult => ({
+  success: false,
+  code: "UNKNOWN_ERROR",
+  message: "The content couldn't be saved. Try again.",
+  revision,
+});
+
+export function useAutosave<T>(
+  save: (value: T, clientRevision: number) => Promise<SaveResult>,
+  delayMs = 2000,
+  storageKey?: string
+) {
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
 
+  const saveRef = useRef(save);
+  const latestValueRef = useRef<T>();
+  const latestRevisionRef = useRef(0);
+  const confirmedRevisionRef = useRef(0);
+  const inFlightRef = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
-  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
-
-  /** The latest value the editor has produced, whether or not a save for
-   *  it has started yet. */
-  const latestValue = useRef<T>();
-  /** True while a save request is actually in flight (server round-trip
-   *  in progress) — the serialization guard. */
-  const isSavingRef = useRef(false);
-  /** Set when notifyChange/saveNow arrives while a save is already in
-   *  flight; tells the in-flight save's completion handler to
-   *  immediately start another run rather than wait for the next
-   *  debounce window. */
-  const hasQueuedChangeRef = useRef(false);
-  const retryCountRef = useRef(0);
   const mountedRef = useRef(true);
+  const waitersRef = useRef<Array<(result: SaveResult) => void>>([]);
+
+  useEffect(() => {
+    saveRef.current = save;
+  }, [save]);
+
+  useEffect(() => {
+    if (!storageKey) return;
+    try {
+      const stored = sessionStorage.getItem(storageKey);
+      if (!stored) return;
+      const value = JSON.parse(stored) as { status?: SaveStatus; savedAt?: string; error?: string };
+      if (value.status === "saved") {
+        setStatus("saved");
+        setLastSavedAt(value.savedAt ?? null);
+      }
+    } catch {
+      sessionStorage.removeItem(storageKey);
+    }
+  }, [storageKey]);
+
+  const settleWaiters = useCallback((result: SaveResult) => {
+    const waiters = waitersRef.current.splice(0);
+    for (const resolve of waiters) resolve(result);
+  }, []);
+
+  const runSaveLoop = useCallback(async () => {
+    if (inFlightRef.current || latestValueRef.current === undefined) return;
+
+    inFlightRef.current = true;
+    if (mountedRef.current) setIsSaving(true);
+    let finalResult: SaveResult = unknownFailure(latestRevisionRef.current);
+
+    while (mountedRef.current && confirmedRevisionRef.current < latestRevisionRef.current) {
+      const value = latestValueRef.current as T;
+      const revision = latestRevisionRef.current;
+      let attempt = 0;
+
+      while (mountedRef.current) {
+        if (latestRevisionRef.current > revision) break;
+        setStatus(attempt === 0 ? "saving" : "retrying");
+        setErrorMessage(null);
+
+        try {
+          finalResult = await saveRef.current(value, revision);
+        } catch (error) {
+          console.error("[editor:autosave:invoke] Server Action invocation failed", {
+            operation: "autosave",
+            revision,
+            errorType: error instanceof Error ? error.name : typeof error,
+          });
+          finalResult = unknownFailure(revision);
+        }
+
+        if (finalResult.success && finalResult.revision === revision) {
+          confirmedRevisionRef.current = revision;
+          setLastSavedAt(finalResult.savedAt);
+          break;
+        }
+
+        if (finalResult.success) {
+          finalResult = {
+            success: false,
+            code: "CONFLICT",
+            message: "The server confirmed a different editor revision. Retry the save.",
+            revision,
+          };
+        }
+
+        // Never retry an older snapshot after a newer edit exists. The
+        // outer loop immediately picks up the newest revision instead.
+        if (latestRevisionRef.current > revision) break;
+
+        if (attempt >= MAX_AUTO_RETRIES) {
+          setStatus("error");
+          setErrorMessage(finalResult.message);
+          if (storageKey) {
+            sessionStorage.setItem(
+              storageKey,
+              JSON.stringify({ status: "error", error: finalResult.message })
+            );
+          }
+          inFlightRef.current = false;
+          setIsSaving(false);
+          settleWaiters(finalResult);
+          return;
+        }
+
+        setStatus("retrying");
+        attempt += 1;
+        await new Promise((resolve) =>
+          setTimeout(resolve, RETRY_BACKOFF_MS[attempt - 1] ?? RETRY_BACKOFF_MS.at(-1))
+        );
+      }
+    }
+
+    inFlightRef.current = false;
+    if (mountedRef.current) {
+      setIsSaving(false);
+      if (confirmedRevisionRef.current === latestRevisionRef.current && finalResult.success) {
+        setStatus("saved");
+        setErrorMessage(null);
+        if (storageKey) {
+          sessionStorage.setItem(
+            storageKey,
+            JSON.stringify({ status: "saved", savedAt: finalResult.savedAt })
+          );
+        }
+        settleWaiters(finalResult);
+      } else if (confirmedRevisionRef.current < latestRevisionRef.current) {
+        setStatus("unsaved");
+      }
+    }
+  }, [settleWaiters, storageKey]);
+
+  const queueValue = useCallback(
+    (value: T, immediate: boolean) => {
+      latestValueRef.current = value;
+      latestRevisionRef.current += 1;
+      setStatus("unsaved");
+      setErrorMessage(null);
+      if (storageKey) sessionStorage.removeItem(storageKey);
+
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (immediate) {
+        void runSaveLoop();
+      } else {
+        timeoutRef.current = setTimeout(() => void runSaveLoop(), delayMs);
+      }
+      return latestRevisionRef.current;
+    },
+    [delayMs, runSaveLoop, storageKey]
+  );
+
+  const notifyChange = useCallback((value: T) => queueValue(value, false), [queueValue]);
+
+  const flush = useCallback(
+    (value: T): Promise<SaveResult> => {
+      queueValue(value, true);
+      return new Promise((resolve) => {
+        waitersRef.current.push(resolve);
+        // queueValue may have observed an in-flight request. Calling the
+        // loop again is harmless and guarantees a just-added waiter is
+        // attached to the active/new run.
+        void runSaveLoop();
+      });
+    },
+    [queueValue, runSaveLoop]
+  );
+
+  const retry = useCallback(() => {
+    if (inFlightRef.current || latestValueRef.current === undefined) return;
+    void runSaveLoop();
+  }, [runSaveLoop]);
+
+  const hasUnsavedChanges = useCallback(
+    () => confirmedRevisionRef.current < latestRevisionRef.current,
+    []
+  );
+
+  useEffect(() => {
+    const warnBeforeUnload = (event: BeforeUnloadEvent) => {
+      if (confirmedRevisionRef.current < latestRevisionRef.current) {
+        event.preventDefault();
+      }
+    };
+    const warnBeforeClientNavigation = (event: MouseEvent) => {
+      if (confirmedRevisionRef.current >= latestRevisionRef.current) return;
+      const target = event.target;
+      const anchor = target instanceof Element ? target.closest("a[href]") : null;
+      if (!anchor || anchor.hasAttribute("download") || anchor.getAttribute("target") === "_blank") return;
+      const destination = new URL(anchor.getAttribute("href") ?? "", window.location.href);
+      if (
+        destination.origin === window.location.origin &&
+        destination.pathname === window.location.pathname &&
+        destination.search === window.location.search
+      ) {
+        return;
+      }
+      if (!window.confirm("Editor changes are still unsaved. Leave this page anyway?")) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    };
+    window.addEventListener("beforeunload", warnBeforeUnload);
+    document.addEventListener("click", warnBeforeClientNavigation, true);
+    return () => {
+      window.removeEventListener("beforeunload", warnBeforeUnload);
+      document.removeEventListener("click", warnBeforeClientNavigation, true);
+    };
+  }, []);
 
   useEffect(() => {
     mountedRef.current = true;
     return () => {
       mountedRef.current = false;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+      settleWaiters({
+        success: false,
+        code: "UNKNOWN_ERROR",
+        message: "The editor closed before the pending save was confirmed.",
+        revision: latestRevisionRef.current,
+      });
     };
-  }, []);
+  }, [settleWaiters]);
 
-  /** The actual save run-loop. Never called while isSavingRef is already
-   *  true — every call site checks that first. */
-  const runSave = useCallback(async () => {
-    isSavingRef.current = true;
-    setStatus((prev) => (prev === "error" ? "retrying" : "saving"));
-
-    const value = latestValue.current as T;
-    const result = await save(value);
-
-    if (!mountedRef.current) return;
-
-    if (result.success) {
-      retryCountRef.current = 0;
-      setErrorMessage(null);
-      setStatus("saved");
-      setLastSavedAt(result.savedAt);
-    } else {
-      setErrorMessage(result.message);
-
-      if (retryCountRef.current < MAX_AUTO_RETRIES) {
-        const attempt = retryCountRef.current;
-        retryCountRef.current += 1;
-        setStatus("retrying");
-        retryTimeoutRef.current = setTimeout(() => {
-          if (!mountedRef.current) return;
-          isSavingRef.current = false;
-          void runSave();
-        }, RETRY_BACKOFF_MS[attempt] ?? RETRY_BACKOFF_MS[RETRY_BACKOFF_MS.length - 1]);
-        return; // stay "saving"/"retrying" — isSavingRef stays true until the retry actually runs
-      }
-
-      setStatus("error");
-    }
-
-    isSavingRef.current = false;
-
-    // A newer edit arrived while this request (or its retries) was in
-    // flight — pick it up immediately instead of waiting for the next
-    // debounce window, so the newest content is never left unsaved
-    // behind a stale in-flight request.
-    if (hasQueuedChangeRef.current && result.success) {
-      hasQueuedChangeRef.current = false;
-      void runSave();
-    }
-  }, [save]);
-
-  const notifyChange = useCallback(
-    (value: T) => {
-      latestValue.current = value;
-      setStatus("unsaved");
-
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-      retryCountRef.current = 0;
-
-      timeoutRef.current = setTimeout(() => {
-        if (isSavingRef.current) {
-          // A save is already running — don't start a second, overlapping
-          // request. Mark that newer content is waiting; the in-flight
-          // request's completion handler will pick it up.
-          hasQueuedChangeRef.current = true;
-          return;
-        }
-        void runSave();
-      }, delayMs);
-    },
-    [runSave, delayMs]
-  );
-
-  /** Force an immediate save, bypassing the debounce — used by the
-   *  "Save now" button so it doesn't have to wait out the debounce
-   *  window. If a save is already in flight, this just queues the
-   *  latest value rather than firing a second concurrent request. */
-  const saveNow = useCallback(
-    async (value: T) => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
-      latestValue.current = value;
-      retryCountRef.current = 0;
-
-      if (isSavingRef.current) {
-        hasQueuedChangeRef.current = true;
-        return;
-      }
-      await runSave();
-    },
-    [runSave]
-  );
-
-  /** Manual retry after autosave has given up — genuinely re-attempts
-   *  the save (unlike the old "Couldn't save — retrying" label, which
-   *  claimed this was already happening automatically). */
-  const retry = useCallback(() => {
-    if (isSavingRef.current) return;
-    retryCountRef.current = 0;
-    void runSave();
-  }, [runSave]);
-
-  return { status, errorMessage, lastSavedAt, notifyChange, saveNow, retry, isSaving: () => isSavingRef.current };
+  return {
+    status,
+    errorMessage,
+    lastSavedAt,
+    notifyChange,
+    flush,
+    retry,
+    isSaving,
+    hasUnsavedChanges,
+  };
 }

@@ -1,10 +1,13 @@
 import "server-only";
+import { cache } from "react";
 import { prisma } from "@/lib/db";
+import { readWithPolicy } from "@/lib/db/read-policy";
 import { estimateReadingTime } from "@/lib/reading-time";
 import type { ArticleFrontmatter, DbContentItem } from "@/types";
 import type { TipTapDoc } from "@/types/tiptap";
 
 interface ArticleWithRelations {
+  id: string;
   title: string;
   slug: string;
   summary: string;
@@ -19,67 +22,54 @@ function toISODate(date: Date): string {
 }
 
 function mapArticle(article: ArticleWithRelations): DbContentItem<ArticleFrontmatter> {
-  const doc = article.content as unknown as TipTapDoc;
-
-  const frontmatter: ArticleFrontmatter = {
-    title: article.title,
-    slug: article.slug,
-    summary: article.summary,
-    date: toISODate(article.date),
-    tags: article.tags.map((t) => t.name),
-    category: article.category?.name ?? "Uncategorized",
+  const doc = article.content as TipTapDoc;
+  return {
+    recordId: article.id,
+    frontmatter: {
+      title: article.title,
+      slug: article.slug,
+      summary: article.summary,
+      date: toISODate(article.date),
+      tags: article.tags.map((tag) => tag.name),
+      category: article.category?.name ?? "Uncategorized",
+    },
+    content: doc,
+    readingTime: estimateReadingTime(doc),
   };
-
-  return { frontmatter, content: doc, readingTime: estimateReadingTime(doc) };
 }
 
 export async function getArticleCount(): Promise<number> {
-  try {
-    return await prisma.article.count();
-  } catch (error) {
-    console.error("[queries/articles] getArticleCount failed:", error);
-    return 0;
-  }
+  return readWithPolicy("articles.getArticleCount", 0, () => prisma.article.count());
 }
 
-export async function getAllArticles(): Promise<DbContentItem<ArticleFrontmatter>[]> {
-  try {
+export const getAllArticles = cache(async (): Promise<DbContentItem<ArticleFrontmatter>[]> =>
+  readWithPolicy("articles.getAllArticles", [], async () => {
     const articles = (await prisma.article.findMany({
       where: { publishStatus: "PUBLISHED" },
       include: { category: true, tags: true },
       orderBy: { date: "desc" },
     })) as ArticleWithRelations[];
     return articles.map(mapArticle);
-  } catch (error) {
-    console.error("[queries/articles] getAllArticles failed, returning empty list:", error);
-    return [];
-  }
-}
+  })
+);
 
-export async function getArticleBySlug(
-  slug: string
-): Promise<DbContentItem<ArticleFrontmatter> | undefined> {
-  try {
-    const article = (await prisma.article.findFirst({
-      where: { slug, publishStatus: "PUBLISHED" },
-      include: { category: true, tags: true },
-    })) as ArticleWithRelations | null;
-    return article ? mapArticle(article) : undefined;
-  } catch (error) {
-    console.error(`[queries/articles] getArticleBySlug(${slug}) failed:`, error);
-    return undefined;
-  }
-}
+export const getArticleBySlug = cache(
+  async (slug: string): Promise<DbContentItem<ArticleFrontmatter> | undefined> =>
+    readWithPolicy(`articles.getArticleBySlug(${slug})`, undefined, async () => {
+      const article = (await prisma.article.findFirst({
+        where: { slug, publishStatus: "PUBLISHED" },
+        include: { category: true, tags: true },
+      })) as ArticleWithRelations | null;
+      return article ? mapArticle(article) : undefined;
+    })
+);
 
-export async function getAllArticleSlugs(): Promise<string[]> {
-  try {
-    const articles = (await prisma.article.findMany({
+export const getAllArticleSlugs = cache(async (): Promise<string[]> =>
+  readWithPolicy("articles.getAllArticleSlugs", [], async () => {
+    const articles = await prisma.article.findMany({
       where: { publishStatus: "PUBLISHED" },
       select: { slug: true },
-    })) as { slug: string }[];
-    return articles.map((a) => a.slug);
-  } catch (error) {
-    console.error("[queries/articles] getAllArticleSlugs failed, returning empty list:", error);
-    return [];
-  }
-}
+    });
+    return articles.map((article) => article.slug);
+  })
+);

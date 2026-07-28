@@ -1,5 +1,12 @@
 # Pre-Phase-6 Stabilization Report
 
+> **Correction (July 28, 2026):** The clean-build conclusion in this report was based on a
+> sandbox without the owner's real Neon data. A later real local build exposed two legacy
+> Article table documents that failed strict TipTap validation and intermittent Prisma P1017
+> connection closures that query fallbacks could hide. These issues are resolved and verified in
+> `docs/CODEX_BUILD_DATA_STABILIZATION_REPORT.md`; use that report for the current build/data
+> status.
+
 **Date:** July 27, 2026
 **Scope:** `docs/PRE_PHASE_6_STABILIZATION_BRIEF.md` — reproduce and fix the editor autosave failure at
 its root cause, align the editor/type/validator/renderer contract, replace silent failure with

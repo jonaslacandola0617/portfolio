@@ -2,7 +2,6 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import type { JSONContent } from "@tiptap/react";
 import { requireAdmin } from "@/lib/services/auth-service";
 import {
   createProject,
@@ -11,10 +10,11 @@ import {
   deleteProject,
   deleteProjects,
 } from "@/lib/services/project-admin-service";
-import { projectFormSchema, projectContentSchema } from "@/lib/validations/project";
-import { bulkDeleteSchema } from "@/lib/validations/admin";
+import { projectFormSchema } from "@/lib/validations/project";
+import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
-import type { ActionResult, AutosaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
+import { saveEditorContent } from "@/lib/services/content-save-service";
+import type { ActionResult, SaveContentPayload, SaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
 
 export type { ActionResult };
 
@@ -72,10 +72,27 @@ export async function updateProjectAction(
   _prevState: ActionResult,
   formData: FormData
 ): Promise<ActionResult> {
-  await requireAdmin();
+  try {
+    await requireAdmin();
+  } catch {
+    console.error("[admin:project:update] authentication failed", {
+      contentType: "project",
+      recordId: id,
+      operation: "metadata-save",
+      validationStage: "authentication",
+    });
+    return { success: false, code: "AUTH_ERROR", message: "Your admin session expired. Sign in again." };
+  }
 
   const parsed = projectFormSchema.safeParse(parseFormData(formData));
   if (!parsed.success) {
+    console.error("[admin:project:update] validation failed", {
+      contentType: "project",
+      recordId: id,
+      operation: "metadata-save",
+      validationStage: "server-zod",
+      fields: Object.keys(parsed.error.flatten().fieldErrors),
+    });
     return { success: false, errors: parsed.error.flatten().fieldErrors };
   }
 
@@ -86,8 +103,7 @@ export async function updateProjectAction(
     return classifyServiceError(error, { operation: "update", contentType: "project", recordId: id });
   }
 
-  revalidatePath(`/admin/projects/${id}`);
-  return { success: true, recordId: id, message: "Changes saved." };
+  return { success: true, recordId: id, message: "Metadata changes saved." };
 }
 
 /** Called from the editor's autosave hook, not a form submit — a much
@@ -96,30 +112,8 @@ export async function updateProjectAction(
  *  hooks/use-autosave.ts and docs/PRE_PHASE_6_STABILIZATION_REPORT.md
  *  Workstream A) — a thrown error here used to leave the editor with no
  *  safe, displayable reason for a failed save. */
-export async function autosaveProjectContentAction(id: string, content: JSONContent): Promise<AutosaveResult> {
-  await requireAdmin();
-
-  const parsed = projectContentSchema.safeParse(content);
-  if (!parsed.success) {
-    console.error("[admin:project:autosave] content failed validation", {
-      recordId: id,
-      issues: parsed.error.issues,
-    });
-    return {
-      success: false,
-      message: "This content couldn't be saved — it contains something the editor doesn't recognize.",
-      code: "INVALID_CONTENT",
-    };
-  }
-
-  try {
-    await updateProjectContent(id, parsed.data as JSONContent);
-  } catch (error) {
-    const result = classifyServiceError(error, { operation: "autosave", contentType: "project", recordId: id });
-    return { success: false, message: result.message, code: result.code };
-  }
-
-  return { success: true, savedAt: new Date().toISOString() };
+export async function autosaveProjectContentAction(payload: SaveContentPayload): Promise<SaveResult> {
+  return saveEditorContent("project", payload, updateProjectContent);
 }
 
 /** Single-record delete. Does not redirect — used from both the edit
@@ -127,12 +121,14 @@ export async function autosaveProjectContentAction(id: string, content: JSONCont
  *  (which just refreshes in place); see types/admin.ts's DeleteResult. */
 export async function deleteProjectAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
+  const parsed = deleteIdSchema.safeParse(id);
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid project id." };
 
   try {
-    await deleteProject(id);
+    await deleteProject(parsed.data);
   } catch (error) {
     if (isNextControlFlowError(error)) throw error;
-    return classifyServiceError(error, { operation: "delete", contentType: "project", recordId: id });
+    return classifyServiceError(error, { operation: "delete", contentType: "project", recordId: parsed.data });
   }
 
   revalidatePath("/admin/projects");

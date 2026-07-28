@@ -17,22 +17,31 @@ import { Button, type ButtonProps } from "@/components/ui/button";
  */
 interface SubmitButtonProps extends Omit<ButtonProps, "type"> {
   pendingLabel?: string;
+  forcePending?: boolean;
   children: React.ReactNode;
 }
 
-export function SubmitButton({ pendingLabel, children, className, disabled, ...props }: SubmitButtonProps) {
+export function SubmitButton({
+  pendingLabel,
+  forcePending = false,
+  children,
+  className,
+  disabled,
+  ...props
+}: SubmitButtonProps) {
   const { pending } = useFormStatus();
+  const isPending = pending || forcePending;
 
   return (
     <Button
       type="submit"
-      disabled={pending || disabled}
-      aria-disabled={pending || disabled}
+      disabled={isPending || disabled}
+      aria-disabled={isPending || disabled}
       className={cn(className)}
       {...props}
     >
-      {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      {pending ? pendingLabel ?? "Saving..." : children}
+      {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+      {isPending ? pendingLabel ?? "Saving changes..." : children}
     </Button>
   );
 }

@@ -114,7 +114,8 @@ export function TimelineForm({ mode, entry }: TimelineFormProps) {
         </SubmitButton>
         {mode === "edit" && entry && (
           <DeleteButton
-            confirmMessage="Delete this timeline entry? This can't be undone."
+            contentType="timeline entry"
+            recordTitle={entry.title}
             onDelete={() => deleteTimelineAction(entry.id)}
             onSuccess={() => router.push("/admin/timeline")}
           />

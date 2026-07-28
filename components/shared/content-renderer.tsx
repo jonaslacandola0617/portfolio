@@ -3,6 +3,11 @@ import { CommandBlock } from "@/components/shared/command-block";
 import { MermaidDiagram } from "@/components/shared/mermaid-diagram";
 import { CodeBlock } from "@/components/shared/code-block";
 import { validateTipTapDoc } from "@/lib/validations/content";
+import {
+  diagnoseTipTapDocument,
+  formatContentDiagnostic,
+  type ContentRecordContext,
+} from "@/lib/content-diagnostics";
 import type {
   TipTapBlockNode,
   TipTapDoc,
@@ -85,7 +90,7 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
 
     case "orderedList":
       return (
-        <ol key={key}>
+        <ol key={key} start={node.attrs?.start} type={node.attrs?.type ?? undefined}>
           {node.content.map((li, i) => (
             <li key={i}>{li.content.map((n, j) => renderBlock(n, j))}</li>
           ))}
@@ -156,11 +161,17 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
   }
 }
 
-export function ContentRenderer({ content }: { content: unknown }) {
+export function ContentRenderer({
+  content,
+  context,
+}: {
+  content: unknown;
+  context: ContentRecordContext;
+}) {
   const result = validateTipTapDoc(content);
 
   if (!result.success) {
-    console.error("[ContentRenderer] Invalid TipTap document:", result.error.message);
+    console.error(formatContentDiagnostic(context, diagnoseTipTapDocument(content, result.error)));
     return (
       <p className="text-sm text-muted-foreground">
         This content couldn&rsquo;t be rendered — it doesn&rsquo;t match the expected format.

@@ -10,7 +10,7 @@ import {
   deleteTimelineEntries,
 } from "@/lib/services/timeline-admin-service";
 import { timelineFormSchema } from "@/lib/validations/timeline";
-import { bulkDeleteSchema } from "@/lib/validations/admin";
+import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
 import type { ActionResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
 
@@ -60,11 +60,13 @@ export async function updateTimelineAction(
 
 export async function deleteTimelineAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
+  const parsed = deleteIdSchema.safeParse(id);
+  if (!parsed.success) return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid timeline entry id." };
   try {
-    await deleteTimelineEntry(id);
+    await deleteTimelineEntry(parsed.data);
   } catch (error) {
     if (isNextControlFlowError(error)) throw error;
-    return classifyServiceError(error, { operation: "delete", contentType: "timeline entry", recordId: id });
+    return classifyServiceError(error, { operation: "delete", contentType: "timeline entry", recordId: parsed.data });
   }
   revalidatePath("/admin/timeline");
   revalidatePath("/timeline");
