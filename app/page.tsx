@@ -35,13 +35,14 @@ const heroTopologyEdges = [
 ];
 
 export default async function HomePage() {
-  const [projects, allArticles, allLabs, settings, homepage] = await Promise.all([
-    getAllProjects(),
-    getAllArticles(),
-    getAllLabs(),
-    getSiteSettings(),
-    getHomepageOverview(),
-  ]);
+  const [projects, allArticles, allLabs, settings, homepage] =
+    await Promise.all([
+      getAllProjects(),
+      getAllArticles(),
+      getAllLabs(),
+      getSiteSettings(),
+      getHomepageOverview(),
+    ]);
   const featuredProjects = projects.slice(0, 3);
   const articles = allArticles.slice(0, 2);
   const latestLab = allLabs[0];
@@ -61,7 +62,7 @@ export default async function HomePage() {
               Hi, I&rsquo;m {settings.name}.
             </h1>
             <p className="mt-4 max-w-xl text-lg text-muted-foreground text-balance">
-              {settings.role}, focused on {settings.tagline.toLowerCase()}
+              {settings.tagline.toLowerCase()}
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
@@ -96,7 +97,9 @@ export default async function HomePage() {
                   <dt className="font-mono text-[0.68rem] uppercase tracking-wide text-muted-foreground">
                     {stat.label}
                   </dt>
-                  <dd className="mt-1 font-display text-2xl font-semibold text-foreground">{stat.value}</dd>
+                  <dd className="mt-1 font-display text-2xl font-semibold text-foreground">
+                    {stat.value}
+                  </dd>
                 </div>
               ))}
             </dl>
@@ -104,7 +107,11 @@ export default async function HomePage() {
 
           <div className="hidden lg:block">
             <div className="rounded-xl border border-border bg-card/60 p-4 animate-drift">
-              <NetworkTopology nodes={heroTopologyNodes} edges={heroTopologyEdges} height={300} />
+              <NetworkTopology
+                nodes={heroTopologyNodes}
+                edges={heroTopologyEdges}
+                height={300}
+              />
             </div>
           </div>
         </div>
@@ -120,7 +127,9 @@ export default async function HomePage() {
         {/* Recent projects */}
         <div className="mt-14">
           <div className="mb-5 flex items-center justify-between">
-            <h2 className="font-display text-xl font-semibold text-foreground">Recent Projects</h2>
+            <h2 className="font-display text-xl font-semibold text-foreground">
+              Recent Projects
+            </h2>
             <Link
               href="/projects"
               className="flex items-center gap-1 text-sm text-primary hover:underline"
@@ -139,8 +148,13 @@ export default async function HomePage() {
         <div className="mt-14 grid gap-8 lg:grid-cols-2">
           <div>
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="font-display text-xl font-semibold text-foreground">Latest Lab</h2>
-              <Link href="/labs" className="flex items-center gap-1 text-sm text-primary hover:underline">
+              <h2 className="font-display text-xl font-semibold text-foreground">
+                Latest Lab
+              </h2>
+              <Link
+                href="/labs"
+                className="flex items-center gap-1 text-sm text-primary hover:underline"
+              >
                 View all <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
@@ -149,8 +163,13 @@ export default async function HomePage() {
 
           <div>
             <div className="mb-5 flex items-center justify-between">
-              <h2 className="font-display text-xl font-semibold text-foreground">Recent Journal Entries</h2>
-              <Link href="/journal" className="flex items-center gap-1 text-sm text-primary hover:underline">
+              <h2 className="font-display text-xl font-semibold text-foreground">
+                Recent Journal Entries
+              </h2>
+              <Link
+                href="/journal"
+                className="flex items-center gap-1 text-sm text-primary hover:underline"
+              >
                 View all <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
