@@ -6,6 +6,7 @@ import { siteConfig } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
 import { SiteChrome } from "@/components/layout/site-chrome";
 import { SearchProvider } from "@/hooks/use-search";
+import { ToastProvider } from "@/components/ui/toast";
 import { getSearchIndex } from "@/lib/content";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 
@@ -68,9 +69,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         )}
       >
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
-          <SearchProvider index={searchIndex}>
-            <SiteChrome settings={settings}>{children}</SiteChrome>
-          </SearchProvider>
+          <ToastProvider>
+            <SearchProvider index={searchIndex}>
+              <SiteChrome settings={settings}>{children}</SiteChrome>
+            </SearchProvider>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>

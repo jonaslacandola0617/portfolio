@@ -1,6 +1,14 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import { Check, Loader2, Plus, X } from "lucide-react";
 import { searchTaxonomyAction } from "@/app/admin/(dashboard)/taxonomy/actions";
 import type { TaxonomyKind, TaxonomySuggestion } from "@/lib/validations/taxonomy";
@@ -15,6 +23,33 @@ interface CommonProps {
 
 function normalized(value: string) {
   return value.trim().replace(/\s+/g, " ").toLocaleLowerCase();
+}
+
+function useOutsideDismiss(
+  open: boolean,
+  setOpen: Dispatch<SetStateAction<boolean>>
+) {
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const handleOutsideInteraction = (event: PointerEvent | FocusEvent) => {
+      const target = event.target;
+      if (target instanceof Node && !rootRef.current?.contains(target)) {
+        setOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handleOutsideInteraction);
+    document.addEventListener("focusin", handleOutsideInteraction);
+    return () => {
+      document.removeEventListener("pointerdown", handleOutsideInteraction);
+      document.removeEventListener("focusin", handleOutsideInteraction);
+    };
+  }, [open, setOpen]);
+
+  return rootRef;
 }
 
 export function TaxonomyCombobox({
@@ -33,6 +68,7 @@ export function TaxonomyCombobox({
   const [error, setError] = useState<string | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
   const listId = useId();
+  const rootRef = useOutsideDismiss(open, setOpen);
 
   useEffect(() => {
     if (!open) return;
@@ -61,7 +97,7 @@ export function TaxonomyCombobox({
   };
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <input type="hidden" name={name} value={value} />
       <input
         aria-label={label}
@@ -132,6 +168,7 @@ export function TaxonomyMultiCombobox({
   const [activeIndex, setActiveIndex] = useState(0);
   const listId = useId();
   const selectedKeys = useMemo(() => new Set(selected.map(normalized)), [selected]);
+  const rootRef = useOutsideDismiss(open, setOpen);
 
   useEffect(() => {
     if (!open) return;
@@ -160,7 +197,7 @@ export function TaxonomyMultiCombobox({
   };
 
   return (
-    <div className="relative">
+    <div ref={rootRef} className="relative">
       <input type="hidden" name={name} value={selected.join(", ")} />
       <div className={cn("flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5", open && "ring-2 ring-ring")}>
         {selected.map((item) => (

@@ -2,15 +2,11 @@ import Link from "next/link";
 import { Plus, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/admin/empty-state";
-import { FormMessage } from "@/components/admin/form-message";
+import { QuerySuccessToast } from "@/components/admin/query-success-toast";
 import { GroupedSkillsManager } from "@/components/admin/grouped-skills-manager";
 import { getAllSkillsForAdmin, getExistingSkillGroups } from "@/lib/services/skill-admin-service";
 
-export default async function AdminSkillsPage({
-  searchParams,
-}: {
-  searchParams: { created?: string; updated?: string };
-}) {
+export default async function AdminSkillsPage() {
   const [skills, groups] = await Promise.all([getAllSkillsForAdmin(), getExistingSkillGroups()]);
 
   return (
@@ -25,8 +21,9 @@ export default async function AdminSkillsPage({
         </Button>
       </div>
 
-      {searchParams.created === "1" && <FormMessage variant="success" className="mb-4">Skill created.</FormMessage>}
-      {searchParams.updated === "1" && <FormMessage variant="success" className="mb-4">Skill updated.</FormMessage>}
+      <QuerySuccessToast
+        messages={{ created: "Skill created.", updated: "Skill updated." }}
+      />
 
       {skills.length === 0 ? (
         <EmptyState icon={Layers} title="No skills yet" description="Add your first skill to get started." />

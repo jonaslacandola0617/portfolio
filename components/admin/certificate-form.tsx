@@ -15,7 +15,10 @@ import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination"
 import { useMetadataAction } from "@/hooks/use-metadata-action";
 import { TaxonomyMultiCombobox } from "@/components/admin/taxonomy-combobox";
 import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
+import { SheetClose } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import { CertificateLogoPicker } from "@/components/admin/certificate-logo-picker";
+import { QuerySuccessToast } from "@/components/admin/query-success-toast";
 import { DateSelector } from "@/components/admin/date-selector";
 import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import {
@@ -49,127 +52,215 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
 }
 
-export function CertificateForm({ mode, certificate, media = [] }: CertificateFormProps) {
+export function CertificateForm({
+  mode,
+  certificate,
+  media = [],
+}: CertificateFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
 
-  const action = mode === "create" ? createCertificateAction : updateCertificateAction.bind(null, certificate!.id);
+  const action =
+    mode === "create"
+      ? createCertificateAction
+      : updateCertificateAction.bind(null, certificate!.id);
   const { state, submit: formAction } = useMetadataAction(
     action,
-    mode === "edit" ? `cms:certificate:${certificate!.id}:metadata` : undefined
+    mode === "edit" ? `cms:certificate:${certificate!.id}:metadata` : undefined,
   );
   const [name, setName] = useState(certificate?.name ?? "");
   const [slug, setSlug] = useState(certificate?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(mode === "edit");
-  const [publishStatus, setPublishStatus] = useState(certificate?.publishStatus ?? "DRAFT");
+  const [publishStatus, setPublishStatus] = useState(
+    certificate?.publishStatus ?? "DRAFT",
+  );
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <AuthoringWorkspace enabled={mode === "edit"} storageKey="cms:certificate:inspector">
+    <div className="space-y-8">
       <form onSubmit={editorForm.onSubmit} className="space-y-6">
-        {justCreated && <FormMessage variant="success">Certificate created — autosave is on below.</FormMessage>}
+        {justCreated && (
+          <QuerySuccessToast
+            messages={{
+              created: "Certificate created — autosave is on below.",
+            }}
+          />
+        )}
 
         <Card>
           <CardContent className="space-y-5 pt-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="name">Name</Label>
-                <Input id="name" name="name" value={name} onChange={(e) => {
-                  setName(e.target.value);
-                  if (!slugTouched) setSlug(slugify(e.target.value));
-                }} required />
+                <Input
+                  id="name"
+                  name="name"
+                  value={name}
+                  onChange={(e) => {
+                    setName(e.target.value);
+                    if (!slugTouched) setSlug(slugify(e.target.value));
+                  }}
+                  required
+                />
                 <FieldError errors={state.errors?.name} />
               </div>
               <div>
                 <Label htmlFor="slug">Slug</Label>
-                <Input id="slug" name="slug" value={slug} onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); }} required />
+                <Input
+                  id="slug"
+                  name="slug"
+                  value={slug}
+                  onChange={(e) => {
+                    setSlug(e.target.value);
+                    setSlugTouched(true);
+                  }}
+                  required
+                />
                 <FieldError errors={state.errors?.slug} />
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+              }
+            >
               <div className="sm:col-span-2">
                 <Label htmlFor="issuer">Issuer</Label>
-                <Input id="issuer" name="issuer" defaultValue={certificate?.issuer} required />
+                <Input
+                  id="issuer"
+                  name="issuer"
+                  defaultValue={certificate?.issuer}
+                  required
+                />
                 <FieldError errors={state.errors?.issuer} />
-              </div>
-              <div className="sm:col-span-2">
-                <Label>Certificate Logo</Label>
-                <p className="mb-2 mt-1 text-xs text-muted-foreground">Upload or choose the issuer/certification image shown publicly.</p>
-                <CertificateLogoPicker media={media} initialMediaId={certificate?.logoMediaId} />
-                <FieldError errors={state.errors?.logoMediaId} />
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid items-end gap-4 sm:grid-cols-2">
               <div>
-                <DateSelector id="dateCompleted" name="dateCompleted" label="Completion Date" defaultValue={certificate?.dateCompleted} optional />
+                <DateSelector
+                  id="dateCompleted"
+                  name="dateCompleted"
+                  label="Completion Date"
+                  defaultValue={certificate?.dateCompleted}
+                  optional
+                />
                 <FieldError errors={state.errors?.dateCompleted} />
               </div>
               <div>
-                <DateSelector id="dateStarted" name="dateStarted" label="Start Date" defaultValue={certificate?.dateStarted} optional />
+                <DateSelector
+                  id="dateStarted"
+                  name="dateStarted"
+                  label="Start Date"
+                  defaultValue={certificate?.dateStarted}
+                  optional
+                />
                 <FieldError errors={state.errors?.dateStarted} />
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid items-end gap-4 sm:grid-cols-2">
               <div>
                 <Label>Skills learned</Label>
-                <TaxonomyMultiCombobox name="skills" kind="skill" label="Skills learned" defaultValues={certificate?.skills} />
+                <TaxonomyMultiCombobox
+                  name="skills"
+                  kind="skill"
+                  label="Skills learned"
+                  defaultValues={certificate?.skills}
+                />
               </div>
               <div>
                 <Label htmlFor="credentialUrl">Credential URL</Label>
-                <Input id="credentialUrl" name="credentialUrl" type="url" defaultValue={certificate?.credentialUrl} />
+                <Input
+                  id="credentialUrl"
+                  name="credentialUrl"
+                  type="url"
+                  defaultValue={certificate?.credentialUrl}
+                />
                 <FieldError errors={state.errors?.credentialUrl} />
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+              }
+            >
               <div>
                 <Label htmlFor="publishStatus">Publish status</Label>
-                <select id="publishStatus" name="publishStatus" value={publishStatus} onChange={(e) => setPublishStatus(e.target.value)} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
+                <p className="mb-2 mt-1 text-xs text-muted-foreground">
+                  Publish manually when the certificate is ready.
+                </p>
+                <select
+                  id="publishStatus"
+                  name="publishStatus"
+                  value={publishStatus}
+                  onChange={(e) => setPublishStatus(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                >
                   <option value="DRAFT">Draft</option>
                   <option value="PUBLISHED">Published</option>
                   <option value="ARCHIVED">Archived</option>
                 </select>
-                <p className="mt-1.5 text-xs text-muted-foreground">Publish manually when the certificate is ready.</p>
               </div>
+            </div>
+
+            <div className="sm:col-span-2">
+              <Label>Certificate Logo</Label>
+              <p className="mb-2 mt-1 text-xs text-muted-foreground">
+                Upload or choose the issuer/certification image shown publicly.
+              </p>
+              <CertificateLogoPicker
+                media={media}
+                initialMediaId={certificate?.logoMediaId}
+              />
+              <FieldError errors={state.errors?.logoMediaId} />
             </div>
           </CardContent>
         </Card>
 
-        <div className="sticky bottom-0 z-10 space-y-3 border-t border-border bg-card/95 py-3 backdrop-blur">
-          {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
-          {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
-          {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+        <div className="space-y-3">
+          {editorForm.coordinationError && (
+            <FormMessage variant="error">
+              {editorForm.coordinationError}
+            </FormMessage>
+          )}
+          {!state.success && state.message && (
+            <FormMessage variant="error">{state.message}</FormMessage>
+          )}
           {!state.success && state.errors && (
-            <FormMessage variant="error">Fix the highlighted metadata fields, then save again.</FormMessage>
+            <FormMessage variant="error">
+              Fix the highlighted metadata fields, then save again.
+            </FormMessage>
           )}
-          <div className="flex items-center justify-between">
-          <SubmitButton
-            pendingLabel={mode === "create" ? "Creating..." : "Saving changes..."}
-            forcePending={editorForm.isCoordinating}
+          <div
+            className="flex justify-end
+          ` items-center gap-2"
           >
-            {mode === "create" ? "Create certificate" : "Save changes"}
-          </SubmitButton>
-          {mode === "edit" && certificate && (
-            <DeleteButton
-              contentType="certificate"
-              recordTitle={certificate.name}
-              onDelete={() => deleteCertificateAction(certificate.id)}
-              onSuccess={() => router.push("/admin/certificates")}
-            />
-          )}
+            <SubmitButton
+              pendingLabel={
+                mode === "create" ? "Creating..." : "Saving changes..."
+              }
+              forcePending={editorForm.isCoordinating}
+            >
+              {mode === "create" ? "Create certificate" : "Save changes"}
+            </SubmitButton>
+            {mode === "edit" && certificate && (
+              <DeleteButton
+                contentType="certificate"
+                recordTitle={certificate.name}
+                onDelete={() => deleteCertificateAction(certificate.id)}
+                onSuccess={() => router.push("/admin/certificates")}
+              />
+            )}
           </div>
         </div>
       </form>
 
       {mode === "edit" && certificate && (
-        <div>
-          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Write-up (optional)
-          </h2>
+        <div className="h-full min-h-0">
           <EditorShell
             initialContent={certificate.content}
             recordId={certificate.id}
@@ -182,8 +273,10 @@ export function CertificateForm({ mode, certificate, media = [] }: CertificateFo
       )}
 
       {mode === "create" && (
-        <p className="text-sm text-muted-foreground">Save the certificate first to add an optional longer write-up.</p>
+        <p className="text-sm text-muted-foreground">
+          Save the certificate first to add an optional longer write-up.
+        </p>
       )}
-    </AuthoringWorkspace>
+    </div>
   );
 }

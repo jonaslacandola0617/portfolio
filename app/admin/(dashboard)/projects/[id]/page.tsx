@@ -17,7 +17,6 @@ export default async function EditProjectPage({ params }: { params: { id: string
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to projects
       </Link>
-      <h1 className="mb-6 font-display text-2xl font-semibold text-foreground">{project.title}</h1>
       <ProjectForm
         mode="edit"
         media={media}

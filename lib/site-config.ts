@@ -6,20 +6,21 @@
  */
 
 export const siteConfig = {
-  name: "Alex Rivera",
-  initials: "AR",
+  name: "Jonas Lacandola",
+  initials: "JL",
   role: "Aspiring Cybersecurity Analyst",
   tagline:
     "Focused on networking, security operations, and continuous, documented learning.",
-  location: "Based in the United States \u00b7 open to remote & on-site SOC/NetAdmin roles",
+  location:
+    "Based in the United States \u00b7 open to remote & on-site SOC/NetAdmin roles",
   email: "alex.rivera.sec@protonmail.com",
   social: {
     github: "https://github.com/alexrivera-sec",
-    linkedin: "https://linkedin.com/in/alexrivera-sec",
-    twitter: "https://x.com/alexriverasec",
+    linkedin: "https://linkedin.com/in/jonaslacandola-sec",
+    twitter: "https://x.com/jonaslacandola",
   },
   resumeUrl: "/resume.pdf",
-  siteUrl: "https://alexrivera.dev",
+  siteUrl: "https://jonaslacandola.vercel.app",
   description:
     "Cybersecurity & networking portfolio — labs, projects, and a running learning journal covering CCNA, Google Cybersecurity, Linux, and packet analysis.",
 
@@ -40,7 +41,6 @@ export const siteConfig = {
     "Packet Tracer",
     "Wireshark",
   ],
-
 } as const;
 
 export const navItems = [

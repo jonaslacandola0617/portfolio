@@ -14,10 +14,16 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
-import { TaxonomyCombobox, TaxonomyMultiCombobox } from "@/components/admin/taxonomy-combobox";
+import {
+  TaxonomyCombobox,
+  TaxonomyMultiCombobox,
+} from "@/components/admin/taxonomy-combobox";
 import { TemplateSelector } from "@/components/admin/template-selector";
 import { projectTemplates } from "@/lib/editor/templates";
 import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
+import { QuerySuccessToast } from "@/components/admin/query-success-toast";
+import { SheetClose } from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
 import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import {
   createProjectAction,
@@ -59,25 +65,46 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
 
-  const action = mode === "create" ? createProjectAction : updateProjectAction.bind(null, project!.id);
+  const action =
+    mode === "create"
+      ? createProjectAction
+      : updateProjectAction.bind(null, project!.id);
   const { state, submit: formAction } = useMetadataAction(
     action,
-    mode === "edit" ? `cms:project:${project!.id}:metadata` : undefined
+    mode === "edit" ? `cms:project:${project!.id}:metadata` : undefined,
   );
   const [title, setTitle] = useState(project?.title ?? "");
   const [slug, setSlug] = useState(project?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(mode === "edit");
-  const [publishStatus, setPublishStatus] = useState(project?.publishStatus ?? "DRAFT");
+  const [publishStatus, setPublishStatus] = useState(
+    project?.publishStatus ?? "DRAFT",
+  );
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <AuthoringWorkspace enabled={mode === "edit"} storageKey="cms:project:inspector">
+    <AuthoringWorkspace
+      enabled={mode === "edit"}
+      storageKey="cms:project:inspector"
+      contentLabel="project"
+    >
       <form onSubmit={editorForm.onSubmit} className="space-y-6">
-        {justCreated && <FormMessage variant="success">Project created — autosave is on below.</FormMessage>}
+        {justCreated && (
+          <QuerySuccessToast
+            messages={{ created: "Project created — autosave is on below." }}
+          />
+        )}
 
-        <Card>
-          <CardContent className="space-y-5 pt-6">
-            <div className="grid gap-4 sm:grid-cols-2">
+        <Card
+          className={mode === "edit" ? "border-0 bg-transparent" : undefined}
+        >
+          <CardContent
+            className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+          >
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+              }
+            >
               <div>
                 <Label htmlFor="title">Title</Label>
                 <Input
@@ -110,14 +137,29 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
 
             <div>
               <Label htmlFor="summary">Summary</Label>
-              <Textarea id="summary" name="summary" defaultValue={project?.summary} required />
+              <Textarea
+                id="summary"
+                name="summary"
+                defaultValue={project?.summary}
+                required
+              />
               <FieldError errors={state.errors?.summary} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+              }
+            >
               <div>
                 <Label htmlFor="category">Category</Label>
-                <TaxonomyCombobox name="category" kind="category" label="Category" defaultValue={project?.category} required />
+                <TaxonomyCombobox
+                  name="category"
+                  kind="category"
+                  label="Category"
+                  defaultValue={project?.category}
+                  required
+                />
                 <FieldError errors={state.errors?.category} />
               </div>
               <div>
@@ -148,25 +190,54 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+              }
+            >
               <div>
                 <Label>Tags</Label>
-                <TaxonomyMultiCombobox name="tags" kind="tag" label="Tags" defaultValues={project?.tags} />
+                <TaxonomyMultiCombobox
+                  name="tags"
+                  kind="tag"
+                  label="Tags"
+                  defaultValues={project?.tags}
+                />
               </div>
               <div>
                 <Label>Skills</Label>
-                <TaxonomyMultiCombobox name="skills" kind="skill" label="Skills" defaultValues={project?.skills} />
+                <TaxonomyMultiCombobox
+                  name="skills"
+                  kind="skill"
+                  label="Skills"
+                  defaultValues={project?.skills}
+                />
               </div>
               <div>
-                <Label htmlFor="technologies">Technologies (comma-separated)</Label>
-                <Input id="technologies" name="technologies" defaultValue={project?.technologies.join(", ")} />
+                <Label htmlFor="technologies">
+                  Technologies (comma-separated)
+                </Label>
+                <Input
+                  id="technologies"
+                  name="technologies"
+                  defaultValue={project?.technologies.join(", ")}
+                />
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+              }
+            >
               <div>
                 <Label htmlFor="estimatedTime">Estimated time</Label>
-                <Input id="estimatedTime" name="estimatedTime" defaultValue={project?.estimatedTime} placeholder="4-5 hours" />
+                <Input
+                  id="estimatedTime"
+                  name="estimatedTime"
+                  defaultValue={project?.estimatedTime}
+                  placeholder="4-5 hours"
+                />
               </div>
               <div>
                 <Label htmlFor="completionDate">Completion date</Label>
@@ -181,12 +252,21 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
               </div>
               <div>
                 <Label htmlFor="githubUrl">GitHub URL</Label>
-                <Input id="githubUrl" name="githubUrl" type="url" defaultValue={project?.githubUrl} />
+                <Input
+                  id="githubUrl"
+                  name="githubUrl"
+                  type="url"
+                  defaultValue={project?.githubUrl}
+                />
                 <FieldError errors={state.errors?.githubUrl} />
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+              }
+            >
               <div>
                 <Label htmlFor="publishStatus">Publish status</Label>
                 <select
@@ -200,7 +280,9 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
                   <option value="PUBLISHED">Published</option>
                   <option value="ARCHIVED">Archived</option>
                 </select>
-                <p className="mt-1.5 text-xs text-muted-foreground">Publish manually when the project is ready.</p>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Publish manually when the project is ready.
+                </p>
               </div>
             </div>
           </CardContent>
@@ -208,40 +290,60 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
 
         {mode === "create" && <TemplateSelector templates={projectTemplates} />}
 
-        <div className="sticky bottom-0 z-10 space-y-3 border-t border-border bg-card/95 py-3 backdrop-blur">
-          {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
-          {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
-          {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
-          {!state.success && state.errors && (
-            <FormMessage variant="error">Fix the highlighted metadata fields, then save again.</FormMessage>
+        <div
+          className={
+            mode === "edit"
+              ? "sticky bottom-0 z-20 -mx-6 -mb-6 mt-6 space-y-2 bg-background px-6 pb-6 pt-4"
+              : "space-y-3 rounded-lg border border-border bg-card p-4"
+          }
+        >
+          {editorForm.coordinationError && (
+            <FormMessage variant="error">
+              {editorForm.coordinationError}
+            </FormMessage>
           )}
-          <div className="flex items-center justify-between">
-          <SubmitButton
-            pendingLabel={mode === "create" ? "Creating..." : "Saving changes..."}
-            forcePending={editorForm.isCoordinating}
+          {!state.success && state.message && (
+            <FormMessage variant="error">{state.message}</FormMessage>
+          )}
+          {!state.success && state.errors && (
+            <FormMessage variant="error">
+              Fix the highlighted metadata fields, then save again.
+            </FormMessage>
+          )}
+          <div
+            className={
+              mode === "edit"
+                ? "grid gap-2"
+                : "flex items-center justify-between"
+            }
           >
-            {mode === "create" ? "Create project" : "Save changes"}
-          </SubmitButton>
-          {/* Delete is a sibling of this form, not nested inside it — see
+            <SubmitButton
+              pendingLabel={
+                mode === "create" ? "Creating..." : "Saving changes..."
+              }
+              forcePending={editorForm.isCoordinating}
+              className={mode === "edit" ? "w-full" : undefined}
+            >
+              {mode === "create" ? "Create project" : "Save changes"}
+            </SubmitButton>
+            {/* Delete is a sibling of this form, not nested inside it — see
               components/admin/delete-button.tsx for why a nested <form>
               here was invalid HTML and unreliable. */}
-          {mode === "edit" && project && (
-            <DeleteButton
-              contentType="project"
-              recordTitle={project.title}
-              onDelete={() => deleteProjectAction(project.id)}
-              onSuccess={() => router.push("/admin/projects")}
-            />
-          )}
+            {mode === "edit" && project && (
+              <DeleteButton
+                contentType="project"
+                recordTitle={project.title}
+                onDelete={() => deleteProjectAction(project.id)}
+                onSuccess={() => router.push("/admin/projects")}
+                className="w-full justify-center"
+              />
+            )}
           </div>
         </div>
       </form>
 
       {mode === "edit" && project && (
-        <div>
-          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-            Content
-          </h2>
+        <div className="h-full min-h-0">
           <EditorShell
             initialContent={project.content}
             recordId={project.id}
@@ -255,7 +357,8 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
 
       {mode === "create" && (
         <p className="text-sm text-muted-foreground">
-          Save the project first — the content editor opens once it has an id to autosave against.
+          Save the project first — the content editor opens once it has an id to
+          autosave against.
         </p>
       )}
     </AuthoringWorkspace>

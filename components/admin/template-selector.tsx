@@ -22,7 +22,7 @@ export function TemplateSelector({
         <legend className="font-display text-sm font-semibold text-foreground">Starting template</legend>
         <p className="mt-1 text-xs text-muted-foreground">Choose Blank or one structure. Nothing is inserted until the record is created.</p>
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="space-y-2">
         {templates.map((template) => {
           const active = selected === template.id;
           return (
@@ -39,8 +39,10 @@ export function TemplateSelector({
                 }
               }}
               className={cn(
-                "relative cursor-pointer rounded-lg border bg-card p-4 transition-colors",
-                active ? "border-primary/60 bg-primary/5 shadow-sm" : "border-border hover:border-primary/30"
+                "relative cursor-pointer rounded-md border bg-background p-4 transition-colors",
+                active
+                  ? "border-primary/50 bg-primary/5"
+                  : "border-border hover:border-primary/30 hover:bg-muted/30"
               )}
             >
               <div className="flex items-start justify-between gap-3">
@@ -48,15 +50,15 @@ export function TemplateSelector({
                   <p className="font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">{template.category}</p>
                   <h3 className="mt-1 font-display text-sm font-semibold text-foreground">{template.name}</h3>
                 </div>
-                {active && <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-1 text-[0.65rem] font-medium text-primary"><Check className="h-3 w-3" />Selected</span>}
+                {active && <span className="inline-flex items-center gap-1 text-xs font-medium text-primary"><Check className="h-3.5 w-3.5" />Selected</span>}
               </div>
               <p className="mt-2 text-xs leading-5 text-muted-foreground">{template.description}</p>
-              <div className="mt-3 flex flex-wrap gap-1">
-                {template.sections.slice(0, 4).map((section) => <span key={section} className="rounded border border-border px-1.5 py-0.5 text-[0.62rem] text-muted-foreground">{section}</span>)}
-                {!template.sections.length && <span className="rounded border border-border px-1.5 py-0.5 text-[0.62rem] text-muted-foreground">Empty document</span>}
-              </div>
               <div className="mt-4 flex items-center justify-between">
-                <span className="font-mono text-[0.65rem] text-muted-foreground">{template.sections.length} sections</span>
+                <span className="text-xs text-muted-foreground">
+                  {template.sections.length
+                    ? `${template.sections.length} structured sections`
+                    : "Empty document"}
+                </span>
                 <Dialog>
                   <DialogTrigger asChild>
                     <button type="button" onClick={(event) => event.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-primary hover:underline"><Eye className="h-3.5 w-3.5" />Preview</button>

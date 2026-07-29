@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useFormState } from "react-dom";
 import { updateAboutAction } from "@/app/admin/(dashboard)/about/actions";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,11 +11,20 @@ import { SubmitButton } from "@/components/admin/submit-button";
 import { FormMessage } from "@/components/admin/form-message";
 import type { AboutPageValues } from "@/lib/validations/about";
 import type { ActionResult } from "@/types/admin";
+import { useToast } from "@/components/ui/toast";
 
 const initialState: ActionResult = { success: false };
 
 export function AboutForm({ about }: { about: AboutPageValues }) {
   const [state, action] = useFormState(updateAboutAction, initialState);
+  const { success } = useToast();
+
+  useEffect(() => {
+    if (state.success && state.message) {
+      success(state.message, { id: "about-page-save" });
+    }
+  }, [state.message, state.success, success]);
+
   return (
     <form action={action} className="space-y-6">
       <Card>
@@ -61,7 +71,7 @@ export function AboutForm({ about }: { about: AboutPageValues }) {
         </CardContent>
       </Card>
 
-      {state.message && <FormMessage variant={state.success ? "success" : "error"}>{state.message}</FormMessage>}
+      {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
       <SubmitButton pendingLabel="Saving About page...">Save About page</SubmitButton>
     </form>
   );

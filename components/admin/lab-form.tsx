@@ -14,10 +14,14 @@ import { DeleteButton } from "@/components/admin/delete-button";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
-import { TaxonomyCombobox, TaxonomyMultiCombobox } from "@/components/admin/taxonomy-combobox";
+import {
+  TaxonomyCombobox,
+  TaxonomyMultiCombobox,
+} from "@/components/admin/taxonomy-combobox";
 import { TemplateSelector } from "@/components/admin/template-selector";
 import { labTemplates } from "@/lib/editor/templates";
 import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
+import { QuerySuccessToast } from "@/components/admin/query-success-toast";
 import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import { LabResourcesEditor } from "@/components/admin/lab-resources-editor";
 import {
@@ -57,55 +61,122 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
 
-  const action = mode === "create" ? createLabAction : updateLabAction.bind(null, lab!.id);
+  const action =
+    mode === "create" ? createLabAction : updateLabAction.bind(null, lab!.id);
   const { state, submit: formAction } = useMetadataAction(
     action,
-    mode === "edit" ? `cms:lab:${lab!.id}:metadata` : undefined
+    mode === "edit" ? `cms:lab:${lab!.id}:metadata` : undefined,
   );
   const [title, setTitle] = useState(lab?.title ?? "");
   const [slug, setSlug] = useState(lab?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(mode === "edit");
-  const [publishStatus, setPublishStatus] = useState(lab?.publishStatus ?? "DRAFT");
+  const [publishStatus, setPublishStatus] = useState(
+    lab?.publishStatus ?? "DRAFT",
+  );
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <AuthoringWorkspace enabled={mode === "edit"} storageKey="cms:lab:inspector">
-      <form onSubmit={editorForm.onSubmit} className="space-y-6">
-        {justCreated && <FormMessage variant="success">Lab created — autosave is on below.</FormMessage>}
+    <AuthoringWorkspace
+      enabled={mode === "edit"}
+      storageKey="cms:lab:inspector"
+      contentLabel="lab"
+      sheetBodyOwnsScroll={mode === "edit"}
+    >
+      <form
+        onSubmit={editorForm.onSubmit}
+        className={
+          mode === "edit" ? "flex min-h-0 flex-1 flex-col" : "space-y-6"
+        }
+      >
+        {justCreated && (
+          <QuerySuccessToast
+            messages={{ created: "Lab created — autosave is on below." }}
+          />
+        )}
 
-        <Card>
-          <CardContent className="space-y-5 pt-6">
-            <div className="grid gap-4 sm:grid-cols-2">
+        <div
+          className={
+            mode === "edit"
+              ? "min-h-0 flex-1 space-y-6 overflow-y-auto px-6 pb-6 pt-3 scrollbar-thin"
+              : "space-y-6"
+          }
+        >
+        <Card
+          className={mode === "edit" ? "border-0 bg-transparent" : undefined}
+        >
+          <CardContent
+            className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+          >
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+              }
+            >
               <div>
                 <Label htmlFor="title">Title</Label>
-                <Input id="title" name="title" value={title} onChange={(e) => {
-                  setTitle(e.target.value);
-                  if (!slugTouched) setSlug(slugify(e.target.value));
-                }} required />
+                <Input
+                  id="title"
+                  name="title"
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    if (!slugTouched) setSlug(slugify(e.target.value));
+                  }}
+                  required
+                />
                 <FieldError errors={state.errors?.title} />
               </div>
               <div>
                 <Label htmlFor="slug">Slug</Label>
-                <Input id="slug" name="slug" value={slug} onChange={(e) => { setSlug(e.target.value); setSlugTouched(true); }} required />
+                <Input
+                  id="slug"
+                  name="slug"
+                  value={slug}
+                  onChange={(e) => {
+                    setSlug(e.target.value);
+                    setSlugTouched(true);
+                  }}
+                  required
+                />
                 <FieldError errors={state.errors?.slug} />
               </div>
             </div>
 
             <div>
               <Label htmlFor="purpose">Purpose</Label>
-              <Textarea id="purpose" name="purpose" defaultValue={lab?.purpose} required />
+              <Textarea
+                id="purpose"
+                name="purpose"
+                defaultValue={lab?.purpose}
+                required
+              />
               <FieldError errors={state.errors?.purpose} />
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+              }
+            >
               <div>
                 <Label htmlFor="category">Category</Label>
-                <TaxonomyCombobox name="category" kind="category" label="Category" defaultValue={lab?.category} required />
+                <TaxonomyCombobox
+                  name="category"
+                  kind="category"
+                  label="Category"
+                  defaultValue={lab?.category}
+                  required
+                />
                 <FieldError errors={state.errors?.category} />
               </div>
               <div>
                 <Label htmlFor="difficulty">Difficulty</Label>
-                <select id="difficulty" name="difficulty" defaultValue={lab?.difficulty ?? "INTERMEDIATE"} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
+                <select
+                  id="difficulty"
+                  name="difficulty"
+                  defaultValue={lab?.difficulty ?? "INTERMEDIATE"}
+                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                >
                   <option value="BEGINNER">Beginner</option>
                   <option value="INTERMEDIATE">Intermediate</option>
                   <option value="ADVANCED">Advanced</option>
@@ -113,7 +184,12 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
               </div>
               <div>
                 <Label htmlFor="progressStatus">Real-world status</Label>
-                <select id="progressStatus" name="progressStatus" defaultValue={lab?.progressStatus ?? "PLANNED"} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
+                <select
+                  id="progressStatus"
+                  name="progressStatus"
+                  defaultValue={lab?.progressStatus ?? "PLANNED"}
+                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                >
                   <option value="PLANNED">Planned</option>
                   <option value="IN_PROGRESS">In progress</option>
                   <option value="COMPLETED">Completed</option>
@@ -121,27 +197,54 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+              }
+            >
               <div>
                 <Label>Tags</Label>
-                <TaxonomyMultiCombobox name="tags" kind="tag" label="Tags" defaultValues={lab?.tags} />
+                <TaxonomyMultiCombobox
+                  name="tags"
+                  kind="tag"
+                  label="Tags"
+                  defaultValues={lab?.tags}
+                />
               </div>
               <div>
                 <Label htmlFor="labDate">Lab date</Label>
-                <Input id="labDate" name="labDate" type="date" defaultValue={lab?.labDate} required />
+                <Input
+                  id="labDate"
+                  name="labDate"
+                  type="date"
+                  defaultValue={lab?.labDate}
+                  required
+                />
                 <FieldError errors={state.errors?.labDate} />
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div
+              className={
+                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+              }
+            >
               <div>
                 <Label htmlFor="publishStatus">Publish status</Label>
-                <select id="publishStatus" name="publishStatus" value={publishStatus} onChange={(e) => setPublishStatus(e.target.value)} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
+                <select
+                  id="publishStatus"
+                  name="publishStatus"
+                  value={publishStatus}
+                  onChange={(e) => setPublishStatus(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                >
                   <option value="DRAFT">Draft</option>
                   <option value="PUBLISHED">Published</option>
                   <option value="ARCHIVED">Archived</option>
                 </select>
-                <p className="mt-1.5 text-xs text-muted-foreground">Publish manually when the lab is ready.</p>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  Publish manually when the lab is ready.
+                </p>
               </div>
             </div>
           </CardContent>
@@ -155,36 +258,59 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
             initialResources={lab.downloads}
           />
         )}
+        </div>
 
-        <div className="sticky bottom-0 z-10 space-y-3 border-t border-border bg-card/95 py-3 backdrop-blur">
-          {editorForm.coordinationError && <FormMessage variant="error">{editorForm.coordinationError}</FormMessage>}
-          {state.success && state.message && <FormMessage variant="success">{state.message}</FormMessage>}
-          {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+        <div
+          className={
+            mode === "edit"
+              ? "shrink-0 space-y-2 bg-background px-6 pb-6 pt-4"
+              : "space-y-3 rounded-lg border border-border bg-card p-4"
+          }
+        >
+          {editorForm.coordinationError && (
+            <FormMessage variant="error">
+              {editorForm.coordinationError}
+            </FormMessage>
+          )}
+          {!state.success && state.message && (
+            <FormMessage variant="error">{state.message}</FormMessage>
+          )}
           {!state.success && state.errors && (
-            <FormMessage variant="error">Fix the highlighted metadata fields, then save again.</FormMessage>
+            <FormMessage variant="error">
+              Fix the highlighted metadata fields, then save again.
+            </FormMessage>
           )}
-          <div className="flex items-center justify-between">
-          <SubmitButton
-            pendingLabel={mode === "create" ? "Creating..." : "Saving changes..."}
-            forcePending={editorForm.isCoordinating}
+          <div
+            className={
+              mode === "edit"
+                ? "grid gap-2"
+                : "flex items-center justify-between"
+            }
           >
-            {mode === "create" ? "Create lab" : "Save changes"}
-          </SubmitButton>
-          {mode === "edit" && lab && (
-            <DeleteButton
-              contentType="lab"
-              recordTitle={lab.title}
-              onDelete={() => deleteLabAction(lab.id)}
-              onSuccess={() => router.push("/admin/labs")}
-            />
-          )}
+            <SubmitButton
+              pendingLabel={
+                mode === "create" ? "Creating..." : "Saving changes..."
+              }
+              forcePending={editorForm.isCoordinating}
+              className={mode === "edit" ? "w-full" : undefined}
+            >
+              {mode === "create" ? "Create lab" : "Save changes"}
+            </SubmitButton>
+            {mode === "edit" && lab && (
+              <DeleteButton
+                contentType="lab"
+                recordTitle={lab.title}
+                onDelete={() => deleteLabAction(lab.id)}
+                onSuccess={() => router.push("/admin/labs")}
+                className="w-full justify-center"
+              />
+            )}
           </div>
         </div>
       </form>
 
       {mode === "edit" && lab && (
-        <div>
-          <h2 className="mb-3 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">Content</h2>
+        <div className="h-full min-h-0">
           <EditorShell
             initialContent={lab.content}
             recordId={lab.id}
@@ -197,7 +323,10 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
       )}
 
       {mode === "create" && (
-        <p className="text-sm text-muted-foreground">Save the lab first — the content editor opens once it has an id to autosave against.</p>
+        <p className="text-sm text-muted-foreground">
+          Save the lab first — the content editor opens once it has an id to
+          autosave against.
+        </p>
       )}
     </AuthoringWorkspace>
   );

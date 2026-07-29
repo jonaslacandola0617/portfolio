@@ -41,7 +41,7 @@ export function SubmitButton({
       {...props}
     >
       {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-      {isPending ? pendingLabel ?? "Saving changes..." : children}
+      {isPending ? (pendingLabel ?? "Saving changes...") : children}
     </Button>
   );
 }

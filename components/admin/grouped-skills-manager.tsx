@@ -13,6 +13,7 @@ import {
   updateSkillGroupAction,
 } from "@/app/admin/(dashboard)/skills/actions";
 import { UNGROUPED_SKILL_GROUP, cleanSkillGroup, skillGroupKey } from "@/lib/skill-groups";
+import { useToast } from "@/components/ui/toast";
 
 export interface GroupedSkillRow {
   id: string;
@@ -24,7 +25,6 @@ export interface GroupedSkillRow {
 
 interface Feedback {
   skillId: string;
-  success: boolean;
   message: string;
 }
 
@@ -36,6 +36,7 @@ export function GroupedSkillsManager({
   groups: string[];
 }) {
   const router = useRouter();
+  const { success } = useToast();
   const [skills, setSkills] = useState(initialSkills);
   const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
   const [draggingId, setDraggingId] = useState<string | null>(null);
@@ -69,16 +70,19 @@ export function GroupedSkillsManager({
       const result = await updateSkillGroupAction({ id: skillId, group: canonical });
       if (!result.success) {
         setSkills((items) => items.map((skill) => skill.id === skillId ? { ...skill, group: originalGroup } : skill));
-        setFeedback({ skillId, success: false, message: result.message ?? "The Skill group could not be changed." });
+        setFeedback({ skillId, message: result.message ?? "The Skill group could not be changed." });
         return;
       }
       const savedGroup = result.group ?? canonical;
       setSkills((items) => items.map((skill) => skill.id === skillId ? { ...skill, group: savedGroup } : skill));
-      setFeedback({ skillId, success: true, message: result.message ?? `Moved to ${savedGroup}.` });
+      setFeedback(null);
+      success(result.message ?? `Moved to ${savedGroup}.`, {
+        id: `skill-group:${skillId}:${skillGroupKey(savedGroup)}`,
+      });
       router.refresh();
     } catch {
       setSkills((items) => items.map((skill) => skill.id === skillId ? { ...skill, group: originalGroup } : skill));
-      setFeedback({ skillId, success: false, message: "The Skill group could not be changed." });
+      setFeedback({ skillId, message: "The Skill group could not be changed." });
     } finally {
       setPendingIds((ids) => {
         const next = new Set(ids);
@@ -192,7 +196,7 @@ export function GroupedSkillsManager({
                           />
                         </div>
                         {message && (
-                          <p role={message.success ? "status" : "alert"} className={`mt-2 pl-7 text-xs ${message.success ? "text-success" : "text-destructive"}`}>
+                          <p role="alert" className="mt-2 pl-7 text-xs text-destructive">
                             {message.message}
                           </p>
                         )}

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { createMediaRecordAction, type AdminMediaItem } from "@/lib/services/media-admin-service";
 import { guessMediaType } from "@/lib/validations/media";
+import { useToast } from "@/components/ui/toast";
 
 interface Resource {
   mediaId: string;
@@ -31,6 +32,7 @@ export function LabResourcesEditor({
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ success: boolean; text: string } | null>(null);
+  const { success } = useToast();
 
   const add = () => {
     const item = available.find((candidate) => candidate.id === selectedId);
@@ -52,7 +54,14 @@ export function LabResourcesEditor({
       labId,
       resources: resources.map((resource, sortOrder) => ({ ...resource, sortOrder })),
     });
-    setMessage({ success: result.success, text: result.message ?? (result.success ? "Resources saved." : "Resources could not be saved.") });
+    if (result.success) {
+      setMessage(null);
+      success(result.message ?? "Resources saved.", {
+        id: `lab-resources:${labId}`,
+      });
+    } else {
+      setMessage({ success: false, text: result.message ?? "Resources could not be saved." });
+    }
   });
   const uploadResource = async (file: File) => {
     setUploading(true);
@@ -74,6 +83,9 @@ export function LabResourcesEditor({
         ...current,
         { mediaId: created.id, label: created.filename, description: "" },
       ]);
+      success("Resource uploaded and added.", {
+        id: `lab-resource-upload:${created.id}`,
+      });
     } catch (error) {
       setMessage({
         success: false,
@@ -121,7 +133,7 @@ export function LabResourcesEditor({
           </div>
         );
       })}
-      {message && <p role="status" className={message.success ? "text-xs text-success" : "text-xs text-destructive"}>{message.text}</p>}
+      {message && <p role="alert" className="text-xs text-destructive">{message.text}</p>}
       <button type="button" onClick={save} disabled={pending} className="inline-flex h-9 items-center gap-2 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground disabled:opacity-50">{pending && <Loader2 className="h-4 w-4 animate-spin" />}{pending ? "Saving resources…" : "Save resources"}</button>
     </section>
   );

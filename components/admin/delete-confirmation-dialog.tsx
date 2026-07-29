@@ -82,11 +82,16 @@ export function DeleteConfirmationDialog({
           <div className="p-5 sm:p-6">
             <div className="flex items-start gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-destructive/35 bg-destructive/5">
-                <AlertTriangle className="h-5 w-5 text-destructive" aria-hidden="true" />
+                <AlertTriangle
+                  className="h-5 w-5 text-destructive"
+                  aria-hidden="true"
+                />
               </div>
               <div className="min-w-0 pr-6">
                 <p className="font-mono text-[0.68rem] uppercase tracking-[0.18em] text-destructive">
-                  Delete {count ? `${count} ` : ""}{contentType}{count && count !== 1 ? "s" : ""}
+                  Delete {count ? `${count} ` : ""}
+                  {contentType}
+                  {count && count !== 1 ? "s" : ""}
                 </p>
                 <Dialog.Title className="mt-2 break-words font-display text-lg font-semibold text-foreground">
                   {heading}
@@ -125,7 +130,12 @@ export function DeleteConfirmationDialog({
                 aria-busy={pending}
                 className="inline-flex h-10 items-center justify-center gap-2 rounded-md border border-destructive/50 bg-destructive/10 px-4 text-sm font-medium text-destructive transition-colors hover:bg-destructive/15 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {pending && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
+                {pending && (
+                  <Loader2
+                    className="h-4 w-4 animate-spin"
+                    aria-hidden="true"
+                  />
+                )}
                 {pending ? "Deleting..." : confirmLabel}
               </button>
             </div>
@@ -135,7 +145,7 @@ export function DeleteConfirmationDialog({
             aria-label="Close delete confirmation"
             className={cn(
               "absolute right-4 top-4 rounded-sm p-1 text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-              pending && "pointer-events-none opacity-40"
+              pending && "pointer-events-none opacity-40",
             )}
           >
             <X className="h-4 w-4" aria-hidden="true" />

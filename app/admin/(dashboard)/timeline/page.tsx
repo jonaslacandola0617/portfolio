@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Plus, GitCommitHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/admin/empty-state";
-import { FormMessage } from "@/components/admin/form-message";
+import { QuerySuccessToast } from "@/components/admin/query-success-toast";
 import { ManagementList, type ManagementListRow } from "@/components/admin/management-list";
 import { getAllTimelineForAdmin } from "@/lib/services/timeline-admin-service";
 import { formatDate } from "@/lib/utils";
@@ -10,11 +10,7 @@ import { deleteTimelineAction, bulkDeleteTimelineAction } from "./actions";
 
 const statusVariant = { DRAFT: "default", PUBLISHED: "success", ARCHIVED: "outline", SCHEDULED: "warning" } as const;
 
-export default async function AdminTimelinePage({
-  searchParams,
-}: {
-  searchParams: { created?: string; updated?: string };
-}) {
+export default async function AdminTimelinePage() {
   const entries = await getAllTimelineForAdmin();
 
   const rows: ManagementListRow[] = entries.map((e) => ({
@@ -37,12 +33,12 @@ export default async function AdminTimelinePage({
         </Button>
       </div>
 
-      {searchParams.created === "1" && (
-        <FormMessage variant="success" className="mb-4">Timeline entry created.</FormMessage>
-      )}
-      {searchParams.updated === "1" && (
-        <FormMessage variant="success" className="mb-4">Timeline entry updated.</FormMessage>
-      )}
+      <QuerySuccessToast
+        messages={{
+          created: "Timeline entry created.",
+          updated: "Timeline entry updated.",
+        }}
+      />
 
       {entries.length === 0 ? (
         <EmptyState icon={GitCommitHorizontal} title="No timeline entries yet" description="Add your first milestone to get started." />

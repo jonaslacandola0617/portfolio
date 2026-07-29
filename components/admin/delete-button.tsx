@@ -61,11 +61,11 @@ export function DeleteButton({
           aria-label={isIcon ? label : undefined}
           title={isIcon ? label : undefined}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-md text-xs font-medium transition-colors",
+            "inline-flex items-center gap-1.5 rounded-md font-medium transition-colors text-sm",
             isIcon
               ? "p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-              : "border border-destructive/40 px-3 py-1.5 text-destructive hover:bg-destructive/10",
-            className
+              : "h-10 bg-destructive/10 border border-destructive/40 px-3 py-1.5 text-destructive hover:bg-destructive/15",
+            className,
           )}
         >
           <Trash2 className="h-3.5 w-3.5" />

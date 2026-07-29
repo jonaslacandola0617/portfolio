@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Github, Linkedin, Mail, Download, Terminal, Search } from "lucide-react";
+import {
+  Github,
+  Linkedin,
+  Mail,
+  Download,
+  Terminal,
+  Search,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { siteConfig, navItems } from "@/lib/site-config";
 import type { SiteSettingsData } from "@/lib/db/queries/settings";
@@ -21,7 +28,11 @@ export function Sidebar({ settings }: { settings: SiteSettingsData }) {
         {/* Logo / identity */}
         <Link href="/" className="flex items-center gap-3 px-1 group">
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md border border-primary/30 bg-primary/10 font-mono text-xs font-semibold text-primary">
-            {siteConfig.initials}
+            {settings.name
+              .split(" ")
+              .map((word) => word[0])
+              .join("")
+              .toUpperCase()}
           </div>
           <div className="min-w-0">
             <div className="truncate font-display text-sm font-semibold text-foreground">
@@ -53,7 +64,10 @@ export function Sidebar({ settings }: { settings: SiteSettingsData }) {
             Navigate
           </div>
           {navItems.map((item) => {
-            const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+            const active =
+              item.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(item.href);
             return (
               <Link
                 key={item.href}
@@ -62,18 +76,22 @@ export function Sidebar({ settings }: { settings: SiteSettingsData }) {
                   "group flex items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-colors",
                   active
                     ? "bg-primary/10 text-primary"
-                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
                 )}
               >
                 <Icon
                   name={item.icon}
                   className={cn(
                     "h-4 w-4 shrink-0",
-                    active ? "text-primary" : "text-muted-foreground/80 group-hover:text-foreground"
+                    active
+                      ? "text-primary"
+                      : "text-muted-foreground/80 group-hover:text-foreground",
                   )}
                 />
                 <span className="truncate">{item.label}</span>
-                {active && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />}
+                {active && (
+                  <span className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                )}
               </Link>
             );
           })}

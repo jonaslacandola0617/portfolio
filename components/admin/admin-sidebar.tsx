@@ -19,10 +19,10 @@ export async function AdminSidebar() {
           </div>
           <div className="min-w-0">
             <div className="truncate font-display text-sm font-semibold text-foreground">
-              Admin
+              Administration
             </div>
             <div className="truncate font-mono text-[0.68rem] text-muted-foreground">
-              Content management
+              Content Management System
             </div>
           </div>
         </Link>

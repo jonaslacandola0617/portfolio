@@ -12,7 +12,10 @@ import {
 } from "@/lib/editor/serialize-content";
 import type { SaveContentPayload, SaveResult } from "@/types/admin";
 import type { AdminMediaItem } from "@/lib/services/media-admin-service";
-import type { ContentTemplate, TemplateContentType } from "@/lib/editor/templates";
+import type {
+  ContentTemplate,
+  TemplateContentType,
+} from "@/lib/editor/templates";
 
 export interface EditorSaveController {
   flush: () => Promise<SaveResult>;
@@ -37,7 +40,10 @@ export function EditorShell({
   media = [],
 }: EditorShellProps) {
   const invokeSave = useCallback(
-    async (editorOutput: unknown, clientRevision: number): Promise<SaveResult> => {
+    async (
+      editorOutput: unknown,
+      clientRevision: number,
+    ): Promise<SaveResult> => {
       try {
         const content = serializeTipTapDocument(editorOutput);
         return await onSave({ id: recordId, content, clientRevision });
@@ -45,7 +51,10 @@ export function EditorShell({
         const serializationError =
           error instanceof TipTapSerializationError
             ? error
-            : new TipTapSerializationError("The editor output could not be serialized.", "content");
+            : new TipTapSerializationError(
+                "The editor output could not be serialized.",
+                "content",
+              );
         console.error(`[editor:${contentType}:autosave] serialization failed`, {
           contentType,
           recordId,
@@ -62,11 +71,22 @@ export function EditorShell({
         };
       }
     },
-    [contentType, onSave, recordId]
+    [contentType, onSave, recordId],
   );
 
-  const { status, errorMessage, notifyChange, flush, retry, isSaving, hasUnsavedChanges } =
-    useAutosave<unknown>(invokeSave, 2000, `cms:${contentType}:${recordId}:content`);
+  const {
+    status,
+    errorMessage,
+    notifyChange,
+    flush,
+    retry,
+    isSaving,
+    hasUnsavedChanges,
+  } = useAutosave<unknown>(
+    invokeSave,
+    2000,
+    `cms:${contentType}:${recordId}:content`,
+  );
 
   const editor = useEditor({
     extensions: getEditorExtensions(),
@@ -93,11 +113,14 @@ export function EditorShell({
     return flush(editor.getJSON());
   }, [editor, flush]);
 
-  const applyTemplate = useCallback((template: ContentTemplate) => {
-    if (!editor) return;
-    editor.commands.setContent(template.document, { emitUpdate: true });
-    editor.commands.focus();
-  }, [editor]);
+  const applyTemplate = useCallback(
+    (template: ContentTemplate) => {
+      if (!editor) return;
+      editor.commands.setContent(template.document, { emitUpdate: true });
+      editor.commands.focus();
+    },
+    [editor],
+  );
 
   useEffect(() => {
     if (!onReady) return;
@@ -110,20 +133,30 @@ export function EditorShell({
   }, [editor, flushCurrent, hasUnsavedChanges, onReady]);
 
   return (
-    <div className="editor-workspace">
-      <div className="sticky top-0 z-20 mb-2 flex items-center justify-between border-b border-border/70 bg-background/95 py-2 backdrop-blur">
+    <div className="editor-workspace flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-border bg-background">
+      <div className="z-20 shrink-0 bg-card/95 backdrop-blur border-b border-border">
         <EditorToolbar
           editor={editor}
           media={media}
-          contentType={contentType === "certificate" ? undefined : contentType as TemplateContentType}
-          onApplyTemplate={contentType === "certificate" ? undefined : applyTemplate}
+          contentType={
+            contentType === "certificate"
+              ? undefined
+              : (contentType as TemplateContentType)
+          }
+          onApplyTemplate={
+            contentType === "certificate" ? undefined : applyTemplate
+          }
         />
       </div>
-      <div className="overflow-x-auto rounded-b-lg border border-border bg-background">
+      <div className="min-h-0 flex-1 overflow-auto">
         <EditorContent editor={editor} />
       </div>
-      <div className="mt-2 flex items-start justify-between gap-4">
-        <SaveStatusIndicator status={status} errorMessage={errorMessage} onRetry={retry} />
+      <div className="flex shrink-0 items-start justify-between gap-4 bg-card/40 border-t border-border px-4 py-2.5">
+        <SaveStatusIndicator
+          status={status}
+          errorMessage={errorMessage}
+          onRetry={retry}
+        />
         <button
           type="button"
           onClick={() => void flushCurrent()}

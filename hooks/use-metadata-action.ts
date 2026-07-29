@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { ActionResult } from "@/types/admin";
+import { useToast } from "@/components/ui/toast";
 
 type MetadataAction = (previousState: ActionResult, formData: FormData) => Promise<ActionResult>;
 
 export function useMetadataAction(action: MetadataAction, storageKey?: string) {
+  const { success } = useToast();
   const actionRef = useRef(action);
   const stateRef = useRef<ActionResult>({ success: false });
   const [state, setState] = useState<ActionResult>(stateRef.current);
@@ -21,6 +23,10 @@ export function useMetadataAction(action: MetadataAction, storageKey?: string) {
       const stored = sessionStorage.getItem(storageKey);
       if (!stored) return;
       const result = JSON.parse(stored) as ActionResult;
+      if (result.success) {
+        sessionStorage.removeItem(storageKey);
+        return;
+      }
       stateRef.current = result;
       setState(result);
     } catch {
@@ -33,7 +39,15 @@ export function useMetadataAction(action: MetadataAction, storageKey?: string) {
     try {
       const result = await actionRef.current(stateRef.current, formData);
       stateRef.current = result;
-      if (storageKey) sessionStorage.setItem(storageKey, JSON.stringify(result));
+      if (result.success && result.message) {
+        success(result.message, {
+          id: `${storageKey ?? "metadata"}:${result.recordId ?? "new"}`,
+        });
+      }
+      if (storageKey) {
+        if (result.success) sessionStorage.removeItem(storageKey);
+        else sessionStorage.setItem(storageKey, JSON.stringify(result));
+      }
       setState(result);
     } catch (error) {
       console.error("[admin:metadata-save] Server Action invocation failed", {
@@ -51,7 +65,7 @@ export function useMetadataAction(action: MetadataAction, storageKey?: string) {
     } finally {
       setIsPending(false);
     }
-  }, [storageKey]);
+  }, [storageKey, success]);
 
   return { state, submit, isPending };
 }

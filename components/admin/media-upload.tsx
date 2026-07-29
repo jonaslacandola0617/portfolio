@@ -7,6 +7,7 @@ import { UploadCloud, Loader2 } from "lucide-react";
 import { createMediaRecordAction } from "@/lib/services/media-admin-service";
 import { guessMediaType } from "@/lib/validations/media";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/components/ui/toast";
 
 export function MediaUpload() {
   const [uploading, setUploading] = React.useState(false);
@@ -14,10 +15,12 @@ export function MediaUpload() {
   const [dragging, setDragging] = React.useState(false);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const { success } = useToast();
 
   async function handleFiles(files: FileList) {
     setUploading(true);
     setError(null);
+    let uploadedCount = 0;
 
     for (const file of Array.from(files)) {
       try {
@@ -31,16 +34,23 @@ export function MediaUpload() {
           type: guessMediaType(file.name),
           size: file.size,
         });
+        uploadedCount += 1;
       } catch (err) {
         setError(
           err instanceof Error
             ? err.message
-            : `Failed to upload ${file.name}. Is BLOB_READ_WRITE_TOKEN configured?`
+            : `Failed to upload ${file.name}. Is BLOB_READ_WRITE_TOKEN configured?`,
         );
       }
     }
 
     setUploading(false);
+    if (uploadedCount > 0) {
+      success(
+        `${uploadedCount} ${uploadedCount === 1 ? "file" : "files"} uploaded.`,
+        { id: `media-upload:${Date.now()}` },
+      );
+    }
     router.refresh();
   }
 
@@ -58,7 +68,7 @@ export function MediaUpload() {
       }}
       className={cn(
         "flex flex-col items-center justify-center rounded-lg border-2 border-dashed px-6 py-10 text-center transition-colors",
-        dragging ? "border-primary bg-primary/5" : "border-border"
+        dragging ? "border-primary bg-primary/5" : "border-border",
       )}
     >
       <input
@@ -76,7 +86,10 @@ export function MediaUpload() {
       <p className="mt-3 text-sm text-foreground">
         {uploading ? "Uploading..." : "Drag files here, or"}{" "}
         {!uploading && (
-          <button onClick={() => inputRef.current?.click()} className="text-primary hover:underline">
+          <button
+            onClick={() => inputRef.current?.click()}
+            className="text-primary hover:underline"
+          >
             browse
           </button>
         )}

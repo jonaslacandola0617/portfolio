@@ -4,7 +4,11 @@ import { useMemo, useRef, useState } from "react";
 import { ImageIcon, Loader2, UploadCloud, X } from "lucide-react";
 import { upload } from "@vercel/blob/client";
 import { Button } from "@/components/ui/button";
-import { createMediaRecordAction, type AdminMediaItem } from "@/lib/services/media-admin-service";
+import { useToast } from "@/components/ui/toast";
+import {
+  createMediaRecordAction,
+  type AdminMediaItem,
+} from "@/lib/services/media-admin-service";
 import { guessMediaType } from "@/lib/validations/media";
 
 export function CertificateLogoPicker({
@@ -18,8 +22,12 @@ export function CertificateLogoPicker({
   const [selectedId, setSelectedId] = useState(initialMediaId);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { success } = useToast();
   const inputRef = useRef<HTMLInputElement>(null);
-  const images = useMemo(() => items.filter((item) => item.type === "IMAGE"), [items]);
+  const images = useMemo(
+    () => items.filter((item) => item.type === "IMAGE"),
+    [items],
+  );
   const selected = images.find((item) => item.id === selectedId);
 
   const uploadLogo = async (file: File) => {
@@ -44,10 +52,20 @@ export function CertificateLogoPicker({
         type: "IMAGE",
         size: file.size,
       });
-      setItems((current) => [created, ...current.filter((item) => item.id !== created.id)]);
+      setItems((current) => [
+        created,
+        ...current.filter((item) => item.id !== created.id),
+      ]);
       setSelectedId(created.id);
+      success("Certificate logo uploaded.", {
+        id: `certificate-logo:${created.id}`,
+      });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "The logo could not be uploaded.");
+      setError(
+        caught instanceof Error
+          ? caught.message
+          : "The logo could not be uploaded.",
+      );
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -55,58 +73,129 @@ export function CertificateLogoPicker({
   };
 
   return (
-    <section className="space-y-3 rounded-md border border-border bg-muted/10 p-3">
+    <section
+      className="overflow-hidden rounded-lg border border-border bg-card"
+      aria-busy={uploading}
+    >
       <input type="hidden" name="logoMediaId" value={selectedId} />
-      <div className="flex items-center gap-3">
-        <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-background">
+      <div className="flex items-center gap-4 p-4">
+        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-background sm:h-24 sm:w-24">
           {selected ? (
             // Blob hostnames are dynamic, so this preview intentionally uses a native image element.
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={selected.url} alt={`${selected.filename} preview`} className="h-full w-full object-contain p-1" />
+            <img
+              src={selected.url}
+              alt={`${selected.filename} preview`}
+              className="h-full w-full object-contain p-2"
+            />
           ) : (
-            <ImageIcon className="h-5 w-5 text-muted-foreground" aria-hidden="true" />
+            <ImageIcon
+              className="h-6 w-6 text-muted-foreground"
+              aria-hidden="true"
+            />
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-foreground">{selected?.filename ?? "No certificate logo selected"}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Images are stored in and remain available from the Media Library.</p>
+          <p className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-muted-foreground">
+            {selected ? "Selected logo" : "Certificate logo"}
+          </p>
+          <p className="mt-1 truncate text-sm font-medium text-foreground">
+            {selected?.filename ?? "No logo selected"}
+          </p>
+          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+            {selected
+              ? "This image will appear with the certificate on the public site."
+              : "Upload an issuer logo or choose an image already in the Media Library."}
+          </p>
         </div>
       </div>
-      {images.length > 0 && (
-        <select
-          aria-label="Certificate Logo from Media Library"
-          value={selectedId}
-          onChange={(event) => {
-            setSelectedId(event.target.value);
-            setError(null);
-          }}
-          disabled={uploading}
-          className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground disabled:opacity-60"
-        >
-          <option value="">No logo</option>
-          {images.map((item) => <option key={item.id} value={item.id}>{item.filename}</option>)}
-        </select>
-      )}
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => inputRef.current?.click()}>
-          {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
-          {uploading ? "Uploading..." : selected ? "Replace with upload" : "Upload logo"}
-        </Button>
-        {selectedId && (
-          <Button type="button" variant="ghost" size="sm" disabled={uploading} onClick={() => setSelectedId("")}>
-            <X className="h-4 w-4" /> Remove association
-          </Button>
+      <div className="space-y-3 bg-background/60 p-4">
+        {images.length > 0 && (
+          <div>
+            <label
+              htmlFor="certificate-logo-media"
+              className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-muted-foreground"
+            >
+              Choose from Media Library
+            </label>
+            <select
+              id="certificate-logo-media"
+              value={selectedId}
+              onChange={(event) => {
+                setSelectedId(event.target.value);
+                setError(null);
+              }}
+              disabled={uploading}
+              className="mt-1.5 h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <option value="">No logo</option>
+              {images.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.filename}
+                </option>
+              ))}
+            </select>
+          </div>
         )}
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <Button
+            type="button"
+            variant={selected ? "outline" : "default"}
+            size="sm"
+            disabled={uploading}
+            onClick={() => inputRef.current?.click()}
+            className="justify-center"
+          >
+            {uploading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <UploadCloud className="h-4 w-4" />
+            )}
+            {uploading
+              ? "Uploading..."
+              : selected
+                ? "Upload replacement"
+                : "Upload logo"}
+          </Button>
+          {selectedId && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={uploading}
+              onClick={() => {
+                setSelectedId("");
+                setError(null);
+              }}
+              className="justify-center text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" /> Remove logo
+            </Button>
+          )}
+        </div>
         <input
           ref={inputRef}
           type="file"
           hidden
           accept="image/png,image/jpeg,image/webp,image/gif"
           disabled={uploading}
-          onChange={(event) => event.target.files?.[0] && void uploadLogo(event.target.files[0])}
+          onChange={(event) =>
+            event.target.files?.[0] && void uploadLogo(event.target.files[0])
+          }
         />
+        <p className="text-xs leading-5 text-muted-foreground">
+          PNG, JPEG, WebP, or GIF up to 10 MB. Removing a logo keeps the file in
+          the Media Library.
+        </p>
+        {error && (
+          <p
+            role="alert"
+            className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive"
+          >
+            {error}
+          </p>
+        )}
       </div>
-      {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
     </section>
   );
 }

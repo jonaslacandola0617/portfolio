@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useFormState } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { updateSettingsAction } from "@/app/admin/(dashboard)/settings/actions";
 import type { ActionResult } from "@/types/admin";
 import type { SiteSettingsData } from "@/lib/db/queries/settings";
+import { useToast } from "@/components/ui/toast";
 
 const initialState: ActionResult = { success: false };
 
@@ -19,7 +21,14 @@ function FieldError({ errors }: { errors?: string[] }) {
 
 export function SettingsForm({ settings }: { settings: SiteSettingsData }) {
   const [state, formAction] = useFormState(updateSettingsAction, initialState);
+  const { success } = useToast();
   const learningLines = settings.currentlyLearning.map((l) => `${l.label} | ${l.href}`).join("\n");
+
+  useEffect(() => {
+    if (state.success) {
+      success(state.message ?? "Settings saved.", { id: "settings-save" });
+    }
+  }, [state.message, state.success, success]);
 
   return (
     <form action={formAction} className="space-y-6">
@@ -85,7 +94,6 @@ export function SettingsForm({ settings }: { settings: SiteSettingsData }) {
 
       <div className="flex items-center gap-3">
         <Button type="submit">Save settings</Button>
-        {state.success && <span className="font-mono text-xs text-success">Saved</span>}
       </div>
     </form>
   );
