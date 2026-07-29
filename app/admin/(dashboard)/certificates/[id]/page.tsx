@@ -17,13 +17,17 @@ export default async function EditCertificatePage({
   if (!certificate) notFound();
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 md:px-8">
+    <div className="mx-auto max-w-[1600px] px-4 py-8 md:px-8">
       <Link
         href="/admin/certificates"
         className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to certificates
       </Link>
+      <p className="mb-4 max-w-2xl text-sm leading-6 text-muted-foreground">
+        Edit the optional credential write-up below. Use Certificate details to
+        manage issuer information, dates, logo, verification, and visibility.
+      </p>
       <CertificateForm
         mode="edit"
         media={media}

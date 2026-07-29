@@ -87,13 +87,27 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
       storageKey="cms:project:inspector"
       contentLabel="project"
     >
-      <form onSubmit={editorForm.onSubmit} className="space-y-6">
+      <form
+        onSubmit={editorForm.onSubmit}
+        className={
+          mode === "edit"
+            ? "grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]"
+            : "space-y-6"
+        }
+      >
         {justCreated && (
           <QuerySuccessToast
             messages={{ created: "Project created — autosave is on below." }}
           />
         )}
 
+        <div
+          className={
+            mode === "edit"
+              ? "min-h-0 space-y-6 overflow-y-auto px-6 py-3 scrollbar-thin"
+              : "space-y-6"
+          }
+        >
         <Card
           className={mode === "edit" ? "border-0 bg-transparent" : undefined}
         >
@@ -289,11 +303,12 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
         </Card>
 
         {mode === "create" && <TemplateSelector templates={projectTemplates} />}
+        </div>
 
         <div
           className={
             mode === "edit"
-              ? "sticky bottom-0 z-20 -mx-6 -mb-6 mt-6 space-y-2 bg-background px-6 pb-6 pt-4"
+              ? "space-y-2 bg-card px-6 py-4"
               : "space-y-3 rounded-lg border border-border bg-card p-4"
           }
         >

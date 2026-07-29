@@ -57,7 +57,10 @@ export default async function AdminDashboardPage() {
     <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 md:px-10">
       <div className="mb-7">
         <h1 className="font-display text-2xl font-semibold text-foreground">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Portfolio content and recent CMS updates.</p>
+        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+          Review current portfolio content totals and the records most recently
+          updated through the CMS.
+        </p>
       </div>
 
       <Metrics section={overview.metrics} />

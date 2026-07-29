@@ -78,8 +78,19 @@ export function CertificateForm({
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <div className="space-y-8">
-      <form onSubmit={editorForm.onSubmit} className="space-y-6">
+    <AuthoringWorkspace
+      enabled={mode === "edit"}
+      storageKey="cms:certificate:inspector"
+      contentLabel="certificate"
+    >
+      <form
+        onSubmit={editorForm.onSubmit}
+        className={
+          mode === "edit"
+            ? "grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]"
+            : "space-y-6"
+        }
+      >
         {justCreated && (
           <QuerySuccessToast
             messages={{
@@ -88,8 +99,19 @@ export function CertificateForm({
           />
         )}
 
-        <Card>
-          <CardContent className="space-y-5 pt-6">
+        <div
+          className={
+            mode === "edit"
+              ? "min-h-0 space-y-6 overflow-y-auto px-6 py-3 scrollbar-thin"
+              : "space-y-6"
+          }
+        >
+        <Card
+          className={mode === "edit" ? "border-0 bg-transparent" : undefined}
+        >
+          <CardContent
+            className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+          >
             <div className="grid gap-4 sm:grid-cols-2">
               <div>
                 <Label htmlFor="name">Name</Label>
@@ -220,8 +242,15 @@ export function CertificateForm({
             </div>
           </CardContent>
         </Card>
+        </div>
 
-        <div className="space-y-3">
+        <div
+          className={
+            mode === "edit"
+              ? "space-y-2 bg-card px-6 py-4"
+              : "space-y-3"
+          }
+        >
           {editorForm.coordinationError && (
             <FormMessage variant="error">
               {editorForm.coordinationError}
@@ -236,14 +265,18 @@ export function CertificateForm({
             </FormMessage>
           )}
           <div
-            className="flex justify-end
-          ` items-center gap-2"
+            className={
+              mode === "edit"
+                ? "grid gap-2"
+                : "flex items-center justify-end gap-2"
+            }
           >
             <SubmitButton
               pendingLabel={
                 mode === "create" ? "Creating..." : "Saving changes..."
               }
               forcePending={editorForm.isCoordinating}
+              className={mode === "edit" ? "w-full" : undefined}
             >
               {mode === "create" ? "Create certificate" : "Save changes"}
             </SubmitButton>
@@ -253,6 +286,7 @@ export function CertificateForm({
                 recordTitle={certificate.name}
                 onDelete={() => deleteCertificateAction(certificate.id)}
                 onSuccess={() => router.push("/admin/certificates")}
+                className="w-full justify-center"
               />
             )}
           </div>
@@ -277,6 +311,6 @@ export function CertificateForm({
           Save the certificate first to add an optional longer write-up.
         </p>
       )}
-    </div>
+    </AuthoringWorkspace>
   );
 }

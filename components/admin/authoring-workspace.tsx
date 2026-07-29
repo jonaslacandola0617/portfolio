@@ -15,13 +15,11 @@ import {
 export function AuthoringWorkspace({
   enabled,
   contentLabel,
-  sheetBodyOwnsScroll = false,
   children,
 }: {
   enabled: boolean;
   storageKey: string;
   contentLabel: "project" | "lab" | "journal entry" | "certificate";
-  sheetBodyOwnsScroll?: boolean;
   children: React.ReactNode;
 }) {
   const parts = React.Children.toArray(children);
@@ -30,38 +28,49 @@ export function AuthoringWorkspace({
 
   if (!enabled) return <div className="space-y-8">{children}</div>;
 
+  const sheetContent = {
+    project: {
+      label: "Project details",
+      description:
+        "Update the summary, classification, publishing status, and supporting details shown with this project.",
+    },
+    lab: {
+      label: "Lab details",
+      description:
+        "Manage how this lab is categorized, dated, and presented to visitors.",
+    },
+    "journal entry": {
+      label: "Journal details",
+      description:
+        "Update the publishing details and summary shown with this journal entry.",
+    },
+    certificate: {
+      label: "Certificate details",
+      description:
+        "Manage the credential information displayed on the certifications page.",
+    },
+  }[contentLabel];
+
   return (
     <div className="mx-auto flex min-h-0 w-full flex-col lg:h-[calc(100vh-7rem)] lg:w-4/5">
       <div className="mb-3 flex shrink-0 items-center justify-end">
         <Sheet>
           <SheetTrigger asChild>
-            <Button type="button" variant="secondary">
+            <Button
+              type="button"
+              variant="outline"
+              className="group bg-card text-foreground hover:border-primary/40 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring active:bg-muted/50"
+            >
               <SlidersHorizontal className="h-4 w-4" />
-              {contentLabel.charAt(0).toUpperCase() +
-                contentLabel.slice(1)}{" "}
-              details
+              {sheetContent.label}
             </Button>
           </SheetTrigger>
           <SheetContent>
             <SheetHeader>
-              <SheetTitle>
-                {contentLabel.charAt(0).toUpperCase() + contentLabel.slice(1)}{" "}
-                Details
-              </SheetTitle>
-              <SheetDescription>
-                Update the information displayed with this {contentLabel} on
-                your public portfolio.
-              </SheetDescription>
+              <SheetTitle>{sheetContent.label}</SheetTitle>
+              <SheetDescription>{sheetContent.description}</SheetDescription>
             </SheetHeader>
-            <div
-              className={
-                sheetBodyOwnsScroll
-                  ? "flex min-h-0 flex-1 flex-col"
-                  : "min-h-0 flex-1 overflow-y-auto px-6 pb-6 pt-3 scrollbar-thin"
-              }
-            >
-              {inspector}
-            </div>
+            <div className="min-h-0">{inspector}</div>
           </SheetContent>
         </Sheet>
       </div>

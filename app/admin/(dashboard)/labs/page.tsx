@@ -22,10 +22,13 @@ export default async function AdminLabsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="font-display text-2xl font-semibold text-foreground">Labs</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{labs.length} total</p>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Manage the hands-on labs shown publicly, including their purpose,
+            difficulty, resources, and publishing status. {labs.length} total.
+          </p>
         </div>
         <Button asChild>
           <Link href="/admin/labs/new"><Plus className="h-4 w-4" /> New lab</Link>
@@ -33,7 +36,7 @@ export default async function AdminLabsPage() {
       </div>
 
       {labs.length === 0 ? (
-        <EmptyState icon={FlaskConical} title="No labs yet" description="Log your first lab to get started." />
+        <EmptyState icon={FlaskConical} title="No labs yet" description="Create a lab to document its purpose, configuration, evidence, and downloadable resources." />
       ) : (
         <ManagementList
           rows={rows}

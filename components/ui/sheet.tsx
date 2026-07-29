@@ -35,7 +35,7 @@ const SheetContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-y-0 right-0 z-50 flex h-full w-3/4 flex-col border-l border-border bg-background shadow-2xl",
+        "fixed inset-y-0 right-0 z-50 grid h-dvh w-3/4 grid-rows-[auto_minmax(0,1fr)] border-l border-border bg-background shadow-2xl",
         "sm:max-w-sm",
         className,
       )}
@@ -44,7 +44,7 @@ const SheetContent = React.forwardRef<
       {children}
       <DialogPrimitive.Close className="absolute right-4 top-4 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none">
         <X className="h-4 w-4" />
-        <span className="sr-only">Close metadata</span>
+        <span className="sr-only">Close details</span>
       </DialogPrimitive.Close>
     </DialogPrimitive.Content>
   </SheetPortal>

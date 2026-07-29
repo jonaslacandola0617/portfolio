@@ -11,10 +11,13 @@ export default async function AdminSkillsPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="font-display text-2xl font-semibold text-foreground">Skills</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{skills.length} total</p>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Organize the skills shown publicly, update their proficiency level,
+            and move them between groups. {skills.length} total.
+          </p>
         </div>
         <Button asChild>
           <Link href="/admin/skills/new"><Plus className="h-4 w-4" /> New skill</Link>
@@ -26,7 +29,7 @@ export default async function AdminSkillsPage() {
       />
 
       {skills.length === 0 ? (
-        <EmptyState icon={Layers} title="No skills yet" description="Add your first skill to get started." />
+        <EmptyState icon={Layers} title="No skills yet" description="Add a skill and assign its public proficiency level and optional group." />
       ) : (
         <GroupedSkillsManager
           groups={groups}

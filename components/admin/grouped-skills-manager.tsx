@@ -102,6 +102,18 @@ export function GroupedSkillsManager({
     });
   };
 
+  const toggleGroup = (ids: string[]) => {
+    setSelected((current) => {
+      const next = new Set(current);
+      const allSelected = ids.length > 0 && ids.every((id) => next.has(id));
+      for (const id of ids) {
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      }
+      return next;
+    });
+  };
+
   return (
     <div>
       {selected.size > 0 && (
@@ -126,6 +138,17 @@ export function GroupedSkillsManager({
       <div className="space-y-7">
         {orderedGroups.map((group) => {
           const rows = skills.filter((skill) => skillGroupKey(skill.group) === skillGroupKey(group));
+          const selectableIds = rows
+            .filter((skill) => !pendingIds.has(skill.id))
+            .map((skill) => skill.id);
+          const selectedInGroup = selectableIds.filter((id) =>
+            selected.has(id),
+          ).length;
+          const allInGroupSelected =
+            selectableIds.length > 0 &&
+            selectedInGroup === selectableIds.length;
+          const someInGroupSelected =
+            selectedInGroup > 0 && !allInGroupSelected;
           return (
             <section
               key={skillGroupKey(group)}
@@ -139,9 +162,29 @@ export function GroupedSkillsManager({
               }}
               className={`rounded-lg border transition-colors ${draggingId ? "border-primary/35 bg-primary/[0.025]" : "border-border"}`}
             >
-              <div className="flex items-center justify-between border-b border-border bg-muted/20 px-4 py-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/20 px-4 py-3">
                 <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{group}</h2>
-                <span className="text-xs text-muted-foreground">{rows.length}</span>
+                <div className="flex items-center gap-3">
+                  {rows.length > 0 && (
+                    <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground">
+                      <input
+                        type="checkbox"
+                        ref={(node) => {
+                          if (node) node.indeterminate = someInGroupSelected;
+                        }}
+                        checked={allInGroupSelected}
+                        disabled={selectableIds.length === 0}
+                        onChange={() => toggleGroup(selectableIds)}
+                        aria-label={`Select all skills in ${group}`}
+                        className="h-4 w-4 rounded border-border accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                      Select all
+                    </label>
+                  )}
+                  <span className="font-mono text-[0.68rem] text-muted-foreground">
+                    {rows.length}
+                  </span>
+                </div>
               </div>
               {rows.length === 0 ? (
                 <p className="px-4 py-6 text-sm text-muted-foreground">Drop a Skill here or use its group selector.</p>
@@ -164,7 +207,14 @@ export function GroupedSkillsManager({
                       >
                         <div className="flex flex-wrap items-center gap-3">
                           <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground" aria-hidden="true" />
-                          <input type="checkbox" checked={selected.has(skill.id)} onChange={() => toggleSelected(skill.id)} aria-label={`Select ${skill.name}`} className="h-4 w-4 rounded border-border" />
+                          <input
+                            type="checkbox"
+                            checked={selected.has(skill.id)}
+                            disabled={pending}
+                            onChange={() => toggleSelected(skill.id)}
+                            aria-label={`Select ${skill.name}`}
+                            className="h-4 w-4 rounded border-border accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                          />
                           <Link href={`/admin/skills/${skill.id}`} className="min-w-40 flex-1">
                             <span className="block text-sm font-medium text-foreground">{skill.name}</span>
                             <span className="font-mono text-[0.68rem] text-muted-foreground">Used by {skill.projectCount} project{skill.projectCount === 1 ? "" : "s"}</span>
@@ -191,6 +241,11 @@ export function GroupedSkillsManager({
                             onDelete={() => deleteSkillAction(skill.id)}
                             onSuccess={() => {
                               setSkills((items) => items.filter((item) => item.id !== skill.id));
+                              setSelected((current) => {
+                                const next = new Set(current);
+                                next.delete(skill.id);
+                                return next;
+                              });
                               router.refresh();
                             }}
                           />

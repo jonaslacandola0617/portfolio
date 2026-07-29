@@ -13,7 +13,11 @@ export default async function EditTimelinePage({ params }: { params: { id: strin
       <Link href="/admin/timeline" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to timeline
       </Link>
-      <h1 className="mb-6 font-display text-2xl font-semibold text-foreground">{entry.title}</h1>
+      <h1 className="font-display text-2xl font-semibold text-foreground">{entry.title}</h1>
+      <p className="mb-6 mt-1 text-sm leading-6 text-muted-foreground">
+        Update this milestone’s date, description, category, and public
+        visibility.
+      </p>
       <TimelineForm
         mode="edit"
         entry={{

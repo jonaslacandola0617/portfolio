@@ -11,7 +11,11 @@ export default function NewProjectPage() {
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to projects
       </Link>
-      <h1 className="mb-6 font-display text-2xl font-semibold text-foreground">New project</h1>
+      <h1 className="font-display text-2xl font-semibold text-foreground">New project</h1>
+      <p className="mb-6 mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+        Create the public-facing project details first. The technical write-up
+        editor opens after the project has an id.
+      </p>
       <ProjectForm mode="create" />
     </div>
   );

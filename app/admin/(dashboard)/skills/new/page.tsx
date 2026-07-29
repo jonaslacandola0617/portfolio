@@ -10,7 +10,11 @@ export default async function NewSkillPage() {
       <Link href="/admin/skills" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
         <ArrowLeft className="h-3.5 w-3.5" /> Back to skills
       </Link>
-      <h1 className="mb-6 font-display text-2xl font-semibold text-foreground">New skill</h1>
+      <h1 className="font-display text-2xl font-semibold text-foreground">New skill</h1>
+      <p className="mb-6 mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+        Add a skill, choose its public proficiency level, and assign it to an
+        existing or new group.
+      </p>
       <SkillForm mode="create" groups={groups} />
     </div>
   );

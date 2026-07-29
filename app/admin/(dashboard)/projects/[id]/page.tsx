@@ -17,6 +17,10 @@ export default async function EditProjectPage({ params }: { params: { id: string
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to projects
       </Link>
+      <p className="mb-4 max-w-2xl text-sm leading-6 text-muted-foreground">
+        Edit the technical write-up below. Use Project details to manage its
+        summary, classification, supporting information, and public visibility.
+      </p>
       <ProjectForm
         mode="edit"
         media={media}

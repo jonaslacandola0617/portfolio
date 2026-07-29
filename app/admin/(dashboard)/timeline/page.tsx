@@ -23,10 +23,13 @@ export default async function AdminTimelinePage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <h1 className="font-display text-2xl font-semibold text-foreground">Timeline</h1>
-          <p className="mt-1 text-sm text-muted-foreground">{entries.length} total</p>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+            Manage the milestones shown on the public timeline and control
+            which entries are visible to visitors. {entries.length} total.
+          </p>
         </div>
         <Button asChild>
           <Link href="/admin/timeline/new"><Plus className="h-4 w-4" /> New entry</Link>
@@ -41,7 +44,7 @@ export default async function AdminTimelinePage() {
       />
 
       {entries.length === 0 ? (
-        <EmptyState icon={GitCommitHorizontal} title="No timeline entries yet" description="Add your first milestone to get started." />
+        <EmptyState icon={GitCommitHorizontal} title="No timeline entries yet" description="Add a dated milestone to document education, certifications, projects, or professional progress." />
       ) : (
         <ManagementList
           rows={rows}

@@ -80,12 +80,13 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
       enabled={mode === "edit"}
       storageKey="cms:lab:inspector"
       contentLabel="lab"
-      sheetBodyOwnsScroll={mode === "edit"}
     >
       <form
         onSubmit={editorForm.onSubmit}
         className={
-          mode === "edit" ? "flex min-h-0 flex-1 flex-col" : "space-y-6"
+          mode === "edit"
+            ? "grid h-full min-h-0 grid-rows-[minmax(0,1fr)_auto]"
+            : "space-y-6"
         }
       >
         {justCreated && (
@@ -97,7 +98,7 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
         <div
           className={
             mode === "edit"
-              ? "min-h-0 flex-1 space-y-6 overflow-y-auto px-6 pb-6 pt-3 scrollbar-thin"
+              ? "min-h-0 space-y-6 overflow-y-auto px-6 py-3 scrollbar-thin"
               : "space-y-6"
           }
         >
@@ -263,7 +264,7 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
         <div
           className={
             mode === "edit"
-              ? "shrink-0 space-y-2 bg-background px-6 pb-6 pt-4"
+              ? "space-y-2 bg-card px-6 py-4"
               : "space-y-3 rounded-lg border border-border bg-card p-4"
           }
         >
