@@ -74,7 +74,7 @@ export function CertificateLogoPicker({
 
   return (
     <section
-      className="overflow-hidden rounded-lg border border-border bg-card"
+      className="overflow-hidden rounded-lg border-2 border-dashed border-border bg-card"
       aria-busy={uploading}
     >
       <input type="hidden" name="logoMediaId" value={selectedId} />

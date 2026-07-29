@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { SlidersHorizontal } from "lucide-react";
+import { PanelRightOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -30,22 +30,22 @@ export function AuthoringWorkspace({
 
   const sheetContent = {
     project: {
-      label: "Project details",
+      label: "Project Details",
       description:
         "Update the summary, classification, publishing status, and supporting details shown with this project.",
     },
     lab: {
-      label: "Lab details",
+      label: "Lab Details",
       description:
         "Manage how this lab is categorized, dated, and presented to visitors.",
     },
     "journal entry": {
-      label: "Journal details",
+      label: "Journal Details",
       description:
         "Update the publishing details and summary shown with this journal entry.",
     },
     certificate: {
-      label: "Certificate details",
+      label: "Certificate Details",
       description:
         "Manage the credential information displayed on the certifications page.",
     },
@@ -58,11 +58,11 @@ export function AuthoringWorkspace({
           <SheetTrigger asChild>
             <Button
               type="button"
-              variant="outline"
-              className="group bg-card text-foreground hover:border-primary/40 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring active:bg-muted/50"
+              variant="ghost"
+              className="group text-foreground hover:border-primary/40 hover:bg-muted/30 focus-visible:ring-2 focus-visible:ring-ring active:bg-muted/50"
             >
-              <SlidersHorizontal className="h-4 w-4" />
-              {sheetContent.label}
+              <PanelRightOpen className="h-4 w-4" />
+              <span className="font-mono">{sheetContent.label}</span>
             </Button>
           </SheetTrigger>
           <SheetContent>

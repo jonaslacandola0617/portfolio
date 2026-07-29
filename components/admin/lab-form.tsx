@@ -102,163 +102,163 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
               : "space-y-6"
           }
         >
-        <Card
-          className={mode === "edit" ? "border-0 bg-transparent" : undefined}
-        >
-          <CardContent
-            className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+          <Card
+            className={mode === "edit" ? "border-0 bg-transparent" : undefined}
           >
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-              }
+            <CardContent
+              className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
             >
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+                }
+              >
+                <div>
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    name="title"
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      if (!slugTouched) setSlug(slugify(e.target.value));
+                    }}
+                    required
+                  />
+                  <FieldError errors={state.errors?.title} />
+                </div>
+                <div>
+                  <Label htmlFor="slug">Slug</Label>
+                  <Input
+                    id="slug"
+                    name="slug"
+                    value={slug}
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      setSlugTouched(true);
+                    }}
+                    required
+                  />
+                  <FieldError errors={state.errors?.slug} />
+                </div>
+              </div>
+
               <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={title}
-                  onChange={(e) => {
-                    setTitle(e.target.value);
-                    if (!slugTouched) setSlug(slugify(e.target.value));
-                  }}
+                <Label htmlFor="purpose">Purpose</Label>
+                <Textarea
+                  id="purpose"
+                  name="purpose"
+                  defaultValue={lab?.purpose}
                   required
                 />
-                <FieldError errors={state.errors?.title} />
+                <FieldError errors={state.errors?.purpose} />
               </div>
-              <div>
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  name="slug"
-                  value={slug}
-                  onChange={(e) => {
-                    setSlug(e.target.value);
-                    setSlugTouched(true);
-                  }}
-                  required
-                />
-                <FieldError errors={state.errors?.slug} />
-              </div>
-            </div>
 
-            <div>
-              <Label htmlFor="purpose">Purpose</Label>
-              <Textarea
-                id="purpose"
-                name="purpose"
-                defaultValue={lab?.purpose}
-                required
-              />
-              <FieldError errors={state.errors?.purpose} />
-            </div>
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+                }
+              >
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <TaxonomyCombobox
+                    name="category"
+                    kind="category"
+                    label="Category"
+                    defaultValue={lab?.category}
+                    required
+                  />
+                  <FieldError errors={state.errors?.category} />
+                </div>
+                <div>
+                  <Label htmlFor="difficulty">Difficulty</Label>
+                  <select
+                    id="difficulty"
+                    name="difficulty"
+                    defaultValue={lab?.difficulty ?? "INTERMEDIATE"}
+                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                  >
+                    <option value="BEGINNER">Beginner</option>
+                    <option value="INTERMEDIATE">Intermediate</option>
+                    <option value="ADVANCED">Advanced</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="progressStatus">Real-world status</Label>
+                  <select
+                    id="progressStatus"
+                    name="progressStatus"
+                    defaultValue={lab?.progressStatus ?? "PLANNED"}
+                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                  >
+                    <option value="PLANNED">Planned</option>
+                    <option value="IN_PROGRESS">In progress</option>
+                    <option value="COMPLETED">Completed</option>
+                  </select>
+                </div>
+              </div>
 
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
-              }
-            >
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <TaxonomyCombobox
-                  name="category"
-                  kind="category"
-                  label="Category"
-                  defaultValue={lab?.category}
-                  required
-                />
-                <FieldError errors={state.errors?.category} />
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+                }
+              >
+                <div>
+                  <Label>Tags</Label>
+                  <TaxonomyMultiCombobox
+                    name="tags"
+                    kind="tag"
+                    label="Tags"
+                    defaultValues={lab?.tags}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="labDate">Lab date</Label>
+                  <Input
+                    id="labDate"
+                    name="labDate"
+                    type="date"
+                    defaultValue={lab?.labDate}
+                    required
+                  />
+                  <FieldError errors={state.errors?.labDate} />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="difficulty">Difficulty</Label>
-                <select
-                  id="difficulty"
-                  name="difficulty"
-                  defaultValue={lab?.difficulty ?? "INTERMEDIATE"}
-                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                >
-                  <option value="BEGINNER">Beginner</option>
-                  <option value="INTERMEDIATE">Intermediate</option>
-                  <option value="ADVANCED">Advanced</option>
-                </select>
-              </div>
-              <div>
-                <Label htmlFor="progressStatus">Real-world status</Label>
-                <select
-                  id="progressStatus"
-                  name="progressStatus"
-                  defaultValue={lab?.progressStatus ?? "PLANNED"}
-                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                >
-                  <option value="PLANNED">Planned</option>
-                  <option value="IN_PROGRESS">In progress</option>
-                  <option value="COMPLETED">Completed</option>
-                </select>
-              </div>
-            </div>
 
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-              }
-            >
-              <div>
-                <Label>Tags</Label>
-                <TaxonomyMultiCombobox
-                  name="tags"
-                  kind="tag"
-                  label="Tags"
-                  defaultValues={lab?.tags}
-                />
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+                }
+              >
+                <div>
+                  <Label htmlFor="publishStatus">Publish status</Label>
+                  <p className="mb-2 mt-1 text-xs text-muted-foreground">
+                    Publish manually when the lab is ready.
+                  </p>
+                  <select
+                    id="publishStatus"
+                    name="publishStatus"
+                    value={publishStatus}
+                    onChange={(e) => setPublishStatus(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                  >
+                    <option value="DRAFT">Draft</option>
+                    <option value="PUBLISHED">Published</option>
+                    <option value="ARCHIVED">Archived</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="labDate">Lab date</Label>
-                <Input
-                  id="labDate"
-                  name="labDate"
-                  type="date"
-                  defaultValue={lab?.labDate}
-                  required
-                />
-                <FieldError errors={state.errors?.labDate} />
-              </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-              }
-            >
-              <div>
-                <Label htmlFor="publishStatus">Publish status</Label>
-                <select
-                  id="publishStatus"
-                  name="publishStatus"
-                  value={publishStatus}
-                  onChange={(e) => setPublishStatus(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                >
-                  <option value="DRAFT">Draft</option>
-                  <option value="PUBLISHED">Published</option>
-                  <option value="ARCHIVED">Archived</option>
-                </select>
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  Publish manually when the lab is ready.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {mode === "create" && <TemplateSelector templates={labTemplates} />}
-        {mode === "edit" && lab && (
-          <LabResourcesEditor
-            labId={lab.id}
-            media={media}
-            initialResources={lab.downloads}
-          />
-        )}
+          {mode === "create" && <TemplateSelector templates={labTemplates} />}
+          {mode === "edit" && lab && (
+            <LabResourcesEditor
+              labId={lab.id}
+              media={media}
+              initialResources={lab.downloads}
+            />
+          )}
         </div>
 
         <div

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, Grid2x2Plus, LayoutTemplate } from "lucide-react";
+import { Check, Grid2x2Check, Grid2x2Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -119,7 +119,7 @@ export function EditorTemplateDialog({
           <>
             <div className="px-6 pb-4 pt-6 pr-12">
               <div className="flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-primary">
-                <LayoutTemplate className="h-4 w-4" aria-hidden="true" />
+                <Grid2x2Check className="h-4 w-4" aria-hidden="true" />
                 Content templates
               </div>
               <h2 className="mt-2 font-display text-xl font-semibold text-foreground">
@@ -150,10 +150,7 @@ export function EditorTemplateDialog({
                         </span>
                         {selected && (
                           <span className="absolute right-3 top-3 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                            <Check
-                              className="h-3.5 w-3.5"
-                              aria-hidden="true"
-                            />
+                            <Check className="h-3.5 w-3.5" aria-hidden="true" />
                             <span className="sr-only">Selected</span>
                           </span>
                         )}

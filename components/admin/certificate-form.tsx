@@ -78,11 +78,7 @@ export function CertificateForm({
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <AuthoringWorkspace
-      enabled={mode === "edit"}
-      storageKey="cms:certificate:inspector"
-      contentLabel="certificate"
-    >
+    <div className="">
       <form
         onSubmit={editorForm.onSubmit}
         className={
@@ -106,151 +102,146 @@ export function CertificateForm({
               : "space-y-6"
           }
         >
-        <Card
-          className={mode === "edit" ? "border-0 bg-transparent" : undefined}
-        >
-          <CardContent
-            className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+          <Card
+            className={mode === "edit" ? "border-0 bg-transparent" : undefined}
           >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value);
-                    if (!slugTouched) setSlug(slugify(e.target.value));
-                  }}
-                  required
-                />
-                <FieldError errors={state.errors?.name} />
-              </div>
-              <div>
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  name="slug"
-                  value={slug}
-                  onChange={(e) => {
-                    setSlug(e.target.value);
-                    setSlugTouched(true);
-                  }}
-                  required
-                />
-                <FieldError errors={state.errors?.slug} />
-              </div>
-            </div>
-
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-              }
+            <CardContent
+              className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
             >
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div>
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    value={name}
+                    onChange={(e) => {
+                      setName(e.target.value);
+                      if (!slugTouched) setSlug(slugify(e.target.value));
+                    }}
+                    required
+                  />
+                  <FieldError errors={state.errors?.name} />
+                </div>
+                <div>
+                  <Label htmlFor="slug">Slug</Label>
+                  <Input
+                    id="slug"
+                    name="slug"
+                    value={slug}
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      setSlugTouched(true);
+                    }}
+                    required
+                  />
+                  <FieldError errors={state.errors?.slug} />
+                </div>
+              </div>
+
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+                }
+              >
+                <div className="sm:col-span-2">
+                  <Label htmlFor="issuer">Issuer</Label>
+                  <Input
+                    id="issuer"
+                    name="issuer"
+                    defaultValue={certificate?.issuer}
+                    required
+                  />
+                  <FieldError errors={state.errors?.issuer} />
+                </div>
+              </div>
+
+              <div className="grid items-end gap-4 sm:grid-cols-2">
+                <div>
+                  <DateSelector
+                    id="dateCompleted"
+                    name="dateCompleted"
+                    label="Completion Date"
+                    defaultValue={certificate?.dateCompleted}
+                    optional
+                  />
+                  <FieldError errors={state.errors?.dateCompleted} />
+                </div>
+                <div>
+                  <DateSelector
+                    id="dateStarted"
+                    name="dateStarted"
+                    label="Start Date"
+                    defaultValue={certificate?.dateStarted}
+                    optional
+                  />
+                  <FieldError errors={state.errors?.dateStarted} />
+                </div>
+              </div>
+
+              <div className="grid items-end gap-4 sm:grid-cols-2">
+                <div>
+                  <Label>Skills learned</Label>
+                  <TaxonomyMultiCombobox
+                    name="skills"
+                    kind="skill"
+                    label="Skills learned"
+                    defaultValues={certificate?.skills}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="credentialUrl">Credential URL</Label>
+                  <Input
+                    id="credentialUrl"
+                    name="credentialUrl"
+                    type="url"
+                    defaultValue={certificate?.credentialUrl}
+                  />
+                  <FieldError errors={state.errors?.credentialUrl} />
+                </div>
+              </div>
+
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+                }
+              >
+                <div>
+                  <Label htmlFor="publishStatus">Publish status</Label>
+                  <p className="mb-2 mt-1 text-xs text-muted-foreground">
+                    Publish manually when the certificate is ready.
+                  </p>
+                  <select
+                    id="publishStatus"
+                    name="publishStatus"
+                    value={publishStatus}
+                    onChange={(e) => setPublishStatus(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                  >
+                    <option value="DRAFT">Draft</option>
+                    <option value="PUBLISHED">Published</option>
+                    <option value="ARCHIVED">Archived</option>
+                  </select>
+                </div>
+              </div>
+
               <div className="sm:col-span-2">
-                <Label htmlFor="issuer">Issuer</Label>
-                <Input
-                  id="issuer"
-                  name="issuer"
-                  defaultValue={certificate?.issuer}
-                  required
-                />
-                <FieldError errors={state.errors?.issuer} />
-              </div>
-            </div>
-
-            <div className="grid items-end gap-4 sm:grid-cols-2">
-              <div>
-                <DateSelector
-                  id="dateCompleted"
-                  name="dateCompleted"
-                  label="Completion Date"
-                  defaultValue={certificate?.dateCompleted}
-                  optional
-                />
-                <FieldError errors={state.errors?.dateCompleted} />
-              </div>
-              <div>
-                <DateSelector
-                  id="dateStarted"
-                  name="dateStarted"
-                  label="Start Date"
-                  defaultValue={certificate?.dateStarted}
-                  optional
-                />
-                <FieldError errors={state.errors?.dateStarted} />
-              </div>
-            </div>
-
-            <div className="grid items-end gap-4 sm:grid-cols-2">
-              <div>
-                <Label>Skills learned</Label>
-                <TaxonomyMultiCombobox
-                  name="skills"
-                  kind="skill"
-                  label="Skills learned"
-                  defaultValues={certificate?.skills}
-                />
-              </div>
-              <div>
-                <Label htmlFor="credentialUrl">Credential URL</Label>
-                <Input
-                  id="credentialUrl"
-                  name="credentialUrl"
-                  type="url"
-                  defaultValue={certificate?.credentialUrl}
-                />
-                <FieldError errors={state.errors?.credentialUrl} />
-              </div>
-            </div>
-
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-              }
-            >
-              <div>
-                <Label htmlFor="publishStatus">Publish status</Label>
+                <Label>Certificate Logo</Label>
                 <p className="mb-2 mt-1 text-xs text-muted-foreground">
-                  Publish manually when the certificate is ready.
+                  Upload or choose the issuer/certification image shown
+                  publicly.
                 </p>
-                <select
-                  id="publishStatus"
-                  name="publishStatus"
-                  value={publishStatus}
-                  onChange={(e) => setPublishStatus(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                >
-                  <option value="DRAFT">Draft</option>
-                  <option value="PUBLISHED">Published</option>
-                  <option value="ARCHIVED">Archived</option>
-                </select>
+                <CertificateLogoPicker
+                  media={media}
+                  initialMediaId={certificate?.logoMediaId}
+                />
+                <FieldError errors={state.errors?.logoMediaId} />
               </div>
-            </div>
-
-            <div className="sm:col-span-2">
-              <Label>Certificate Logo</Label>
-              <p className="mb-2 mt-1 text-xs text-muted-foreground">
-                Upload or choose the issuer/certification image shown publicly.
-              </p>
-              <CertificateLogoPicker
-                media={media}
-                initialMediaId={certificate?.logoMediaId}
-              />
-              <FieldError errors={state.errors?.logoMediaId} />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
         </div>
 
-        <div
-          className={
-            mode === "edit"
-              ? "space-y-2 bg-card px-6 py-4"
-              : "space-y-3"
-          }
-        >
+        <div className={mode === "edit" ? "space-y-2 px-6 py-4" : "space-y-3"}>
           {editorForm.coordinationError && (
             <FormMessage variant="error">
               {editorForm.coordinationError}
@@ -264,19 +255,12 @@ export function CertificateForm({
               Fix the highlighted metadata fields, then save again.
             </FormMessage>
           )}
-          <div
-            className={
-              mode === "edit"
-                ? "grid gap-2"
-                : "flex items-center justify-end gap-2"
-            }
-          >
+          <div className="flex items-center justify-end gap-4">
             <SubmitButton
               pendingLabel={
                 mode === "create" ? "Creating..." : "Saving changes..."
               }
               forcePending={editorForm.isCoordinating}
-              className={mode === "edit" ? "w-full" : undefined}
             >
               {mode === "create" ? "Create certificate" : "Save changes"}
             </SubmitButton>
@@ -286,7 +270,6 @@ export function CertificateForm({
                 recordTitle={certificate.name}
                 onDelete={() => deleteCertificateAction(certificate.id)}
                 onSuccess={() => router.push("/admin/certificates")}
-                className="w-full justify-center"
               />
             )}
           </div>
@@ -311,6 +294,6 @@ export function CertificateForm({
           Save the certificate first to add an optional longer write-up.
         </p>
       )}
-    </AuthoringWorkspace>
+    </div>
   );
 }

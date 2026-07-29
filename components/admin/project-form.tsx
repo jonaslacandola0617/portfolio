@@ -108,201 +108,203 @@ export function ProjectForm({ mode, project, media = [] }: ProjectFormProps) {
               : "space-y-6"
           }
         >
-        <Card
-          className={mode === "edit" ? "border-0 bg-transparent" : undefined}
-        >
-          <CardContent
-            className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+          <Card
+            className={mode === "edit" ? "border-0 bg-transparent" : undefined}
           >
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-              }
+            <CardContent
+              className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
             >
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+                }
+              >
+                <div>
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    name="title"
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      if (!slugTouched) setSlug(slugify(e.target.value));
+                    }}
+                    required
+                  />
+                  <FieldError errors={state.errors?.title} />
+                </div>
+                <div>
+                  <Label htmlFor="slug">Slug</Label>
+                  <Input
+                    id="slug"
+                    name="slug"
+                    value={slug}
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      setSlugTouched(true);
+                    }}
+                    required
+                  />
+                  <FieldError errors={state.errors?.slug} />
+                </div>
+              </div>
+
               <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={title}
-                  onChange={(e) => {
-                    setTitle(e.target.value);
-                    if (!slugTouched) setSlug(slugify(e.target.value));
-                  }}
+                <Label htmlFor="summary">Summary</Label>
+                <Textarea
+                  id="summary"
+                  name="summary"
+                  defaultValue={project?.summary}
                   required
                 />
-                <FieldError errors={state.errors?.title} />
+                <FieldError errors={state.errors?.summary} />
               </div>
-              <div>
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  name="slug"
-                  value={slug}
-                  onChange={(e) => {
-                    setSlug(e.target.value);
-                    setSlugTouched(true);
-                  }}
-                  required
-                />
-                <FieldError errors={state.errors?.slug} />
-              </div>
-            </div>
 
-            <div>
-              <Label htmlFor="summary">Summary</Label>
-              <Textarea
-                id="summary"
-                name="summary"
-                defaultValue={project?.summary}
-                required
-              />
-              <FieldError errors={state.errors?.summary} />
-            </div>
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+                }
+              >
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <TaxonomyCombobox
+                    name="category"
+                    kind="category"
+                    label="Category"
+                    defaultValue={project?.category}
+                    required
+                  />
+                  <FieldError errors={state.errors?.category} />
+                </div>
+                <div>
+                  <Label htmlFor="difficulty">Difficulty</Label>
+                  <select
+                    id="difficulty"
+                    name="difficulty"
+                    defaultValue={project?.difficulty ?? "INTERMEDIATE"}
+                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                  >
+                    <option value="BEGINNER">Beginner</option>
+                    <option value="INTERMEDIATE">Intermediate</option>
+                    <option value="ADVANCED">Advanced</option>
+                  </select>
+                </div>
+                <div>
+                  <Label htmlFor="progressStatus">Real-world status</Label>
+                  <select
+                    id="progressStatus"
+                    name="progressStatus"
+                    defaultValue={project?.progressStatus ?? "PLANNED"}
+                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                  >
+                    <option value="PLANNED">Planned</option>
+                    <option value="IN_PROGRESS">In progress</option>
+                    <option value="COMPLETED">Completed</option>
+                  </select>
+                </div>
+              </div>
 
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
-              }
-            >
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <TaxonomyCombobox
-                  name="category"
-                  kind="category"
-                  label="Category"
-                  defaultValue={project?.category}
-                  required
-                />
-                <FieldError errors={state.errors?.category} />
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+                }
+              >
+                <div>
+                  <Label>Tags</Label>
+                  <TaxonomyMultiCombobox
+                    name="tags"
+                    kind="tag"
+                    label="Tags"
+                    defaultValues={project?.tags}
+                  />
+                </div>
+                <div>
+                  <Label>Skills</Label>
+                  <TaxonomyMultiCombobox
+                    name="skills"
+                    kind="skill"
+                    label="Skills"
+                    defaultValues={project?.skills}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="technologies">
+                    Technologies (comma-separated)
+                  </Label>
+                  <Input
+                    id="technologies"
+                    name="technologies"
+                    defaultValue={project?.technologies.join(", ")}
+                  />
+                </div>
               </div>
-              <div>
-                <Label htmlFor="difficulty">Difficulty</Label>
-                <select
-                  id="difficulty"
-                  name="difficulty"
-                  defaultValue={project?.difficulty ?? "INTERMEDIATE"}
-                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                >
-                  <option value="BEGINNER">Beginner</option>
-                  <option value="INTERMEDIATE">Intermediate</option>
-                  <option value="ADVANCED">Advanced</option>
-                </select>
-              </div>
-              <div>
-                <Label htmlFor="progressStatus">Real-world status</Label>
-                <select
-                  id="progressStatus"
-                  name="progressStatus"
-                  defaultValue={project?.progressStatus ?? "PLANNED"}
-                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                >
-                  <option value="PLANNED">Planned</option>
-                  <option value="IN_PROGRESS">In progress</option>
-                  <option value="COMPLETED">Completed</option>
-                </select>
-              </div>
-            </div>
 
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
-              }
-            >
-              <div>
-                <Label>Tags</Label>
-                <TaxonomyMultiCombobox
-                  name="tags"
-                  kind="tag"
-                  label="Tags"
-                  defaultValues={project?.tags}
-                />
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+                }
+              >
+                <div>
+                  <Label htmlFor="estimatedTime">Estimated time</Label>
+                  <Input
+                    id="estimatedTime"
+                    name="estimatedTime"
+                    defaultValue={project?.estimatedTime}
+                    placeholder="4-5 hours"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="completionDate">Completion date</Label>
+                  <Input
+                    id="completionDate"
+                    name="completionDate"
+                    type="date"
+                    defaultValue={project?.completionDate}
+                    required
+                  />
+                  <FieldError errors={state.errors?.completionDate} />
+                </div>
+                <div>
+                  <Label htmlFor="githubUrl">GitHub URL</Label>
+                  <Input
+                    id="githubUrl"
+                    name="githubUrl"
+                    type="url"
+                    defaultValue={project?.githubUrl}
+                  />
+                  <FieldError errors={state.errors?.githubUrl} />
+                </div>
               </div>
-              <div>
-                <Label>Skills</Label>
-                <TaxonomyMultiCombobox
-                  name="skills"
-                  kind="skill"
-                  label="Skills"
-                  defaultValues={project?.skills}
-                />
-              </div>
-              <div>
-                <Label htmlFor="technologies">
-                  Technologies (comma-separated)
-                </Label>
-                <Input
-                  id="technologies"
-                  name="technologies"
-                  defaultValue={project?.technologies.join(", ")}
-                />
-              </div>
-            </div>
 
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
-              }
-            >
-              <div>
-                <Label htmlFor="estimatedTime">Estimated time</Label>
-                <Input
-                  id="estimatedTime"
-                  name="estimatedTime"
-                  defaultValue={project?.estimatedTime}
-                  placeholder="4-5 hours"
-                />
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+                }
+              >
+                <div>
+                  <Label htmlFor="publishStatus">Publish status</Label>
+                  <p className="mb-2 mt-1 text-xs text-muted-foreground">
+                    Publish manually when the project is ready.
+                  </p>
+                  <select
+                    id="publishStatus"
+                    name="publishStatus"
+                    value={publishStatus}
+                    onChange={(e) => setPublishStatus(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                  >
+                    <option value="DRAFT">Draft</option>
+                    <option value="PUBLISHED">Published</option>
+                    <option value="ARCHIVED">Archived</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <Label htmlFor="completionDate">Completion date</Label>
-                <Input
-                  id="completionDate"
-                  name="completionDate"
-                  type="date"
-                  defaultValue={project?.completionDate}
-                  required
-                />
-                <FieldError errors={state.errors?.completionDate} />
-              </div>
-              <div>
-                <Label htmlFor="githubUrl">GitHub URL</Label>
-                <Input
-                  id="githubUrl"
-                  name="githubUrl"
-                  type="url"
-                  defaultValue={project?.githubUrl}
-                />
-                <FieldError errors={state.errors?.githubUrl} />
-              </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-              }
-            >
-              <div>
-                <Label htmlFor="publishStatus">Publish status</Label>
-                <select
-                  id="publishStatus"
-                  name="publishStatus"
-                  value={publishStatus}
-                  onChange={(e) => setPublishStatus(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                >
-                  <option value="DRAFT">Draft</option>
-                  <option value="PUBLISHED">Published</option>
-                  <option value="ARCHIVED">Archived</option>
-                </select>
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  Publish manually when the project is ready.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {mode === "create" && <TemplateSelector templates={projectTemplates} />}
+          {mode === "create" && (
+            <TemplateSelector templates={projectTemplates} />
+          )}
         </div>
 
         <div

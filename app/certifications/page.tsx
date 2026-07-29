@@ -17,7 +17,9 @@ export default async function CertificationsPage() {
       />
 
       {certifications.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No published certifications yet.</p>
+        <p className="text-sm text-muted-foreground">
+          No published certifications yet.
+        </p>
       ) : (
         <div className="space-y-4">
           {certifications.map((cert) => (

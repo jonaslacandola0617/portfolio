@@ -102,123 +102,125 @@ export function ArticleForm({ mode, article, media = [] }: ArticleFormProps) {
               : "space-y-6"
           }
         >
-        <Card
-          className={mode === "edit" ? "border-0 bg-transparent" : undefined}
-        >
-          <CardContent
-            className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+          <Card
+            className={mode === "edit" ? "border-0 bg-transparent" : undefined}
           >
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-              }
+            <CardContent
+              className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
             >
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+                }
+              >
+                <div>
+                  <Label htmlFor="title">Title</Label>
+                  <Input
+                    id="title"
+                    name="title"
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      if (!slugTouched) setSlug(slugify(e.target.value));
+                    }}
+                    required
+                  />
+                  <FieldError errors={state.errors?.title} />
+                </div>
+                <div>
+                  <Label htmlFor="slug">Slug</Label>
+                  <Input
+                    id="slug"
+                    name="slug"
+                    value={slug}
+                    onChange={(e) => {
+                      setSlug(e.target.value);
+                      setSlugTouched(true);
+                    }}
+                    required
+                  />
+                  <FieldError errors={state.errors?.slug} />
+                </div>
+              </div>
+
               <div>
-                <Label htmlFor="title">Title</Label>
-                <Input
-                  id="title"
-                  name="title"
-                  value={title}
-                  onChange={(e) => {
-                    setTitle(e.target.value);
-                    if (!slugTouched) setSlug(slugify(e.target.value));
-                  }}
+                <Label htmlFor="summary">Summary</Label>
+                <Textarea
+                  id="summary"
+                  name="summary"
+                  defaultValue={article?.summary}
                   required
                 />
-                <FieldError errors={state.errors?.title} />
+                <FieldError errors={state.errors?.summary} />
               </div>
-              <div>
-                <Label htmlFor="slug">Slug</Label>
-                <Input
-                  id="slug"
-                  name="slug"
-                  value={slug}
-                  onChange={(e) => {
-                    setSlug(e.target.value);
-                    setSlugTouched(true);
-                  }}
-                  required
-                />
-                <FieldError errors={state.errors?.slug} />
-              </div>
-            </div>
 
-            <div>
-              <Label htmlFor="summary">Summary</Label>
-              <Textarea
-                id="summary"
-                name="summary"
-                defaultValue={article?.summary}
-                required
-              />
-              <FieldError errors={state.errors?.summary} />
-            </div>
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+                }
+              >
+                <div>
+                  <Label htmlFor="category">Category</Label>
+                  <TaxonomyCombobox
+                    name="category"
+                    kind="category"
+                    label="Category"
+                    defaultValue={article?.category}
+                    required
+                  />
+                  <FieldError errors={state.errors?.category} />
+                </div>
+                <div>
+                  <Label>Tags</Label>
+                  <TaxonomyMultiCombobox
+                    name="tags"
+                    kind="tag"
+                    label="Tags"
+                    defaultValues={article?.tags}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="date">Date</Label>
+                  <Input
+                    id="date"
+                    name="date"
+                    type="date"
+                    defaultValue={article?.date}
+                    required
+                  />
+                  <FieldError errors={state.errors?.date} />
+                </div>
+              </div>
 
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
-              }
-            >
-              <div>
-                <Label htmlFor="category">Category</Label>
-                <TaxonomyCombobox
-                  name="category"
-                  kind="category"
-                  label="Category"
-                  defaultValue={article?.category}
-                  required
-                />
-                <FieldError errors={state.errors?.category} />
+              <div
+                className={
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
+                }
+              >
+                <div>
+                  <Label htmlFor="publishStatus">Publish status</Label>
+                  <p className="mb-2 mt-1 text-xs text-muted-foreground">
+                    Publish manually when the article is ready.
+                  </p>
+                  <select
+                    id="publishStatus"
+                    name="publishStatus"
+                    value={publishStatus}
+                    onChange={(e) => setPublishStatus(e.target.value)}
+                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                  >
+                    <option value="DRAFT">Draft</option>
+                    <option value="PUBLISHED">Published</option>
+                    <option value="ARCHIVED">Archived</option>
+                  </select>
+                </div>
               </div>
-              <div>
-                <Label>Tags</Label>
-                <TaxonomyMultiCombobox
-                  name="tags"
-                  kind="tag"
-                  label="Tags"
-                  defaultValues={article?.tags}
-                />
-              </div>
-              <div>
-                <Label htmlFor="date">Date</Label>
-                <Input
-                  id="date"
-                  name="date"
-                  type="date"
-                  defaultValue={article?.date}
-                  required
-                />
-                <FieldError errors={state.errors?.date} />
-              </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            <div
-              className={
-                mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-              }
-            >
-              <div>
-                <Label htmlFor="publishStatus">Publish status</Label>
-                <select
-                  id="publishStatus"
-                  name="publishStatus"
-                  value={publishStatus}
-                  onChange={(e) => setPublishStatus(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
-                >
-                  <option value="DRAFT">Draft</option>
-                  <option value="PUBLISHED">Published</option>
-                  <option value="ARCHIVED">Archived</option>
-                </select>
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  Publish manually when the article is ready.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {mode === "create" && <TemplateSelector templates={articleTemplates} />}
+          {mode === "create" && (
+            <TemplateSelector templates={articleTemplates} />
+          )}
         </div>
 
         <div

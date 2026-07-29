@@ -1,4 +1,10 @@
-import { ExternalLink, GraduationCap, Network, Terminal, FileCode2 } from "lucide-react";
+import {
+  ExternalLink,
+  GraduationCap,
+  Network,
+  Terminal,
+  FileCode2,
+} from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDateShort } from "@/lib/utils";
@@ -13,7 +19,10 @@ const logoMap: Record<string, { icon: typeof GraduationCap; color: string }> = {
 };
 
 export function CertificateCard({ cert }: { cert: Certification }) {
-  const logo = logoMap[cert.logo] ?? { icon: GraduationCap, color: "text-primary" };
+  const logo = logoMap[cert.logo] ?? {
+    icon: GraduationCap,
+    color: "text-primary",
+  };
   const LogoIcon = logo.icon;
 
   return (
@@ -22,14 +31,20 @@ export function CertificateCard({ cert }: { cert: Certification }) {
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-border bg-muted/40">
           {cert.logoUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={cert.logoUrl} alt={`${cert.issuer} logo`} className="h-full w-full object-contain p-1.5" />
+            <img
+              src={cert.logoUrl}
+              alt={`${cert.issuer} logo`}
+              className="h-full w-full object-contain p-1.5"
+            />
           ) : (
             <LogoIcon className={`h-5 w-5 ${logo.color}`} />
           )}
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h3 className="font-display font-semibold text-foreground">{cert.name}</h3>
+            <h3 className="font-display font-semibold text-foreground">
+              {cert.name}
+            </h3>
           </div>
           <p className="mt-0.5 text-sm text-muted-foreground">{cert.issuer}</p>
 
@@ -42,8 +57,12 @@ export function CertificateCard({ cert }: { cert: Certification }) {
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-3 font-mono text-[0.68rem] text-muted-foreground">
-            {cert.dateCompleted && <span>Completed {formatDateShort(cert.dateCompleted)}</span>}
-            {cert.dateStarted && <span>Started {formatDateShort(cert.dateStarted)}</span>}
+            {cert.dateCompleted && (
+              <span>Completed {formatDateShort(cert.dateCompleted)}</span>
+            )}
+            {cert.dateStarted && (
+              <span>Started {formatDateShort(cert.dateStarted)}</span>
+            )}
             {cert.credentialUrl && (
               <a
                 href={cert.credentialUrl}

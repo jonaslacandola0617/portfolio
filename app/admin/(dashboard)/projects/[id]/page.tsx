@@ -5,8 +5,15 @@ import { ProjectForm } from "@/components/admin/project-form";
 import { getProjectForEdit } from "@/lib/services/project-admin-service";
 import { getAllMedia } from "@/lib/services/media-admin-service";
 
-export default async function EditProjectPage({ params }: { params: { id: string } }) {
-  const [project, media] = await Promise.all([getProjectForEdit(params.id), getAllMedia()]);
+export default async function EditProjectPage({
+  params,
+}: {
+  params: { id: string };
+}) {
+  const [project, media] = await Promise.all([
+    getProjectForEdit(params.id),
+    getAllMedia(),
+  ]);
   if (!project) notFound();
 
   return (
@@ -17,10 +24,7 @@ export default async function EditProjectPage({ params }: { params: { id: string
       >
         <ArrowLeft className="h-3.5 w-3.5" /> Back to projects
       </Link>
-      <p className="mb-4 max-w-2xl text-sm leading-6 text-muted-foreground">
-        Edit the technical write-up below. Use Project details to manage its
-        summary, classification, supporting information, and public visibility.
-      </p>
+
       <ProjectForm
         mode="edit"
         media={media}
@@ -39,7 +43,9 @@ export default async function EditProjectPage({ params }: { params: { id: string
           estimatedTime: project.estimatedTime ?? "",
           completionDate: project.completionDate.toISOString().slice(0, 10),
           githubUrl: project.githubUrl ?? "",
-          scheduledFor: project.scheduledFor ? project.scheduledFor.toISOString().slice(0, 16) : "",
+          scheduledFor: project.scheduledFor
+            ? project.scheduledFor.toISOString().slice(0, 16)
+            : "",
           content: project.content as never,
         }}
       />
