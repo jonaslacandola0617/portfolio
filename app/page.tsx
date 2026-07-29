@@ -62,7 +62,7 @@ export default async function HomePage() {
               Hi, I&rsquo;m {settings.name}.
             </h1>
             <p className="mt-4 max-w-xl text-lg text-muted-foreground text-balance">
-              {settings.tagline.toLowerCase()}
+              {settings.tagline}
             </p>
 
             <div className="mt-6 flex flex-wrap gap-2">
