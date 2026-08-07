@@ -5,22 +5,6 @@ import { cn } from "@/lib/utils";
 import type { DeleteResult } from "@/types/admin";
 import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 
-/**
- * Replaces the invalid nested `<form>`-inside-`<form>` delete pattern
- * every edit page used before the pre-Phase-6 stabilization pass
- * (Workstream D1) — each of the six edit forms wrapped its whole
- * metadata form in one `<form action={formAction}>`, then nested a
- * second `<form action={...}>` around the Delete button inside it.
- * Nested forms are invalid HTML; browsers resolve them inconsistently
- * (typically by ignoring/hoisting the inner form), which made delete
- * behavior unreliable. This is a plain client component invoked via
- * `onClick`/`useTransition`, rendered as a *sibling* of the metadata
- * form, not nested inside it.
- *
- * Used both standalone on edit pages (`onSuccess` navigates away) and
- * inside `ManagementList` for a row's individual delete (`onSuccess`
- * refreshes the list in place) — see that component.
- */
 interface DeleteButtonProps {
   onDelete: () => Promise<DeleteResult>;
   onSuccess: () => void;
@@ -43,15 +27,11 @@ export function DeleteButton({
   className,
 }: DeleteButtonProps) {
   const isIcon = variant === "icon";
-
   return (
     <DeleteConfirmationDialog
       contentType={contentType}
       recordTitle={recordTitle}
-      description={
-        description ??
-        `This will permanently remove the ${contentType} from the CMS and public portfolio. Shared tags, categories, certificates, and uploaded media will not be deleted.`
-      }
+      description={description ?? `This will permanently remove the ${contentType} from the CMS and public portfolio. Shared taxonomy and uploaded media will not be deleted.`}
       confirmLabel={`Delete ${contentType}`}
       onConfirm={onDelete}
       onSuccess={onSuccess}
@@ -61,10 +41,10 @@ export function DeleteButton({
           aria-label={isIcon ? label : undefined}
           title={isIcon ? label : undefined}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-md font-medium transition-colors text-sm",
+            "inline-flex items-center justify-center gap-1.5 border text-sm font-medium transition-colors",
             isIcon
-              ? "p-2 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-              : "h-10 bg-destructive/10 border border-destructive/40 px-3 py-1.5 text-destructive hover:bg-destructive/15",
+              ? "h-8 w-8 border-border text-text-dim hover:border-vermilion hover:text-vermilion"
+              : "h-10 border-vermilion px-3 text-vermilion hover:bg-vermilion/10",
             className,
           )}
         >

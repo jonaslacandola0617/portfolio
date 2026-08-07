@@ -3,27 +3,27 @@
 import * as React from "react";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
-import { Button } from "@/components/ui/button";
 
-export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+export function ThemeToggle({ compact = false }: { compact?: boolean }) {
+  const { resolvedTheme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => setMounted(true), []);
 
-  if (!mounted) {
-    return <div className="h-9 w-9" />;
-  }
+  const dark = mounted && resolvedTheme === "dark";
+  const className = compact
+    ? "flex h-9 w-9 items-center justify-center border border-border text-text-dim transition-colors hover:border-border-strong hover:text-text"
+    : "label flex items-center gap-2 border border-border px-3 py-2 transition-colors hover:border-border-strong hover:text-text";
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      className="h-9 w-9 text-muted-foreground hover:text-foreground"
-      onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      aria-label="Toggle theme"
+    <button
+      type="button"
+      onClick={() => mounted && setTheme(dark ? "light" : "dark")}
+      aria-label="Toggle color theme"
+      className={className}
     >
-      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-    </Button>
+      {dark ? <Sun size={14} /> : <Moon size={14} />}
+      {!compact ? <span>{dark ? "Light" : "Dark"}</span> : null}
+    </button>
   );
 }

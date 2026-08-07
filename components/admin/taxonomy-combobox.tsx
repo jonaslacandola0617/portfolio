@@ -129,23 +129,23 @@ export function TaxonomyCombobox({
           }
           if (event.key === "Escape") setOpen(false);
         }}
-        className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex h-10 w-full border border-border bg-surface px-3 text-sm text-text outline-none focus:border-cobalt"
       />
       {open && (
-        <div id={listId} role="listbox" className="absolute z-40 mt-1 max-h-64 w-full overflow-auto rounded-md border border-border bg-popover p-1 shadow-lg">
-          {loading && <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" />Searching…</div>}
+        <div id={listId} role="listbox" className="absolute z-40 mt-1 max-h-64 w-full overflow-auto border border-border-strong bg-surface-2 p-1">
+          {loading && <div className="flex items-center gap-2 px-3 py-2 text-xs text-text-dim"><Loader2 className="h-3 w-3 animate-spin" />Searching…</div>}
           {!loading && items.map((item, index) => (
-            <button id={`${listId}-option-${index}`} key={item.id} type="button" role="option" aria-selected={index === activeIndex} onMouseDown={(event) => event.preventDefault()} onMouseEnter={() => setActiveIndex(index)} onClick={() => select(item.name)} className={cn("flex w-full items-center justify-between rounded px-3 py-2 text-left text-sm hover:bg-accent", index === activeIndex && "bg-accent")}>
-              <span>{item.name}{item.detail && <span className="ml-2 text-xs text-muted-foreground">{item.detail}</span>}</span>
-              {normalized(item.name) === normalized(value) && <Check className="h-3.5 w-3.5 text-primary" />}
+            <button id={`${listId}-option-${index}`} key={item.id} type="button" role="option" aria-selected={index === activeIndex} onMouseDown={(event) => event.preventDefault()} onMouseEnter={() => setActiveIndex(index)} onClick={() => select(item.name)} className={cn("flex w-full items-center justify-between px-3 py-2 text-left text-sm text-text hover:bg-surface-3", index === activeIndex && "bg-surface-3")}>
+              <span>{item.name}{item.detail && <span className="ml-2 text-xs text-text-dim">{item.detail}</span>}</span>
+              {normalized(item.name) === normalized(value) && <Check className="h-3.5 w-3.5 text-cobalt" />}
             </button>
           ))}
           {!loading && allowCreate && query.trim() && !exact && (
-            <button type="button" role="option" aria-selected={false} onMouseDown={(event) => event.preventDefault()} onClick={() => select(query)} className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm text-primary hover:bg-accent">
+            <button type="button" role="option" aria-selected={false} onMouseDown={(event) => event.preventDefault()} onClick={() => select(query)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-cobalt hover:bg-surface-3">
               <Plus className="h-3.5 w-3.5" />Create “{query.trim()}”
             </button>
           )}
-          {error && <p className="px-3 py-2 text-xs text-destructive">{error}</p>}
+          {error && <p className="px-3 py-2 text-xs text-vermilion">{error}</p>}
         </div>
       )}
     </div>
@@ -199,9 +199,9 @@ export function TaxonomyMultiCombobox({
   return (
     <div ref={rootRef} className="relative">
       <input type="hidden" name={name} value={selected.join(", ")} />
-      <div className={cn("flex min-h-10 flex-wrap items-center gap-1.5 rounded-md border border-border bg-background px-2 py-1.5", open && "ring-2 ring-ring")}>
+      <div className={cn("flex min-h-10 flex-wrap items-center gap-1.5 border border-border bg-surface px-2 py-1.5", open && "border-cobalt")}>
         {selected.map((item) => (
-          <span key={normalized(item)} className="inline-flex items-center gap-1 rounded bg-primary/10 px-2 py-1 text-xs text-primary">
+          <span key={normalized(item)} className="inline-flex items-center gap-1 border border-border bg-surface-2 px-2 py-1 text-xs text-text-dim">
             {item}<button type="button" aria-label={`Remove ${item}`} onClick={() => setSelected((current) => current.filter((value) => normalized(value) !== normalized(item)))}><X className="h-3 w-3" /></button>
           </span>
         ))}
@@ -236,17 +236,17 @@ export function TaxonomyMultiCombobox({
         />
       </div>
       {open && (
-        <div id={listId} role="listbox" className="absolute z-40 mt-1 max-h-64 w-full overflow-auto rounded-md border border-border bg-popover p-1 shadow-lg">
-          {loading && <div className="flex items-center gap-2 px-3 py-2 text-xs text-muted-foreground"><Loader2 className="h-3 w-3 animate-spin" />Searching…</div>}
+        <div id={listId} role="listbox" className="absolute z-40 mt-1 max-h-64 w-full overflow-auto border border-border-strong bg-surface-2 p-1">
+          {loading && <div className="flex items-center gap-2 px-3 py-2 text-xs text-text-dim"><Loader2 className="h-3 w-3 animate-spin" />Searching…</div>}
           {!loading && items.map((item, index) => (
-            <button id={`${listId}-option-${index}`} key={item.id} type="button" role="option" aria-selected={index === activeIndex} onMouseDown={(event) => event.preventDefault()} onMouseEnter={() => setActiveIndex(index)} onClick={() => add(item.name)} className={cn("block w-full rounded px-3 py-2 text-left text-sm hover:bg-accent", index === activeIndex && "bg-accent")}>
-              <span>{item.name}</span>{item.detail && <span className="ml-2 text-xs text-muted-foreground">{item.detail}</span>}
+            <button id={`${listId}-option-${index}`} key={item.id} type="button" role="option" aria-selected={index === activeIndex} onMouseDown={(event) => event.preventDefault()} onMouseEnter={() => setActiveIndex(index)} onClick={() => add(item.name)} className={cn("block w-full px-3 py-2 text-left text-sm text-text hover:bg-surface-3", index === activeIndex && "bg-surface-3")}>
+              <span>{item.name}</span>{item.detail && <span className="ml-2 text-xs text-text-dim">{item.detail}</span>}
             </button>
           ))}
           {!loading && allowCreate && query.trim() && !selectedKeys.has(normalized(query)) && !items.some((item) => normalized(item.name) === normalized(query)) && (
-            <button type="button" role="option" aria-selected={false} onMouseDown={(event) => event.preventDefault()} onClick={() => add(query)} className="flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm text-primary hover:bg-accent"><Plus className="h-3.5 w-3.5" />Create “{query.trim()}”</button>
+            <button type="button" role="option" aria-selected={false} onMouseDown={(event) => event.preventDefault()} onClick={() => add(query)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-cobalt hover:bg-surface-3"><Plus className="h-3.5 w-3.5" />Create “{query.trim()}”</button>
           )}
-          {error && <p className="px-3 py-2 text-xs text-destructive">{error}</p>}
+          {error && <p className="px-3 py-2 text-xs text-vermilion">{error}</p>}
         </div>
       )}
     </div>

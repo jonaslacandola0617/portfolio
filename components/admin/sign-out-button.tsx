@@ -11,9 +11,9 @@ export function SignOutButton() {
     >
       <button
         type="submit"
-        className="mt-1 flex w-full items-center gap-2 rounded-md px-2.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+        className="label flex w-full items-center justify-center gap-2 border border-border px-3 py-2 text-text-dim transition-colors hover:border-border-strong hover:text-text"
       >
-        <LogOut className="h-4 w-4" />
+        <LogOut className="h-3 w-3" />
         Sign out
       </button>
     </form>

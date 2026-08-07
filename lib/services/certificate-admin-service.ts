@@ -16,6 +16,7 @@ interface AdminCertificateListItem {
   slug: string;
   publishStatus: string;
   updatedAt: Date;
+  issuer: string;
 }
 
 interface AdminCertificateDetail {

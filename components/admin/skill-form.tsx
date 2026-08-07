@@ -23,7 +23,7 @@ const initialState: ActionResult = { success: false };
 
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
-  return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
+  return <p className="mt-1 text-xs text-vermilion">{errors[0]}</p>;
 }
 
 export function SkillForm({ mode, skill, groups }: SkillFormProps) {
@@ -54,7 +54,7 @@ export function SkillForm({ mode, skill, groups }: SkillFormProps) {
               </div>
               <div>
                 <Label htmlFor="level">Level</Label>
-                <select id="level" name="level" defaultValue={skill?.level ?? "learning"} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
+                <select id="level" name="level" defaultValue={skill?.level ?? "learning"} className="flex h-10 w-full border border-border bg-surface px-3 text-sm">
                   <option value="learning">Learning</option>
                   <option value="practiced">Practiced</option>
                   <option value="comfortable">Comfortable</option>
@@ -85,7 +85,7 @@ export function SkillForm({ mode, skill, groups }: SkillFormProps) {
       </form>
 
       {mode === "edit" && skill && skill.projects.length > 0 && (
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-text-dim">
           Used by {skill.projects.length} project{skill.projects.length === 1 ? "" : "s"}: {skill.projects.map((p) => p.slug).join(", ")}
         </p>
       )}

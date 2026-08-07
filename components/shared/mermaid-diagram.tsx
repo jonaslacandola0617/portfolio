@@ -16,15 +16,26 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
     async function render() {
       const mermaid = (await import("mermaid")).default;
+      const styles = getComputedStyle(document.documentElement);
+      const token = (name: string) => styles.getPropertyValue(name).trim();
       mermaid.initialize({
         startOnLoad: false,
-        theme: resolvedTheme === "dark" ? "dark" : "neutral",
+        theme: "base",
         securityLevel: "strict",
-        fontFamily: "var(--font-jetbrains-mono)",
+        fontFamily: "IBM Plex Mono, ui-monospace, monospace",
         themeVariables: {
-          primaryColor: "#3D8BFF22",
-          primaryBorderColor: "#3D8BFF",
-          lineColor: "#475569",
+          background: token("--surface"),
+          primaryColor: token("--surface-2"),
+          primaryTextColor: token("--text"),
+          primaryBorderColor: token("--cobalt"),
+          secondaryColor: token("--surface-3"),
+          secondaryTextColor: token("--text"),
+          secondaryBorderColor: token("--border"),
+          tertiaryColor: token("--surface"),
+          tertiaryTextColor: token("--text-dim"),
+          tertiaryBorderColor: token("--border"),
+          lineColor: token("--text-dim"),
+          textColor: token("--text"),
           fontSize: "13px",
         },
       });
@@ -43,11 +54,11 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   }, [chart, resolvedTheme]);
 
   return (
-    <div className="my-5 overflow-x-auto rounded-lg border border-border bg-card p-6">
+    <div className="my-5 overflow-x-auto border border-border bg-surface-2 p-6">
       {svg ? (
         <div ref={ref} dangerouslySetInnerHTML={{ __html: svg }} />
       ) : (
-        <div className="font-mono text-xs text-muted-foreground">Rendering diagram...</div>
+        <div className="font-mono text-xs text-text-dim">Rendering diagram...</div>
       )}
     </div>
   );

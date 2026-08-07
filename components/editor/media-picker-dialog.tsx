@@ -143,14 +143,14 @@ export function MediaPickerDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto p-6">
-        <h2 className="font-display text-lg font-semibold text-foreground">
+        <h2 className="font-display text-lg font-semibold text-text">
           {mode === "image" ? "Insert image" : "Insert file attachment"}
         </h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-sm text-text-dim">
           Choose a Media Library item or upload a new file.
         </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-          <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-border px-3 text-sm text-foreground hover:bg-accent">
+          <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 border border-border px-3 text-sm text-text hover:bg-surface-3">
             {uploading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
@@ -173,7 +173,7 @@ export function MediaPickerDialog({
             />
           </label>
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Search className="absolute left-3 top-3 h-4 w-4 text-text-dim" />
             <Input
               aria-label="Search media"
               value={query}
@@ -189,9 +189,9 @@ export function MediaPickerDialog({
               key={item.id}
               type="button"
               onClick={() => choose(item)}
-              className={`overflow-hidden rounded-md border p-2 text-left ${selected?.id === item.id ? "border-primary bg-primary/5" : "border-border"}`}
+              className={`overflow-hidden border p-2 text-left ${selected?.id === item.id ? "border-cobalt bg-cobalt-dim" : "border-border"}`}
             >
-              <div className="flex h-24 items-center justify-center rounded bg-muted/30">
+              <div className="flex h-24 items-center justify-center bg-surface-3">
                 {item.type === "IMAGE" ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -200,19 +200,19 @@ export function MediaPickerDialog({
                     className="h-full w-full object-cover"
                   />
                 ) : (
-                  <FileText className="h-7 w-7 text-muted-foreground" />
+                  <FileText className="h-7 w-7 text-text-dim" />
                 )}
               </div>
-              <p className="mt-2 truncate text-xs font-medium text-foreground">
+              <p className="mt-2 truncate text-xs font-medium text-text">
                 {item.filename}
               </p>
-              <p className="font-mono text-[0.62rem] text-muted-foreground">
+              <p className="font-mono text-[0.62rem] text-text-dim">
                 {item.type}
               </p>
             </button>
           ))}
           {!choices.length && (
-            <p className="col-span-full py-6 text-center text-sm text-muted-foreground">
+            <p className="col-span-full py-6 text-center text-sm text-text-dim">
               No matching media.
             </p>
           )}
@@ -247,7 +247,7 @@ export function MediaPickerDialog({
                     event.target.value as MediaImageInsert["alignment"],
                   )
                 }
-                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                className="h-10 w-full border border-border bg-surface px-3 text-sm"
               >
                 <option value="left">Left</option>
                 <option value="center">Center</option>
@@ -263,7 +263,7 @@ export function MediaPickerDialog({
                 onChange={(event) =>
                   setSize(event.target.value as MediaImageInsert["size"])
                 }
-                className="h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                className="h-10 w-full border border-border bg-surface px-3 text-sm"
               >
                 <option value="small">Small</option>
                 <option value="medium">Medium</option>
@@ -300,7 +300,7 @@ export function MediaPickerDialog({
         {error && (
           <p
             role="alert"
-            className="mt-4 rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive"
+            className="mt-4 border border-vermilion/30 bg-vermilion/5 px-3 py-2 text-sm text-vermilion"
           >
             {error}
           </p>
@@ -310,7 +310,7 @@ export function MediaPickerDialog({
             type="button"
             disabled={!selected || uploading}
             onClick={insert}
-            className="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground disabled:opacity-50"
+            className="inline-flex h-10 items-center gap-2 bg-text px-4 text-sm font-medium text-surface disabled:opacity-50"
           >
             {mode === "image" ? (
               <ImageIcon className="h-4 w-4" />

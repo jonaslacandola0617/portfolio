@@ -1,52 +1,30 @@
-import Link from "next/link";
-import { Plus, FlaskConical } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/admin/empty-state";
 import { ManagementList, type ManagementListRow } from "@/components/admin/management-list";
 import { getAllLabsForAdmin } from "@/lib/services/lab-admin-service";
 import { formatDate } from "@/lib/utils";
-import { deleteLabAction, bulkDeleteLabsAction } from "./actions";
-
-const statusVariant = { DRAFT: "default", PUBLISHED: "success", ARCHIVED: "outline", SCHEDULED: "warning" } as const;
+import { deleteLabAction, bulkDeleteLabsAction } from "@/app/admin/(dashboard)/labs/actions";
 
 export default async function AdminLabsPage() {
-  const labs = await getAllLabsForAdmin();
-
-  const rows: ManagementListRow[] = labs.map((l) => ({
+  const items = await getAllLabsForAdmin();
+  const rows: ManagementListRow[] = items.map((l) => ({
     id: l.id,
     title: l.title,
-    subtitle: `/${l.slug} · updated ${formatDate(l.updatedAt.toISOString().slice(0, 10))}`,
-    badgeLabel: l.publishStatus,
-    badgeVariant: statusVariant[l.publishStatus as keyof typeof statusVariant],
+    meta: l.category?.name ?? "Uncategorized",
+    status: l.publishStatus,
+    updated: formatDate(l.updatedAt.toISOString().slice(0, 10)),
   }));
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-10 md:px-10">
-      <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-foreground">Labs</h1>
-          <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-            Manage the hands-on labs shown publicly, including their purpose,
-            difficulty, resources, and publishing status. {labs.length} total.
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/admin/labs/new"><Plus className="h-4 w-4" /> New lab</Link>
-        </Button>
-      </div>
-
-      {labs.length === 0 ? (
-        <EmptyState icon={FlaskConical} title="No labs yet" description="Create a lab to document its purpose, configuration, evidence, and downloadable resources." />
-      ) : (
-        <ManagementList
-          rows={rows}
-          basePath="/admin/labs"
-          itemLabelSingular="lab"
-          itemLabelPlural="labs"
-          deleteOneAction={deleteLabAction}
-          deleteManyAction={bulkDeleteLabsAction}
-        />
-      )}
-    </div>
+    <ManagementList
+      index="02"
+      title="Labs"
+      eyebrow="Create hands-on labs — this is proof of your hard work."
+      rows={rows}
+      basePath="/admin/labs"
+      newHref="/admin/labs/new"
+      itemLabelSingular="lab"
+      itemLabelPlural="labs"
+      deleteOneAction={deleteLabAction}
+      deleteManyAction={bulkDeleteLabsAction}
+    />
   );
 }

@@ -1,32 +1,3 @@
-import type { Metadata } from "next";
-import { PageHeader } from "@/components/shared/page-header";
-import { CertificateCard } from "@/components/shared/certificate-card";
-import { getAllCertificates } from "@/lib/db/queries/certificates";
-
-export const metadata: Metadata = { title: "Certifications" };
-
-export default async function CertificationsPage() {
-  const certifications = await getAllCertificates();
-
-  return (
-    <div className="mx-auto max-w-3xl px-6 py-14 md:px-10">
-      <PageHeader
-        eyebrow="Certifications"
-        title="Certifications"
-        description="Completed credentials and the practical skills developed through each certification."
-      />
-
-      {certifications.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No published certifications yet.
-        </p>
-      ) : (
-        <div className="space-y-4">
-          {certifications.map((cert) => (
-            <CertificateCard key={cert.id} cert={cert} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import type {Metadata} from "next";import {PageHeader,PageShell} from "@/components/shared/page-header";import {CertificateCard} from "@/components/shared/certificate-card";import {getAllCertificates} from "@/lib/db/queries/certificates";
+export const metadata:Metadata={title:"Certifications"};
+export default async function CertificationsPage(){const certifications=await getAllCertificates();return <div><PageHeader index="05" eyebrow="Credentials" title="Certifications" description="Professional certifications and structured coursework, with the practical skills developed through each credential."/><PageShell>{certifications.length?<div className="grid grid-cols-1 gap-5 sm:grid-cols-2">{certifications.map((c,i)=><CertificateCard key={c.id} cert={c} index={i+1}/>)}</div>:<p className="text-sm text-text-dim">No published certifications yet.</p>}</PageShell></div>}

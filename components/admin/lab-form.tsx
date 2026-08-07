@@ -34,6 +34,7 @@ import {
 interface LabFormProps {
   mode: "create" | "edit";
   media?: AdminMediaItem[];
+  templateId?: string;
   lab?: {
     id: string;
     title: string;
@@ -56,7 +57,7 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
 }
 
-export function LabForm({ mode, lab, media = [] }: LabFormProps) {
+export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
@@ -80,6 +81,8 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
       enabled={mode === "edit"}
       storageKey="cms:lab:inspector"
       contentLabel="lab"
+      title={lab?.title}
+      backHref="/admin/labs"
     >
       <form
         onSubmit={editorForm.onSubmit}
@@ -176,7 +179,7 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
                     id="difficulty"
                     name="difficulty"
                     defaultValue={lab?.difficulty ?? "INTERMEDIATE"}
-                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                    className="flex h-10 w-full border border-border bg-surface px-3 text-sm"
                   >
                     <option value="BEGINNER">Beginner</option>
                     <option value="INTERMEDIATE">Intermediate</option>
@@ -189,7 +192,7 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
                     id="progressStatus"
                     name="progressStatus"
                     defaultValue={lab?.progressStatus ?? "PLANNED"}
-                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                    className="flex h-10 w-full border border-border bg-surface px-3 text-sm"
                   >
                     <option value="PLANNED">Planned</option>
                     <option value="IN_PROGRESS">In progress</option>
@@ -240,7 +243,7 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
                     name="publishStatus"
                     value={publishStatus}
                     onChange={(e) => setPublishStatus(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                    className="flex h-10 w-full border border-border bg-surface px-3 text-sm"
                   >
                     <option value="DRAFT">Draft</option>
                     <option value="PUBLISHED">Published</option>
@@ -251,7 +254,8 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
             </CardContent>
           </Card>
 
-          {mode === "create" && <TemplateSelector templates={labTemplates} />}
+          {mode === "create" && !templateId && <TemplateSelector templates={labTemplates} />}
+          {mode === "create" && templateId && <input type="hidden" name="templateId" value={templateId} />}
           {mode === "edit" && lab && (
             <LabResourcesEditor
               labId={lab.id}
@@ -264,8 +268,8 @@ export function LabForm({ mode, lab, media = [] }: LabFormProps) {
         <div
           className={
             mode === "edit"
-              ? "space-y-2 bg-card px-6 py-4"
-              : "space-y-3 rounded-lg border border-border bg-card p-4"
+              ? "sticky bottom-0 space-y-2 border-t border-border bg-surface-2 px-5 py-4"
+              : "space-y-3 border border-border bg-surface-2 p-4"
           }
         >
           {editorForm.coordinationError && (

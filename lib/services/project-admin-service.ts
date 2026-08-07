@@ -23,6 +23,7 @@ interface AdminProjectListItem {
   slug: string;
   publishStatus: string;
   updatedAt: Date;
+  category: { name: string } | null;
 }
 
 interface AdminProjectDetail {

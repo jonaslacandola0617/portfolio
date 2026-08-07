@@ -42,26 +42,26 @@ function SuccessToast({
       role="status"
       aria-live="polite"
       className={cn(
-        "flex w-full items-start gap-3 rounded-lg border border-success/30 bg-card px-4 py-3",
-        "text-card-foreground shadow-lg shadow-black/10 motion-safe:animate-fade-in",
+        "flex w-full items-start gap-3 border border-teal/30 bg-surface-2 px-4 py-3",
+        "text-text motion-safe:animate-fade-in",
       )}
     >
       <CheckCircle2
-        className="mt-0.5 h-4 w-4 shrink-0 text-success"
+        className="mt-0.5 h-4 w-4 shrink-0 text-teal"
         aria-hidden="true"
       />
       <div className="min-w-0 flex-1">
-        <p className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-success">
+        <p className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-teal">
           Success
         </p>
-        <p className="mt-0.5 text-sm leading-5 text-foreground">
+        <p className="mt-0.5 text-sm leading-5 text-text">
           {toast.message}
         </p>
       </div>
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        className="rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="p-1 text-text-dim transition-colors hover:bg-surface-3 hover:text-text focus-visible:outline-none focus-visible:border-cobalt"
         aria-label="Dismiss notification"
       >
         <X className="h-4 w-4" aria-hidden="true" />

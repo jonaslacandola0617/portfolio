@@ -1,32 +1,3 @@
-import type { Metadata } from "next";
-import { PageHeader } from "@/components/shared/page-header";
-import { ProjectCard } from "@/components/shared/project-card";
-import { getAllProjects } from "@/lib/content";
-
-export const metadata: Metadata = { title: "Projects" };
-
-export default async function ProjectsPage() {
-  const projects = await getAllProjects();
-
-  return (
-    <div className="mx-auto max-w-6xl px-6 py-14 md:px-10">
-      <PageHeader
-        eyebrow="Projects"
-        title="Hands-on builds"
-        description="Curated, end-to-end projects — each one documents objectives, configuration, verification, and what went wrong along the way."
-      />
-
-      {projects.length === 0 ? (
-        <p className="text-sm text-muted-foreground">
-          No published projects yet.
-        </p>
-      ) : (
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((p) => (
-            <ProjectCard key={p.frontmatter.slug} project={p.frontmatter} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
+import type {Metadata} from "next";import {PageHeader,PageShell} from "@/components/shared/page-header";import {ProjectIndex} from "@/components/shared/project-index";import {getAllProjects} from "@/lib/content";
+export const metadata:Metadata={title:"Projects"};
+export default async function ProjectsPage(){const projects=await getAllProjects();return <div><PageHeader index="02" eyebrow="Index" title="Projects" description="Applied work across networking, security, and software — each entry documented as a self-contained case study: objective, process, and evidence."/><PageShell>{projects.length?<ProjectIndex projects={projects.map(p=>p.frontmatter)}/>:<p className="text-sm text-text-dim">No published projects yet.</p>}</PageShell></div>}

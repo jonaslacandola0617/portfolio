@@ -78,7 +78,13 @@ export function CertificateForm({
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
 
   return (
-    <div className="">
+    <AuthoringWorkspace
+      enabled={mode === "edit"}
+      storageKey="cms:certificate:inspector"
+      contentLabel="certificate"
+      title={certificate?.name}
+      backHref="/admin/certificates"
+    >
       <form
         onSubmit={editorForm.onSubmit}
         className={
@@ -216,7 +222,7 @@ export function CertificateForm({
                     name="publishStatus"
                     value={publishStatus}
                     onChange={(e) => setPublishStatus(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                    className="flex h-10 w-full border border-border bg-surface px-3 text-sm"
                   >
                     <option value="DRAFT">Draft</option>
                     <option value="PUBLISHED">Published</option>
@@ -241,7 +247,7 @@ export function CertificateForm({
           </Card>
         </div>
 
-        <div className={mode === "edit" ? "space-y-2 px-6 py-4" : "space-y-3"}>
+        <div className={mode === "edit" ? "sticky bottom-0 space-y-2 border-t border-border bg-surface-2 px-5 py-4" : "space-y-3"}>
           {editorForm.coordinationError && (
             <FormMessage variant="error">
               {editorForm.coordinationError}
@@ -294,6 +300,6 @@ export function CertificateForm({
           Save the certificate first to add an optional longer write-up.
         </p>
       )}
-    </div>
+    </AuthoringWorkspace>
   );
 }

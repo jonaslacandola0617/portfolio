@@ -1,33 +1,6 @@
 import Link from "next/link";
-import { CheckSquare } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-interface LearningItem {
-  label: string;
-  href: string;
-}
-
+import { ExternalLink } from "lucide-react";
+interface LearningItem { label:string; href:string; }
 export function LearningProgress({ items }: { items: readonly LearningItem[] }) {
-  return (
-    <Card>
-      <CardHeader className="flex-row items-center justify-between space-y-0">
-        <CardTitle className="text-sm font-mono uppercase tracking-wide text-muted-foreground">
-          Currently Learning
-        </CardTitle>
-        <span className="flex h-2 w-2 rounded-full bg-success animate-pulse-dot" />
-      </CardHeader>
-      <CardContent className="space-y-2.5">
-        {items.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className="flex items-center gap-2.5 text-sm text-foreground/90 transition-colors hover:text-primary"
-          >
-            <CheckSquare className="h-3.5 w-3.5 shrink-0 text-primary" />
-            <span>{item.label}</span>
-          </Link>
-        ))}
-      </CardContent>
-    </Card>
-  );
+  return <div className="border border-border bg-surface-2">{items.map((item,i)=><Link key={item.label} href={item.href} className={`flex items-center justify-between gap-3 px-5 py-3.5 text-sm text-text-dim transition-colors hover:text-text ${i!==items.length-1?"border-b border-border":""}`}><span className="flex items-center gap-3"><span className="h-1.5 w-1.5 shrink-0 animate-pulse-node rounded-full bg-signal"/>{item.label}</span><ExternalLink size={12} className="shrink-0 text-muted-foreground"/></Link>)}</div>;
 }

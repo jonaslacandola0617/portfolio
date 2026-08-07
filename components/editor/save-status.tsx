@@ -16,11 +16,11 @@ export type SaveStatus = "idle" | "unsaved" | "saving" | "retrying" | "saved" | 
  */
 const config: Record<SaveStatus, { label: string; className: string }> = {
   idle: { label: "", className: "" },
-  unsaved: { label: "Unsaved changes", className: "text-muted-foreground" },
-  saving: { label: "Saving...", className: "text-muted-foreground" },
-  retrying: { label: "Retrying...", className: "text-warning" },
-  saved: { label: "Saved", className: "text-success" },
-  error: { label: "Save failed", className: "text-destructive" },
+  unsaved: { label: "Unsaved changes", className: "text-text-dim" },
+  saving: { label: "Saving...", className: "text-text-dim" },
+  retrying: { label: "Retrying...", className: "text-signal" },
+  saved: { label: "Saved", className: "text-teal" },
+  error: { label: "Save failed", className: "text-vermilion" },
 };
 
 interface SaveStatusIndicatorProps {
@@ -45,12 +45,12 @@ export function SaveStatusIndicator({ status, errorMessage, onRetry }: SaveStatu
       </span>
       {status === "error" && (
         <div className="flex items-center gap-2">
-          {errorMessage && <span className="text-xs text-destructive">{errorMessage}</span>}
+          {errorMessage && <span className="text-xs text-vermilion">{errorMessage}</span>}
           {onRetry && (
             <button
               type="button"
               onClick={onRetry}
-              className="rounded border border-destructive/40 px-2 py-0.5 text-xs font-medium text-destructive hover:bg-destructive/10"
+              className="border border-vermilion/40 px-2 py-0.5 text-xs font-medium text-vermilion hover:bg-vermilion-dim"
             >
               Retry
             </button>

@@ -72,10 +72,10 @@ export function DateSelector({
   return (
     <fieldset className="space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <legend className="text-sm font-medium leading-none text-foreground">
+        <legend className="text-sm font-medium leading-none text-text">
           <span className="font-mono">{label}</span>
           {optional && (
-            <span className="ml-1 font-normal text-muted-foreground">
+            <span className="ml-1 font-normal text-text-dim">
               (optional)
             </span>
           )}
@@ -93,12 +93,12 @@ export function DateSelector({
         )}
       </div>
       <input type="hidden" id={id} name={name} value={submittedValue} />
-      <div className="grid grid-cols-[1.4fr_0.8fr_1fr] gap-2 rounded-md border border-border bg-background p-2">
+      <div className="grid grid-cols-[1.4fr_0.8fr_1fr] gap-2 border border-border bg-surface p-2">
         <select
           aria-label={`${label} month`}
           value={month}
           onChange={(event) => setMonth(event.target.value)}
-          className="h-9 min-w-0 rounded border border-border bg-card px-2 text-sm text-foreground"
+          className="h-9 min-w-0 border border-border bg-surface-2 px-2 text-sm text-text"
         >
           <option value="">Month</option>
           {months.map((item, index) => (
@@ -111,7 +111,7 @@ export function DateSelector({
           aria-label={`${label} day`}
           value={safeDay}
           onChange={(event) => setDay(event.target.value)}
-          className="h-9 min-w-0 rounded border border-border bg-card px-2 text-sm text-foreground"
+          className="h-9 min-w-0 border border-border bg-surface-2 px-2 text-sm text-text"
         >
           <option value="">Day</option>
           {Array.from({ length: dayCount }, (_, index) => index + 1).map(
@@ -126,7 +126,7 @@ export function DateSelector({
           aria-label={`${label} year`}
           value={year}
           onChange={(event) => setYear(event.target.value)}
-          className="h-9 min-w-0 rounded border border-border bg-card px-2 text-sm text-foreground"
+          className="h-9 min-w-0 border border-border bg-surface-2 px-2 text-sm text-text"
         >
           <option value="">Year</option>
           {years.map((item) => (
@@ -136,7 +136,7 @@ export function DateSelector({
           ))}
         </select>
       </div>
-      <p className="flex min-h-4 items-center gap-1.5 font-mono text-[0.68rem] text-muted-foreground">
+      <p className="flex min-h-4 items-center gap-1.5 font-mono text-[0.68rem] text-text-dim">
         <CalendarDays className="h-3.5 w-3.5" />
         {hasPartialValue
           ? "Complete all three date fields"

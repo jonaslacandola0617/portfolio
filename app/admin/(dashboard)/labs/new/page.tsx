@@ -1,19 +1,19 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { LabForm } from "@/components/admin/lab-form";
+import { TemplateStart } from "@/components/admin/template-start";
+import { labTemplates } from "@/lib/editor/templates";
 
-export default function NewLabPage() {
+export default function NewLabPage({ searchParams }: { searchParams: { template?: string } }) {
+  const selected = labTemplates.find((template) => template.id === searchParams.template);
+  if (!selected) return <TemplateStart kindLabel="lab" templates={labTemplates} cancelHref="/admin/labs" />;
   return (
-    <div className="mx-auto max-w-3xl px-6 py-10 md:px-10">
-      <Link href="/admin/labs" className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-3.5 w-3.5" /> Back to labs
-      </Link>
-      <h1 className="font-display text-2xl font-semibold text-foreground">New lab</h1>
-      <p className="mb-6 mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-        Define the lab’s purpose, classification, and visibility. The write-up
-        editor and resource controls open after creation.
-      </p>
-      <LabForm mode="create" />
+    <div className="px-6 py-8 sm:px-10">
+      <Link href="/admin/labs/new" className="mb-6 inline-flex items-center gap-1.5 text-sm text-text-dim hover:text-text"><ArrowLeft className="h-3.5 w-3.5" /> Change template</Link>
+      <p className="label mb-2">New lab · {selected.name}</p>
+      <h1 className="font-display text-2xl font-semibold text-text">Lab details</h1>
+      <p className="mb-8 mt-1 max-w-2xl text-sm text-text-dim">Set the lab metadata. The selected structure will open in the editor after creation.</p>
+      <div className="max-w-3xl"><LabForm mode="create" templateId={selected.id} /></div>
     </div>
   );
 }

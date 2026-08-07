@@ -61,7 +61,7 @@ export function SkillGroupInput({
         aria-activedescendant={focused && matches.length > 0 ? `skill-group-option-${activeIndex}` : undefined}
       />
       {focused && matches.length > 0 && (
-        <div id="skill-group-suggestions" role="listbox" className="absolute z-40 mt-1 w-full rounded-md border border-border bg-popover p-1 shadow-lg">
+        <div id="skill-group-suggestions" role="listbox" className="absolute z-40 mt-1 w-full border border-border bg-surface-2 p-1">
           {matches.map((group, index) => (
             <button
               key={skillGroupKey(group)}
@@ -74,15 +74,15 @@ export function SkillGroupInput({
                 setValue(group);
                 setFocused(false);
               }}
-              className={`flex w-full items-center justify-between rounded px-3 py-2 text-left text-sm hover:bg-accent ${index === activeIndex ? "bg-accent" : ""}`}
+              className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-surface-3 ${index === activeIndex ? "bg-surface-3" : ""}`}
             >
               {group}
-              {skillGroupKey(group) === skillGroupKey(value) && <Check className="h-3.5 w-3.5 text-primary" />}
+              {skillGroupKey(group) === skillGroupKey(value) && <Check className="h-3.5 w-3.5 text-cobalt" />}
             </button>
           ))}
         </div>
       )}
-      <p className="mt-1.5 text-xs text-muted-foreground">
+      <p className="mt-1.5 text-xs text-text-dim">
         Choose an existing group or enter a new one. New Skills default to {UNGROUPED_SKILL_GROUP}.
       </p>
     </div>

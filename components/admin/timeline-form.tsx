@@ -35,7 +35,7 @@ const initialState: ActionResult = { success: false };
 
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
-  return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
+  return <p className="mt-1 text-xs text-vermilion">{errors[0]}</p>;
 }
 
 export function TimelineForm({ mode, entry }: TimelineFormProps) {
@@ -74,7 +74,7 @@ export function TimelineForm({ mode, entry }: TimelineFormProps) {
             </div>
             <div>
               <Label htmlFor="category">Category</Label>
-              <select id="category" name="category" defaultValue={entry?.category ?? "networking"} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
+              <select id="category" name="category" defaultValue={entry?.category ?? "networking"} className="flex h-10 w-full border border-border bg-surface px-3 text-sm">
                 <option value="networking">Networking</option>
                 <option value="security">Security</option>
                 <option value="linux">Linux</option>
@@ -91,12 +91,12 @@ export function TimelineForm({ mode, entry }: TimelineFormProps) {
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
               <Label htmlFor="publishStatus">Publish status</Label>
-              <select id="publishStatus" name="publishStatus" value={publishStatus} onChange={(e) => setPublishStatus(e.target.value)} className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm">
+              <select id="publishStatus" name="publishStatus" value={publishStatus} onChange={(e) => setPublishStatus(e.target.value)} className="flex h-10 w-full border border-border bg-surface px-3 text-sm">
                 <option value="DRAFT">Draft</option>
                 <option value="PUBLISHED">Published</option>
                 <option value="ARCHIVED">Archived</option>
               </select>
-              <p className="mt-1.5 text-xs text-muted-foreground">Publish manually when the entry is ready.</p>
+              <p className="mt-1.5 text-xs text-text-dim">Publish manually when the entry is ready.</p>
             </div>
           </div>
         </CardContent>

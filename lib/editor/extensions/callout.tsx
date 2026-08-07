@@ -3,11 +3,11 @@ import { ReactNodeViewRenderer, NodeViewWrapper, NodeViewContent, type NodeViewP
 import { Info, TriangleAlert, CircleCheck, OctagonX, Lightbulb } from "lucide-react";
 
 const variantConfig = {
-  info: { icon: Info, className: "border-primary/30 bg-primary/5 text-primary" },
-  tip: { icon: Lightbulb, className: "border-primary/30 bg-primary/5 text-primary" },
-  warning: { icon: TriangleAlert, className: "border-warning/30 bg-warning/5 text-warning" },
-  success: { icon: CircleCheck, className: "border-success/30 bg-success/5 text-success" },
-  danger: { icon: OctagonX, className: "border-destructive/30 bg-destructive/5 text-destructive" },
+  info: { icon: Info, className: "border-cobalt/30 bg-cobalt-dim text-cobalt" },
+  tip: { icon: Lightbulb, className: "border-cobalt/30 bg-cobalt-dim text-cobalt" },
+  warning: { icon: TriangleAlert, className: "border-signal/30 bg-signal/5 text-signal" },
+  success: { icon: CircleCheck, className: "border-teal/30 bg-teal/5 text-teal" },
+  danger: { icon: OctagonX, className: "border-vermilion/30 bg-vermilion/5 text-vermilion" },
 } as const;
 
 type Variant = keyof typeof variantConfig;
@@ -18,17 +18,17 @@ function CalloutNodeView({ node, updateAttributes }: NodeViewProps) {
   const Icon = config.icon;
 
   return (
-    <NodeViewWrapper className={`my-3 rounded-lg border px-4 py-3.5 ${config.className}`} data-drag-handle>
+    <NodeViewWrapper className={`my-3 border px-4 py-3.5 ${config.className}`} data-drag-handle>
       <div className="mb-1.5 flex items-center gap-2">
         <Icon className="h-4 w-4 shrink-0" />
         <select
           contentEditable={false}
           value={variant}
           onChange={(e) => updateAttributes({ variant: e.target.value })}
-          className="rounded border border-current/20 bg-transparent font-mono text-[0.65rem] uppercase tracking-wide"
+          className="border border-current/20 bg-transparent font-mono text-[0.65rem] uppercase tracking-wide"
         >
           {Object.keys(variantConfig).map((v) => (
-            <option key={v} value={v} className="text-foreground">
+            <option key={v} value={v} className="text-text">
               {v}
             </option>
           ))}

@@ -1,52 +1,7 @@
 import { Network, ShieldCheck, Terminal, Code2, Flag } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import type { TimelineEntry } from "@/types";
-
-const categoryConfig: Record<
-  TimelineEntry["category"],
-  { icon: typeof Network; color: string; ring: string }
-> = {
-  networking: { icon: Network, color: "text-primary", ring: "ring-primary/30" },
-  security: { icon: ShieldCheck, color: "text-success", ring: "ring-success/30" },
-  linux: { icon: Terminal, color: "text-warning", ring: "ring-warning/30" },
-  programming: { icon: Code2, color: "text-primary", ring: "ring-primary/30" },
-  milestone: { icon: Flag, color: "text-destructive", ring: "ring-destructive/30" },
-};
-
+const cfg={networking:{icon:Network,cls:"bg-cobalt"},security:{icon:ShieldCheck,cls:"bg-vermilion"},linux:{icon:Terminal,cls:"bg-signal"},programming:{icon:Code2,cls:"bg-cobalt"},milestone:{icon:Flag,cls:"bg-teal"}} as const;
 export function Timeline({ entries }: { entries: TimelineEntry[] }) {
-  return (
-    <ol className="relative border-l border-border ml-4">
-      {entries.map((entry) => {
-        const config = categoryConfig[entry.category];
-        const EntryIcon = config.icon;
-        return (
-          <li key={entry.id} className="relative pb-10 pl-8 last:pb-0">
-            <span
-              className={`absolute -left-[9px] top-0.5 flex h-4 w-4 items-center justify-center rounded-full border-2 border-background bg-card ring-4 ${config.ring}`}
-            >
-              <span className={`h-1.5 w-1.5 rounded-full bg-current ${config.color}`} />
-            </span>
-            <div className="flex items-center gap-2">
-              <EntryIcon className={`h-3.5 w-3.5 ${config.color}`} />
-              <time className="font-mono text-xs text-muted-foreground">{formatDate(entry.date)}</time>
-            </div>
-            <h3 className="mt-1.5 font-display text-sm font-semibold text-foreground">{entry.title}</h3>
-            <p className="mt-1 text-sm text-muted-foreground">{entry.description}</p>
-            {entry.tags && entry.tags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {entry.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded border border-border bg-muted/50 px-1.5 py-0.5 font-mono text-[0.65rem] text-muted-foreground"
-                  >
-                    #{tag}
-                  </span>
-                ))}
-              </div>
-            )}
-          </li>
-        );
-      })}
-    </ol>
-  );
+ return <ol className="relative ml-3 border-l border-border pl-8 sm:pl-10">{entries.map((e,i)=>{const C=cfg[e.category]; const Icon=C.icon; return <li key={e.id} className="relative pb-10 last:pb-0"><span className={`absolute -left-[37px] top-1 h-2.5 w-2.5 rounded-full ${C.cls} sm:-left-[45px]`}/><div className="mb-2 flex items-center gap-3"><span className="idx">{String(i+1).padStart(2,"0")}</span><Icon size={13} className="text-cobalt"/><time className="font-mono text-xs text-muted-foreground">{formatDate(e.date)}</time></div><h3 className="font-display text-lg font-semibold text-text">{e.title}</h3><p className="mt-2 text-sm leading-relaxed text-text-dim">{e.description}</p>{e.tags?.length?<div className="mt-3 flex flex-wrap gap-1.5">{e.tags.map(t=><span key={t} className="label border border-border px-1.5 py-0.5">{t}</span>)}</div>:null}</li>})}</ol>;
 }

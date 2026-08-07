@@ -2,111 +2,49 @@ import type { Config } from "tailwindcss";
 
 const config: Config = {
   darkMode: "class",
-  content: [
-    "./app/**/*.{ts,tsx,mdx}",
-    "./components/**/*.{ts,tsx}",
-    "./content/**/*.{md,mdx}",
-  ],
+  content: ["./app/**/*.{ts,tsx,mdx}", "./components/**/*.{ts,tsx}", "./content/**/*.{md,mdx}"],
   theme: {
-    container: {
-      center: true,
-      padding: "1.5rem",
-    },
     extend: {
-      fontFamily: {
-        sans: ["var(--font-inter)", "system-ui", "sans-serif"],
-        display: ["var(--font-space-grotesk)", "var(--font-inter)", "system-ui", "sans-serif"],
-        mono: ["var(--font-jetbrains-mono)", "ui-monospace", "SFMono-Regular", "monospace"],
-      },
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
-        primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
-        },
-        secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
-        },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
-        },
-        success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
-        },
-        warning: {
-          DEFAULT: "hsl(var(--warning))",
-          foreground: "hsl(var(--warning-foreground))",
-        },
-        destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
-        },
+        ink: "var(--ink)", graphite: "var(--graphite)", charcoal: "var(--charcoal)",
+        surface: "var(--surface)", "surface-2": "var(--surface-2)", "surface-3": "var(--surface-3)",
+        bone: "var(--bone)", paper: "var(--paper)", border: "var(--border)", "border-strong": "var(--border-strong)",
+        muted: { DEFAULT: "var(--surface-3)", foreground: "var(--muted)" },
+        text: "var(--text)", "text-dim": "var(--text-dim)", cobalt: "var(--cobalt)", "cobalt-dim": "var(--cobalt-dim)",
+        vermilion: "var(--vermilion)", "vermilion-dim": "var(--vermilion-dim)", signal: "var(--signal-yellow)", teal: "var(--signal-teal)",
+        background: "var(--surface)", foreground: "var(--text)", input: "var(--border)", ring: "var(--cobalt)",
+        primary: { DEFAULT: "var(--cobalt)", foreground: "#ffffff" },
+        secondary: { DEFAULT: "var(--surface-3)", foreground: "var(--text)" },
+        accent: { DEFAULT: "var(--surface-3)", foreground: "var(--text)" },
+        card: { DEFAULT: "var(--surface-2)", foreground: "var(--text)" },
+        popover: { DEFAULT: "var(--surface-2)", foreground: "var(--text)" },
+        success: { DEFAULT: "var(--signal-teal)", foreground: "#ffffff" },
+        warning: { DEFAULT: "var(--signal-yellow)", foreground: "var(--ink)" },
+        destructive: { DEFAULT: "var(--vermilion)", foreground: "#ffffff" },
       },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+      fontFamily: {
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        body: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        display: ["var(--font-space-grotesk)", "'Space Grotesk'", "system-ui", "sans-serif"],
+        mono: ["var(--font-ibm-plex-mono)", "'IBM Plex Mono'", "ui-monospace", "monospace"],
       },
-      backgroundImage: {
-        "grid-pattern":
-          "linear-gradient(hsl(var(--border) / 0.5) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--border) / 0.5) 1px, transparent 1px)",
-      },
+      borderRadius: { xs: "2px", sm: "4px", md: "6px", lg: "10px" },
+      maxWidth: { content: "68ch" },
+      transitionTimingFunction: { signal: "cubic-bezier(0.16, 1, 0.3, 1)" },
       keyframes: {
-        "accordion-down": {
-          from: { height: "0" },
-          to: { height: "var(--radix-accordion-content-height)" },
-        },
-        "accordion-up": {
-          from: { height: "var(--radix-accordion-content-height)" },
-          to: { height: "0" },
-        },
-        "fade-up": {
-          "0%": { opacity: "0", transform: "translateY(8px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        "fade-in": {
-          "0%": { opacity: "0" },
-          "100%": { opacity: "1" },
-        },
-        "drift": {
-          "0%, 100%": { transform: "translate(0, 0)" },
-          "50%": { transform: "translate(6px, -8px)" },
-        },
-        "pulse-dot": {
-          "0%, 100%": { opacity: "1" },
-          "50%": { opacity: "0.4" },
-        },
+        "accordion-down": { from: { height: "0" }, to: { height: "var(--radix-accordion-content-height)" } },
+        "accordion-up": { from: { height: "var(--radix-accordion-content-height)" }, to: { height: "0" } },
+        "fade-up": { "0%": { opacity: "0", transform: "translateY(8px)" }, "100%": { opacity: "1", transform: "translateY(0)" } },
+        "fade-in": { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
+        "pulse-node": { "0%,100%": { opacity: "1" }, "50%": { opacity: ".35" } },
       },
       animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-        "fade-up": "fade-up 0.5s ease-out both",
-        "fade-in": "fade-in 0.5s ease-out both",
-        "drift": "drift 8s ease-in-out infinite",
-        "pulse-dot": "pulse-dot 2s ease-in-out infinite",
+        "accordion-down": "accordion-down .2s ease-out", "accordion-up": "accordion-up .2s ease-out",
+        "fade-up": "fade-up .5s cubic-bezier(.16,1,.3,1) both", "fade-in": "fade-in .2s ease-out both",
+        "pulse-dot": "pulse-node 2.4s ease-in-out infinite", "pulse-node": "pulse-node 2.4s ease-in-out infinite",
       },
     },
   },
   plugins: [require("tailwindcss-animate")],
 };
-
 export default config;

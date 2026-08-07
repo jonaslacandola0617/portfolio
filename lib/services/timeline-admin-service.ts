@@ -10,6 +10,7 @@ interface AdminTimelineListItem {
   title: string;
   date: Date;
   publishStatus: string;
+  category: string;
 }
 
 interface AdminTimelineDetail {

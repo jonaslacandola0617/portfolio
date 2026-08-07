@@ -33,6 +33,7 @@ import {
 interface ArticleFormProps {
   mode: "create" | "edit";
   media?: AdminMediaItem[];
+  templateId?: string;
   article?: {
     id: string;
     title: string;
@@ -52,7 +53,7 @@ function FieldError({ errors }: { errors?: string[] }) {
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
 }
 
-export function ArticleForm({ mode, article, media = [] }: ArticleFormProps) {
+export function ArticleForm({ mode, article, media = [], templateId }: ArticleFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
@@ -78,6 +79,8 @@ export function ArticleForm({ mode, article, media = [] }: ArticleFormProps) {
       enabled={mode === "edit"}
       storageKey="cms:article:inspector"
       contentLabel="journal entry"
+      title={article?.title}
+      backHref="/admin/journal"
     >
       <form
         onSubmit={editorForm.onSubmit}
@@ -207,7 +210,7 @@ export function ArticleForm({ mode, article, media = [] }: ArticleFormProps) {
                     name="publishStatus"
                     value={publishStatus}
                     onChange={(e) => setPublishStatus(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-border bg-background px-3 text-sm"
+                    className="flex h-10 w-full border border-border bg-surface px-3 text-sm"
                   >
                     <option value="DRAFT">Draft</option>
                     <option value="PUBLISHED">Published</option>
@@ -218,16 +221,17 @@ export function ArticleForm({ mode, article, media = [] }: ArticleFormProps) {
             </CardContent>
           </Card>
 
-          {mode === "create" && (
+          {mode === "create" && !templateId && (
             <TemplateSelector templates={articleTemplates} />
           )}
+          {mode === "create" && templateId && <input type="hidden" name="templateId" value={templateId} />}
         </div>
 
         <div
           className={
             mode === "edit"
-              ? "space-y-2 bg-card px-6 py-4"
-              : "space-y-3 rounded-lg border border-border bg-card p-4"
+              ? "sticky bottom-0 space-y-2 border-t border-border bg-surface-2 px-5 py-4"
+              : "space-y-3 border border-border bg-surface-2 p-4"
           }
         >
           {editorForm.coordinationError && (

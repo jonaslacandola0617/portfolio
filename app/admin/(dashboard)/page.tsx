@@ -1,9 +1,8 @@
 import Link from "next/link";
 import { AlertTriangle, BadgeCheck, FlaskConical, FolderGit2, NotebookPen } from "lucide-react";
 import { getDashboardOverview } from "@/lib/services/dashboard-service";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatCard } from "@/components/admin/stat-card";
+import { PageHeader, PageShell } from "@/components/shared/page-header";
 import type { ContentTypeMetric, DashboardSection } from "@/types/admin";
 
 const metricIcons = {
@@ -15,8 +14,8 @@ const metricIcons = {
 
 function SectionFailure({ message }: { message: string }) {
   return (
-    <div className="rounded-lg border border-warning/30 bg-warning/5 px-4 py-6 text-sm text-muted-foreground">
-      <AlertTriangle className="mb-2 h-5 w-5 text-warning" />
+    <div className="border border-signal/40 bg-surface-2 px-4 py-6 text-sm text-text-dim">
+      <AlertTriangle className="mb-2 h-5 w-5 text-signal" />
       {message} Refresh the page to try again.
     </div>
   );
@@ -25,15 +24,9 @@ function SectionFailure({ message }: { message: string }) {
 function Metrics({ section }: { section: DashboardSection<ContentTypeMetric[]> }) {
   if (!section.ok) return <SectionFailure message={section.message} />;
   return (
-    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
       {section.data.map((metric) => (
-        <StatCard
-          key={metric.key}
-          label={metric.label}
-          value={metric.total}
-          href={metric.href}
-          icon={metricIcons[metric.key]}
-        />
+        <StatCard key={metric.key} label={metric.label} value={metric.total} href={metric.href} icon={metricIcons[metric.key]} />
       ))}
     </div>
   );
@@ -54,48 +47,42 @@ export default async function AdminDashboardPage() {
   const overview = await getDashboardOverview();
 
   return (
-    <div className="mx-auto max-w-7xl px-5 py-8 sm:px-6 md:px-10">
-      <div className="mb-7">
-        <h1 className="font-display text-2xl font-semibold text-foreground">Dashboard</h1>
-        <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-          Review current portfolio content totals and the records most recently
-          updated through the CMS.
-        </p>
-      </div>
+    <div>
+      <PageHeader index="00" eyebrow="Overview of published content." title="Dashboard" />
+      <PageShell>
+        <div className="mb-10">
+          <Metrics section={overview.metrics} />
+        </div>
 
-      <Metrics section={overview.metrics} />
-
-      <Card className="mt-6 overflow-hidden">
-        <CardHeader className="flex-row items-center justify-between space-y-0">
-          <CardTitle className="font-mono text-sm uppercase tracking-wide text-muted-foreground">
-            Recent Activity
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
+        <div>
+          <p className="idx mb-3">Recent Activity</p>
           {overview.recentlyUpdated.ok ? (
             overview.recentlyUpdated.data.length ? (
-              <div className="divide-y divide-border">
-                {overview.recentlyUpdated.data.map((item) => (
+              <div className="border border-border bg-surface-2">
+                {overview.recentlyUpdated.data.map((item, index) => (
                   <Link
                     key={`${item.type}-${item.id}`}
                     href={item.href}
-                    className="grid gap-1 px-5 py-3 transition-colors hover:bg-accent sm:grid-cols-[6rem_1fr_auto_auto] sm:items-center sm:gap-3"
+                    className={`grid gap-1 px-4 py-3 transition-colors hover:bg-surface-3 sm:grid-cols-[88px_1fr_110px_90px] sm:items-center sm:gap-3 ${index ? "border-t border-border" : ""}`}
                   >
-                    <span className="font-mono text-[0.62rem] tracking-wide text-primary">{item.type}</span>
-                    <span className="truncate text-sm font-medium text-foreground">{item.title}</span>
-                    <Badge variant="outline">{item.status}</Badge>
-                    <span className="text-xs text-muted-foreground">{relativeTime(item.updatedAt)}</span>
+                    <span className="label text-cobalt">{item.type}</span>
+                    <span className="truncate text-sm font-medium text-text">{item.title}</span>
+                    <span className="label flex items-center gap-1.5 text-text-dim">
+                      <span className={`h-1.5 w-1.5 rounded-full ${item.status === "PUBLISHED" ? "bg-teal" : "bg-signal"}`} />
+                      {item.status}
+                    </span>
+                    <span className="font-mono text-xs text-muted sm:text-right">{relativeTime(item.updatedAt)}</span>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="px-5 py-8 text-sm text-muted-foreground">No content updates yet.</p>
+              <p className="border border-border px-4 py-8 text-sm text-muted">No content updates yet.</p>
             )
           ) : (
-            <div className="p-5"><SectionFailure message={overview.recentlyUpdated.message} /></div>
+            <SectionFailure message={overview.recentlyUpdated.message} />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </PageShell>
     </div>
   );
 }

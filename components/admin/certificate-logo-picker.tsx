@@ -74,12 +74,12 @@ export function CertificateLogoPicker({
 
   return (
     <section
-      className="overflow-hidden rounded-lg border-2 border-dashed border-border bg-card"
+      className="overflow-hidden border-2 border-dashed border-border bg-surface-2"
       aria-busy={uploading}
     >
       <input type="hidden" name="logoMediaId" value={selectedId} />
       <div className="flex items-center gap-4 p-4">
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-background sm:h-24 sm:w-24">
+        <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden border border-border bg-surface sm:h-24 sm:w-24">
           {selected ? (
             // Blob hostnames are dynamic, so this preview intentionally uses a native image element.
             // eslint-disable-next-line @next/next/no-img-element
@@ -90,31 +90,31 @@ export function CertificateLogoPicker({
             />
           ) : (
             <ImageIcon
-              className="h-6 w-6 text-muted-foreground"
+              className="h-6 w-6 text-text-dim"
               aria-hidden="true"
             />
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <p className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-muted-foreground">
+          <p className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-text-dim">
             {selected ? "Selected logo" : "Certificate logo"}
           </p>
-          <p className="mt-1 truncate text-sm font-medium text-foreground">
+          <p className="mt-1 truncate text-sm font-medium text-text">
             {selected?.filename ?? "No logo selected"}
           </p>
-          <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          <p className="mt-1 text-xs leading-5 text-text-dim">
             {selected
               ? "This image will appear with the certificate on the public site."
               : "Upload an issuer logo or choose an image already in the Media Library."}
           </p>
         </div>
       </div>
-      <div className="space-y-3 bg-background/60 p-4">
+      <div className="space-y-3 bg-surface/60 p-4">
         {images.length > 0 && (
           <div>
             <label
               htmlFor="certificate-logo-media"
-              className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-muted-foreground"
+              className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-text-dim"
             >
               Choose from Media Library
             </label>
@@ -126,7 +126,7 @@ export function CertificateLogoPicker({
                 setError(null);
               }}
               disabled={uploading}
-              className="mt-1.5 h-10 w-full rounded-md border border-border bg-background px-3 text-sm text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-1.5 h-10 w-full border border-border bg-surface px-3 text-sm text-text transition-colors focus-visible:outline-none focus-visible:border-cobalt disabled:cursor-not-allowed disabled:opacity-60"
             >
               <option value="">No logo</option>
               {images.map((item) => (
@@ -167,7 +167,7 @@ export function CertificateLogoPicker({
                 setSelectedId("");
                 setError(null);
               }}
-              className="justify-center text-muted-foreground hover:text-foreground"
+              className="justify-center text-text-dim hover:text-text"
             >
               <X className="h-4 w-4" /> Remove logo
             </Button>
@@ -183,14 +183,14 @@ export function CertificateLogoPicker({
             event.target.files?.[0] && void uploadLogo(event.target.files[0])
           }
         />
-        <p className="text-xs leading-5 text-muted-foreground">
+        <p className="text-xs leading-5 text-text-dim">
           PNG, JPEG, WebP, or GIF up to 10 MB. Removing a logo keeps the file in
           the Media Library.
         </p>
         {error && (
           <p
             role="alert"
-            className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive"
+            className="border border-vermilion/30 bg-vermilion-dim px-3 py-2 text-xs text-vermilion"
           >
             {error}
           </p>

@@ -12,7 +12,7 @@ export function RelatedContent({ title = "Related", items }: { title?: string; i
 
   return (
     <div className="mt-10 border-t border-border pt-8">
-      <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+      <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wide text-text-dim">
         {title}
       </h2>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -20,15 +20,15 @@ export function RelatedContent({ title = "Related", items }: { title?: string; i
           <Link
             key={item.href}
             href={item.href}
-            className="group flex items-center justify-between gap-3 rounded-lg border border-border bg-card px-4 py-3 transition-colors hover:border-primary/40"
+            className="group flex items-center justify-between gap-3 border border-border bg-surface-2 px-4 py-3 transition-colors hover:border-cobalt/40"
           >
             <div className="min-w-0">
-              <div className="truncate text-sm font-medium text-foreground group-hover:text-primary transition-colors">
+              <div className="truncate text-sm font-medium text-text group-hover:text-cobalt transition-colors">
                 {item.title}
               </div>
-              {item.meta && <div className="font-mono text-[0.68rem] text-muted-foreground">{item.meta}</div>}
+              {item.meta && <div className="font-mono text-[0.68rem] text-text-dim">{item.meta}</div>}
             </div>
-            <ArrowRight className="h-4 w-4 shrink-0 text-muted-foreground/50 transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+            <ArrowRight className="h-4 w-4 shrink-0 text-text-dim/50 transition-transform group-hover:translate-x-0.5 group-hover:text-cobalt" />
           </Link>
         ))}
       </div>

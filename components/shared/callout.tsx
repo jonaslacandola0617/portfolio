@@ -4,11 +4,11 @@ import { cn } from "@/lib/utils";
 type CalloutType = "info" | "warning" | "success" | "danger" | "tip";
 
 const config: Record<CalloutType, { icon: typeof Info; className: string }> = {
-  info: { icon: Info, className: "border-primary/30 bg-primary/5 text-primary" },
-  tip: { icon: Lightbulb, className: "border-primary/30 bg-primary/5 text-primary" },
-  warning: { icon: TriangleAlert, className: "border-warning/30 bg-warning/5 text-warning" },
-  success: { icon: CircleCheck, className: "border-success/30 bg-success/5 text-success" },
-  danger: { icon: OctagonX, className: "border-destructive/30 bg-destructive/5 text-destructive" },
+  info: { icon: Info, className: "border-cobalt/30 bg-cobalt-dim text-cobalt" },
+  tip: { icon: Lightbulb, className: "border-cobalt/30 bg-cobalt-dim text-cobalt" },
+  warning: { icon: TriangleAlert, className: "border-signal/30 bg-signal/5 text-signal" },
+  success: { icon: CircleCheck, className: "border-teal/30 bg-teal/5 text-teal" },
+  danger: { icon: OctagonX, className: "border-vermilion/30 bg-vermilion/5 text-vermilion" },
 };
 
 export function Callout({
@@ -23,10 +23,10 @@ export function Callout({
   const { icon: Icon, className } = config[type];
 
   return (
-    <div className={cn("my-5 flex gap-3 rounded-lg border px-4 py-3.5", className)}>
+    <div className={cn("my-5 flex gap-3 border px-4 py-3.5", className)}>
       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-      <div className="text-sm leading-6 text-foreground/90">
-        {title && <p className="mb-1 font-display font-semibold text-foreground">{title}</p>}
+      <div className="text-sm leading-6 text-text/90">
+        {title && <p className="mb-1 font-display font-semibold text-text">{title}</p>}
         {children}
       </div>
     </div>

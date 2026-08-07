@@ -9,14 +9,14 @@ function MermaidNodeView({ node, updateAttributes }: NodeViewProps) {
   const chart: string = node.attrs.chart ?? "";
 
   return (
-    <NodeViewWrapper className="my-3 overflow-hidden rounded-lg border border-border bg-card" data-drag-handle>
-      <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2">
-        <span className="flex items-center gap-2 font-mono text-xs text-muted-foreground">
+    <NodeViewWrapper className="my-3 overflow-hidden border border-border bg-surface-2" data-drag-handle>
+      <div className="flex items-center justify-between border-b border-border bg-surface-3 px-4 py-2">
+        <span className="flex items-center gap-2 font-mono text-xs text-text-dim">
           <Waypoints className="h-3.5 w-3.5" /> mermaid diagram
         </span>
         <button
           onClick={() => setShowSource((v) => !v)}
-          className="font-mono text-[0.65rem] text-primary hover:underline"
+          className="font-mono text-[0.65rem] text-cobalt hover:underline"
         >
           {showSource ? "Preview" : "Edit source"}
         </button>
@@ -27,12 +27,12 @@ function MermaidNodeView({ node, updateAttributes }: NodeViewProps) {
           onChange={(e) => updateAttributes({ chart: e.target.value })}
           rows={8}
           placeholder={"graph LR\n  A --> B"}
-          className="w-full resize-y bg-transparent p-4 font-mono text-[0.8rem] leading-6 text-foreground/90 focus:outline-none"
+          className="w-full resize-y bg-transparent p-4 font-mono text-[0.8rem] leading-6 text-text/90 focus:outline-none"
         />
       ) : chart.trim() ? (
         <MermaidDiagram chart={chart} />
       ) : (
-        <p className="p-4 text-sm text-muted-foreground">
+        <p className="p-4 text-sm text-text-dim">
           No diagram source yet — click &ldquo;Edit source&rdquo; to write one.
         </p>
       )}

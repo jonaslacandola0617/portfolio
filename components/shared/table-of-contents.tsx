@@ -44,7 +44,7 @@ export function TableOfContents({ containerId = "article-content" }: { container
 
   return (
     <nav className="sticky top-24 max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-thin">
-      <div className="mb-3 flex items-center gap-2 font-mono text-[0.68rem] uppercase tracking-widest text-muted-foreground/70">
+      <div className="mb-3 flex items-center gap-2 font-mono text-[0.68rem] uppercase tracking-widest text-muted">
         <List className="h-3.5 w-3.5" />
         On this page
       </div>
@@ -56,8 +56,8 @@ export function TableOfContents({ containerId = "article-content" }: { container
               className={cn(
                 "block -ml-px border-l-2 pl-3 py-0.5 text-sm transition-colors",
                 activeId === h.id
-                  ? "border-primary text-primary font-medium"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
+                  ? "border-cobalt text-cobalt font-medium"
+                  : "border-transparent text-text-dim hover:text-text"
               )}
             >
               {h.text}

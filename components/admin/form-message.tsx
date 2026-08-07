@@ -27,10 +27,10 @@ export function FormMessage({ variant, children, className }: FormMessageProps) 
       role={isSuccess ? "status" : "alert"}
       aria-live="polite"
       className={cn(
-        "flex items-start gap-2 rounded-md border px-3 py-2 text-sm",
+        "flex items-start gap-2 border px-3 py-2 text-sm",
         isSuccess
-          ? "border-success/30 bg-success/10 text-success"
-          : "border-destructive/30 bg-destructive/10 text-destructive",
+          ? "border-teal/30 bg-success/10 text-teal"
+          : "border-vermilion/30 bg-vermilion-dim text-vermilion",
         className
       )}
     >

@@ -6,14 +6,14 @@ function CommandBlockNodeView({ node, updateAttributes }: NodeViewProps) {
   const commands: string[] = node.attrs.commands ?? [];
 
   return (
-    <NodeViewWrapper className="my-3 overflow-hidden rounded-lg border border-border bg-card" data-drag-handle>
-      <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-2">
-        <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
+    <NodeViewWrapper className="my-3 overflow-hidden border border-border bg-surface-2" data-drag-handle>
+      <div className="flex items-center gap-2 border-b border-border bg-surface-3 px-4 py-2">
+        <Terminal className="h-3.5 w-3.5 text-text-dim" />
         <input
           value={node.attrs.title ?? ""}
           onChange={(e) => updateAttributes({ title: e.target.value })}
           placeholder="terminal"
-          className="bg-transparent font-mono text-xs text-muted-foreground focus:outline-none"
+          className="bg-transparent font-mono text-xs text-text-dim focus:outline-none"
         />
       </div>
       <div className="p-4">
@@ -24,7 +24,7 @@ function CommandBlockNodeView({ node, updateAttributes }: NodeViewProps) {
           }
           placeholder="One command per line..."
           rows={Math.max(3, commands.length)}
-          className="w-full resize-y bg-transparent font-mono text-[0.85rem] leading-6 text-foreground/90 placeholder:text-muted-foreground focus:outline-none"
+          className="w-full resize-y bg-transparent font-mono text-[0.85rem] leading-6 text-text/90 placeholder:text-text-dim focus:outline-none"
         />
       </div>
     </NodeViewWrapper>

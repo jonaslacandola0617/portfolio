@@ -19,9 +19,9 @@ export function CodeBlock({ filename, language = "text", code }: CodeBlockProps)
   }
 
   return (
-    <div className="my-5 overflow-hidden rounded-lg border border-border bg-card">
+    <div className="my-5 overflow-hidden border border-border bg-surface-2">
       {filename && (
-        <div className="flex items-center justify-between border-b border-border bg-muted/40 px-4 py-2 font-mono text-xs text-muted-foreground">
+        <div className="flex items-center justify-between border-b border-border bg-surface-3 px-4 py-2 font-mono text-xs text-text-dim">
           <span>{filename}</span>
           <span className="uppercase">{language}</span>
         </div>
@@ -29,12 +29,12 @@ export function CodeBlock({ filename, language = "text", code }: CodeBlockProps)
       <div className="relative">
         <button
           onClick={handleCopy}
-          className="absolute right-3 top-3 flex items-center gap-1 rounded border border-border bg-background/80 px-1.5 py-0.5 font-mono text-[0.65rem] text-muted-foreground transition-colors hover:text-foreground"
+          className="absolute right-3 top-3 flex items-center gap-1 border border-border bg-surface/80 px-1.5 py-0.5 font-mono text-[0.65rem] text-text-dim transition-colors hover:text-text"
         >
-          {copied ? <Check className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3" />}
+          {copied ? <Check className="h-3 w-3 text-teal" /> : <Copy className="h-3 w-3" />}
           {copied ? "copied" : "copy"}
         </button>
-        <pre className="overflow-x-auto p-4 pr-16 font-mono text-[0.85rem] leading-6 text-foreground/90">
+        <pre className="overflow-x-auto p-4 pr-16 font-mono text-[0.85rem] leading-6 text-text/90">
           <code>{code}</code>
         </pre>
       </div>

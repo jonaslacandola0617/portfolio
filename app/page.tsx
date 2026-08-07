@@ -1,38 +1,24 @@
 import Link from "next/link";
-import { ArrowRight, Download, NotebookPen } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import {
+  ArrowUpRight,
+  Download,
+  FolderGit2,
+  FlaskConical,
+  NotebookPen,
+  BadgeCheck,
+} from "lucide-react";
 import { LearningProgress } from "@/components/shared/learning-progress";
 import { RecentActivityCard } from "@/components/shared/recent-activity-card";
 import { ProjectCard } from "@/components/shared/project-card";
 import { LabCard } from "@/components/shared/lab-card";
-import { NetworkTopology } from "@/components/shared/network-topology";
+import { NetworkDiagram } from "@/components/shared/network-diagram";
+import { SectionLabel } from "@/components/shared/page-header";
+import { Tag } from "@/components/shared/tag";
 import { siteConfig } from "@/lib/site-config";
 import { getAllProjects, getAllArticles, getAllLabs } from "@/lib/content";
 import { getHomepageOverview } from "@/lib/db/queries/homepage";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 import { formatDate } from "@/lib/utils";
-
-const heroTopologyNodes = [
-  { id: "isp", kind: "internet" as const, label: "ISP", x: 60, y: 60 },
-  { id: "fw", kind: "firewall" as const, label: "FW", x: 190, y: 60 },
-  { id: "r1", kind: "router" as const, label: "R1", x: 320, y: 60 },
-  { id: "sw1", kind: "switch" as const, label: "SW1", x: 260, y: 170 },
-  { id: "sw2", kind: "switch" as const, label: "SW2", x: 400, y: 170 },
-  { id: "pc1", kind: "pc" as const, label: "VLAN 10", x: 220, y: 270 },
-  { id: "pc2", kind: "pc" as const, label: "VLAN 20", x: 320, y: 270 },
-  { id: "srv", kind: "server" as const, label: "VLAN 99", x: 420, y: 270 },
-];
-
-const heroTopologyEdges = [
-  { from: "isp", to: "fw" },
-  { from: "fw", to: "r1" },
-  { from: "r1", to: "sw1" },
-  { from: "r1", to: "sw2" },
-  { from: "sw1", to: "pc1" },
-  { from: "sw1", to: "pc2" },
-  { from: "sw2", to: "srv" },
-];
 
 export default async function HomePage() {
   const [projects, allArticles, allLabs, settings, homepage] =
@@ -43,156 +29,207 @@ export default async function HomePage() {
       getSiteSettings(),
       getHomepageOverview(),
     ]);
-  const featuredProjects = projects.slice(0, 3);
-  const articles = allArticles.slice(0, 2);
+  const featuredProjects = projects.slice(0, 2);
+  const articles = allArticles.slice(0, 3);
   const latestLab = allLabs[0];
+  const statLinks = ["/projects", "/labs", "/journal", "/certifications"];
+  const statIcons = [FolderGit2, FlaskConical, NotebookPen, BadgeCheck];
 
   return (
     <div>
-      {/* Hero */}
-      <section className="relative overflow-hidden border-b border-border bg-grid">
-        <div className="absolute inset-0 bg-gradient-to-b from-background/40 via-background to-background" />
-        <div className="relative mx-auto grid max-w-6xl gap-10 px-6 py-16 md:px-10 md:py-24 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
+      <section className="relative overflow-hidden border-b border-border">
+        <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-16 sm:px-10 sm:py-20 lg:grid-cols-[1.3fr_1fr] lg:px-14 lg:py-24">
           <div>
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1 font-mono text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse-dot" />
-              open to SOC / NetAdmin roles
+            <div
+              className="mb-6 flex items-center gap-3 animate-rise-in"
+              style={{ animationDuration: "400ms" }}
+            >
+              <span className="idx">00</span>
+              <span className="label">{siteConfig.location}</span>
             </div>
-            <h1 className="font-display text-4xl font-semibold tracking-tight text-foreground sm:text-5xl text-balance">
-              Hi, I&rsquo;m {settings.name}.
+            <h1
+              className="font-display text-5xl font-semibold leading-[1.02] text-text sm:text-6xl lg:text-7xl animate-rise-in"
+              style={{ animationDelay: "50ms" }}
+            >
+              {settings.name}
             </h1>
-            <p className="mt-4 max-w-xl text-lg text-muted-foreground text-balance">
+            <p
+              className="mt-4 flex items-center gap-3 font-display text-xl text-cobalt sm:text-2xl animate-rise-in"
+              style={{ animationDelay: "150ms" }}
+            >
+              <span
+                className="h-2 w-2 shrink-0 bg-vermilion"
+                aria-hidden="true"
+              />
+              {settings.role}
+            </p>
+            <p
+              className="mt-5 max-w-lg text-base leading-relaxed text-text-dim sm:text-lg animate-rise-in"
+              style={{ animationDelay: "200ms" }}
+            >
               {settings.tagline}
             </p>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              {siteConfig.currentFocusStack.map((item) => (
-                <Badge key={item} variant="primary">
-                  {item}
-                </Badge>
+            <div
+              className="mt-8 flex flex-wrap items-center gap-3 animate-rise-in"
+              style={{ animationDelay: "280ms" }}
+            >
+              <Link
+                href="/projects"
+                className="group flex items-center gap-2 border border-border-strong bg-text px-5 py-3 text-sm font-medium text-surface transition-opacity hover:opacity-85"
+              >
+                View Projects{" "}
+                <ArrowUpRight
+                  size={15}
+                  className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </Link>
+              <Link
+                href="/resume"
+                className="flex items-center gap-2 border border-border px-5 py-3 text-sm font-medium text-text transition-colors hover:border-border-strong"
+              >
+                <Download size={15} /> Résumé
+              </Link>
+              <Link
+                href="/contact"
+                className="px-2 py-3 text-sm font-medium text-text-dim underline decoration-border underline-offset-4 hover:text-text"
+              >
+                Get in touch
+              </Link>
+            </div>
+            <div
+              className="mt-10 flex flex-wrap gap-1.5 animate-rise-in"
+              style={{ animationDelay: "400ms" }}
+            >
+              {siteConfig.currentFocusStack.map((s) => (
+                <Tag key={s}>{s}</Tag>
               ))}
             </div>
-
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Button asChild size="lg">
-                <Link href="/projects">
-                  View Projects <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="secondary" size="lg">
-                <Link href="/journal">
-                  Read Journal <NotebookPen className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" size="lg">
-                <a href={settings.resumeUrl} download>
-                  Download Resume <Download className="h-4 w-4" />
-                </a>
-              </Button>
-            </div>
-
-            <dl className="mt-12 grid grid-cols-2 gap-6 sm:grid-cols-4">
-              {homepage.stats.map((stat) => (
-                <div key={stat.label}>
-                  <dt className="font-mono text-[0.68rem] uppercase tracking-wide text-muted-foreground">
-                    {stat.label}
-                  </dt>
-                  <dd className="mt-1 font-display text-2xl font-semibold text-foreground">
-                    {stat.value}
-                  </dd>
-                </div>
-              ))}
-            </dl>
           </div>
-
-          <div className="hidden lg:block">
-            <div className="rounded-xl border border-border bg-card/60 p-4 animate-drift">
-              <NetworkTopology
-                nodes={heroTopologyNodes}
-                edges={heroTopologyEdges}
-                height={300}
-              />
+          <div className="relative flex items-center justify-center border border-border bg-surface-2 p-6">
+            <div className="absolute left-3 top-3 label">
+              Network Topology — Live
+            </div>
+            <div className="h-56 w-full sm:h-64">
+              <NetworkDiagram />
+            </div>
+            <div className="absolute bottom-3 right-3 flex items-center gap-1.5 label text-teal">
+              <span className="h-1.5 w-1.5 animate-pulse-node rounded-full bg-teal" />
+              Available for opportunities
             </div>
           </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-6xl px-6 py-14 md:px-10">
-        {/* Widgets row */}
-        <div className="grid gap-5 md:grid-cols-2">
-          <LearningProgress items={settings.currentlyLearning} />
-          <RecentActivityCard activity={homepage.recentActivity} />
-        </div>
-
-        {/* Recent projects */}
-        <div className="mt-14">
-          <div className="mb-5 flex items-center justify-between">
-            <h2 className="font-display text-xl font-semibold text-foreground">
-              Recent Projects
-            </h2>
+      <section className="grid grid-cols-2 divide-x divide-y divide-border border-b border-border sm:grid-cols-4 sm:divide-y-0">
+        {homepage.stats.map((s, i) => {
+          const Icon = statIcons[i] ?? FolderGit2;
+          return (
             <Link
-              href="/projects"
-              className="flex items-center gap-1 text-sm text-primary hover:underline"
+              key={s.label}
+              href={statLinks[i] ?? "/"}
+              className="group flex flex-col gap-2 px-6 py-8 transition-colors hover:bg-surface-2 sm:px-8"
             >
-              View all <ArrowRight className="h-3.5 w-3.5" />
+              <Icon size={16} className="text-cobalt" />
+              <span className="font-display text-3xl font-semibold text-text sm:text-4xl">
+                {s.value}
+              </span>
+              <span className="label flex items-center gap-1">
+                {s.label}
+                <ArrowUpRight
+                  size={11}
+                  className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                />
+              </span>
             </Link>
+          );
+        })}
+      </section>
+
+      <div className="mx-auto max-w-6xl px-6 py-16 sm:px-10 lg:px-14">
+        <div className="mb-20 grid grid-cols-1 gap-10 lg:grid-cols-2">
+          <div>
+            <SectionLabel index="01" title="Currently Learning" />
+            <LearningProgress items={settings.currentlyLearning} />
           </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredProjects.map((p) => (
-              <ProjectCard key={p.frontmatter.slug} project={p.frontmatter} />
+          <div>
+            <SectionLabel index="02" title="Recent Activity" />
+            <RecentActivityCard activity={homepage.recentActivity} />
+          </div>
+        </div>
+        <div className="mb-20">
+          <SectionLabel index="03" title="Featured Projects" />
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+            {featuredProjects.map((p, i) => (
+              <ProjectCard
+                key={p.frontmatter.slug}
+                project={p.frontmatter}
+                index={i + 1}
+                size="featured"
+              />
+            ))}
+          </div>
+          <Link
+            href="/projects"
+            className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-text hover:text-cobalt"
+          >
+            View all projects <ArrowUpRight size={14} />
+          </Link>
+        </div>
+        {latestLab && (
+          <div className="mb-20">
+            <SectionLabel index="04" title="Latest Lab" />
+            <LabCard lab={latestLab.frontmatter} index={1} />
+          </div>
+        )}
+        <div className="mb-20">
+          <SectionLabel index="05" title="Journal" />
+          <div className="divide-y divide-border border-y border-border">
+            {articles.map((a, i) => (
+              <Link
+                key={a.frontmatter.slug}
+                href={`/journal/${a.frontmatter.slug}`}
+                className="group flex flex-col gap-2 px-1 py-5 sm:flex-row sm:items-center sm:gap-6"
+              >
+                <span className="idx w-6 shrink-0">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span className="w-24 shrink-0 font-mono text-xs text-muted-foreground">
+                  {formatDate(a.frontmatter.date)}
+                </span>
+                <h3 className="flex-1 font-display text-base font-medium text-text group-hover:text-cobalt sm:text-lg">
+                  {a.frontmatter.title}
+                </h3>
+                <span className="label shrink-0">{a.readingTime}</span>
+              </Link>
             ))}
           </div>
         </div>
-
-        {/* Latest lab + recent articles */}
-        <div className="mt-14 grid gap-8 lg:grid-cols-2">
-          <div>
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="font-display text-xl font-semibold text-foreground">
-                Latest Lab
-              </h2>
+        <div className="relative overflow-hidden border border-border-strong bg-text px-8 py-14 text-surface sm:px-14">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-cobalt opacity-20" />
+          <div className="absolute -bottom-14 -left-6 h-32 w-32 bg-vermilion opacity-20" />
+          <div className="relative max-w-xl">
+            <span className="label text-surface/60">06 — Let&apos;s Talk</span>
+            <h2 className="mt-4 font-display text-3xl font-semibold sm:text-4xl">
+              Reviewing candidates for SOC, NetAdmin, or IT Support roles?
+            </h2>
+            <p className="mt-4 text-surface/70">
+              Every project and lab on this site is documented the way I&apos;d
+              document real work — objective, steps, evidence, and what I&apos;d
+              do differently.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
               <Link
-                href="/labs"
-                className="flex items-center gap-1 text-sm text-primary hover:underline"
+                href="/resume"
+                className="border border-surface bg-surface px-5 py-3 text-sm font-medium text-ink"
               >
-                View all <ArrowRight className="h-3.5 w-3.5" />
+                Review résumé
               </Link>
-            </div>
-            {latestLab && <LabCard lab={latestLab.frontmatter} />}
-          </div>
-
-          <div>
-            <div className="mb-5 flex items-center justify-between">
-              <h2 className="font-display text-xl font-semibold text-foreground">
-                Recent Journal Entries
-              </h2>
               <Link
-                href="/journal"
-                className="flex items-center gap-1 text-sm text-primary hover:underline"
+                href="/contact"
+                className="border border-surface/40 px-5 py-3 text-sm font-medium text-surface"
               >
-                View all <ArrowRight className="h-3.5 w-3.5" />
+                Contact me
               </Link>
-            </div>
-            <div className="space-y-3">
-              {articles.map((a) => (
-                <Link
-                  key={a.frontmatter.slug}
-                  href={`/journal/${a.frontmatter.slug}`}
-                  className="group flex items-start gap-3 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40"
-                >
-                  <NotebookPen className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-medium text-foreground group-hover:text-primary transition-colors">
-                      {a.frontmatter.title}
-                    </div>
-                    <div className="mt-1 flex items-center gap-2 font-mono text-[0.68rem] text-muted-foreground">
-                      <time>{formatDate(a.frontmatter.date)}</time>
-                      <span>&middot;</span>
-                      <span>{a.readingTime}</span>
-                    </div>
-                  </div>
-                </Link>
-              ))}
             </div>
           </div>
         </div>

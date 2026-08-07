@@ -117,7 +117,7 @@ export function GroupedSkillsManager({
   return (
     <div>
       {selected.size > 0 && (
-        <div className="mb-4 flex items-center justify-between rounded-md border border-border bg-muted/40 px-3 py-2">
+        <div className="mb-4 flex items-center justify-between border border-border bg-surface-2 px-3 py-2">
           <span className="text-sm text-foreground">{selected.size} selected</span>
           <DeleteConfirmationDialog
             contentType="skill"
@@ -130,7 +130,7 @@ export function GroupedSkillsManager({
               setSelected(new Set());
               router.refresh();
             }}
-            trigger={<button type="button" className="rounded-md border border-destructive/40 px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10">Delete selected</button>}
+            trigger={<button type="button" className="border border-vermilion px-3 py-1.5 text-xs font-medium text-vermilion hover:bg-vermilion/10">Delete selected</button>}
           />
         </div>
       )}
@@ -160,10 +160,10 @@ export function GroupedSkillsManager({
                 const id = event.dataTransfer.getData("text/skill-id") || draggingId;
                 if (id) void move(id, group);
               }}
-              className={`rounded-lg border transition-colors ${draggingId ? "border-primary/35 bg-primary/[0.025]" : "border-border"}`}
+              className={`border transition-colors ${draggingId ? "border-cobalt bg-surface-2" : "border-border"}`}
             >
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border bg-muted/20 px-4 py-3">
-                <h2 className="font-mono text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">{group}</h2>
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2.5">
+                <h2 className="idx">{group}</h2>
                 <div className="flex items-center gap-3">
                   {rows.length > 0 && (
                     <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground">
@@ -176,12 +176,12 @@ export function GroupedSkillsManager({
                         disabled={selectableIds.length === 0}
                         onChange={() => toggleGroup(selectableIds)}
                         aria-label={`Select all skills in ${group}`}
-                        className="h-4 w-4 rounded border-border accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="h-4 w-4 border-border accent-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       />
                       Select all
                     </label>
                   )}
-                  <span className="font-mono text-[0.68rem] text-muted-foreground">
+                  <span className="font-mono text-[10px] text-muted">
                     {rows.length}
                   </span>
                 </div>
@@ -203,7 +203,7 @@ export function GroupedSkillsManager({
                           setDraggingId(skill.id);
                         }}
                         onDragEnd={() => setDraggingId(null)}
-                        className={`px-4 py-3 transition-opacity ${pending ? "opacity-65" : ""}`}
+                        className={`px-4 py-2.5 transition-opacity ${pending ? "opacity-65" : ""}`}
                       >
                         <div className="flex flex-wrap items-center gap-3">
                           <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground" aria-hidden="true" />
@@ -213,11 +213,11 @@ export function GroupedSkillsManager({
                             disabled={pending}
                             onChange={() => toggleSelected(skill.id)}
                             aria-label={`Select ${skill.name}`}
-                            className="h-4 w-4 rounded border-border accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                            className="h-4 w-4 border-border accent-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                           />
                           <Link href={`/admin/skills/${skill.id}`} className="min-w-40 flex-1">
-                            <span className="block text-sm font-medium text-foreground">{skill.name}</span>
-                            <span className="font-mono text-[0.68rem] text-muted-foreground">Used by {skill.projectCount} project{skill.projectCount === 1 ? "" : "s"}</span>
+                            <span className="block text-sm font-medium text-text">{skill.name}</span>
+                            <span className="font-mono text-[10px] text-muted">Used by {skill.projectCount} project{skill.projectCount === 1 ? "" : "s"}</span>
                           </Link>
                           <Badge variant="default">{skill.level}</Badge>
                           <label className="sr-only" htmlFor={`skill-group-${skill.id}`}>Group for {skill.name}</label>
@@ -227,7 +227,7 @@ export function GroupedSkillsManager({
                               value={group}
                               disabled={pending}
                               onChange={(event) => void move(skill.id, event.target.value)}
-                              className="h-9 rounded-md border border-border bg-background pl-3 pr-8 text-xs text-foreground disabled:opacity-60"
+                              className="h-8 border border-border bg-surface-2 pl-3 pr-8 text-xs text-text disabled:opacity-60"
                             >
                               {orderedGroups.map((option) => <option key={skillGroupKey(option)} value={option}>{option}</option>)}
                             </select>

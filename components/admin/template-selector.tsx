@@ -19,8 +19,8 @@ export function TemplateSelector({
     <fieldset className="space-y-3">
       <input type="hidden" name={name} value={selected} />
       <div>
-        <legend className="font-display text-sm font-semibold text-foreground">Starting template</legend>
-        <p className="mt-1 text-xs text-muted-foreground">Choose Blank or one structure. Nothing is inserted until the record is created.</p>
+        <legend className="font-display text-sm font-semibold text-text">Starting template</legend>
+        <p className="mt-1 text-xs text-text-dim">Choose Blank or one structure. Nothing is inserted until the record is created.</p>
       </div>
       <div className="space-y-2">
         {templates.map((template) => {
@@ -39,36 +39,36 @@ export function TemplateSelector({
                 }
               }}
               className={cn(
-                "relative cursor-pointer rounded-md border bg-background p-4 transition-colors",
+                "relative cursor-pointer border bg-surface p-4 transition-colors",
                 active
-                  ? "border-primary/50 bg-primary/5"
-                  : "border-border hover:border-primary/30 hover:bg-muted/30"
+                  ? "border-cobalt bg-cobalt-dim"
+                  : "border-border hover:border-border-strong hover:bg-surface-2"
               )}
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <p className="font-mono text-[0.65rem] uppercase tracking-[0.16em] text-muted-foreground">{template.category}</p>
-                  <h3 className="mt-1 font-display text-sm font-semibold text-foreground">{template.name}</h3>
+                  <p className="label text-text-dim">{template.category}</p>
+                  <h3 className="mt-1 font-display text-sm font-semibold text-text">{template.name}</h3>
                 </div>
-                {active && <span className="inline-flex items-center gap-1 text-xs font-medium text-primary"><Check className="h-3.5 w-3.5" />Selected</span>}
+                {active && <span className="inline-flex items-center gap-1 text-xs font-medium text-cobalt"><Check className="h-3.5 w-3.5" />Selected</span>}
               </div>
-              <p className="mt-2 text-xs leading-5 text-muted-foreground">{template.description}</p>
+              <p className="mt-2 text-xs leading-5 text-text-dim">{template.description}</p>
               <div className="mt-4 flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-text-dim">
                   {template.sections.length
                     ? `${template.sections.length} structured sections`
                     : "Empty document"}
                 </span>
                 <Dialog>
                   <DialogTrigger asChild>
-                    <button type="button" onClick={(event) => event.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-primary hover:underline"><Eye className="h-3.5 w-3.5" />Preview</button>
+                    <button type="button" onClick={(event) => event.stopPropagation()} className="inline-flex items-center gap-1 text-xs text-cobalt hover:text-text"><Eye className="h-3.5 w-3.5" />Preview</button>
                   </DialogTrigger>
                   <DialogContent className="max-h-[75vh] overflow-y-auto p-6" onClick={(event) => event.stopPropagation()}>
-                    <h2 className="font-display text-lg font-semibold text-foreground">{template.name}</h2>
-                    <p className="mt-1 text-sm text-muted-foreground">{template.description}</p>
+                    <h2 className="font-display text-lg font-semibold text-text">{template.name}</h2>
+                    <p className="mt-1 text-sm text-text-dim">{template.description}</p>
                     <ol className="mt-5 space-y-2">
-                      {template.sections.map((section, index) => <li key={section} className="flex gap-3 rounded border border-border px-3 py-2 text-sm"><span className="font-mono text-xs text-primary">{String(index + 1).padStart(2, "0")}</span>{section}</li>)}
-                      {!template.sections.length && <li className="text-sm text-muted-foreground">The editor starts empty.</li>}
+                      {template.sections.map((section, index) => <li key={section} className="flex gap-3 border border-border px-3 py-2 text-sm text-text"><span className="font-mono text-xs text-cobalt">{String(index + 1).padStart(2, "0")}</span>{section}</li>)}
+                      {!template.sections.length && <li className="text-sm text-text-dim">The editor starts empty.</li>}
                     </ol>
                   </DialogContent>
                 </Dialog>

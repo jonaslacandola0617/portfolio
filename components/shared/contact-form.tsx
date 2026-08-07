@@ -1,59 +1,8 @@
 "use client";
-
 import * as React from "react";
 import { Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-
 export function ContactForm({ email: recipientEmail }: { email: string }) {
-  const [name, setName] = React.useState("");
-  const [email, setEmail] = React.useState("");
-  const [message, setMessage] = React.useState("");
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const subject = encodeURIComponent(`Portfolio contact from ${name || "your site"}`);
-    const body = encodeURIComponent(`${message}\n\n— ${name} (${email})`);
-    window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label htmlFor="name">Name</Label>
-          <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} placeholder="Jordan Smith" />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="jordan@company.com"
-          />
-        </div>
-      </div>
-      <div className="space-y-1.5">
-        <Label htmlFor="message">Message</Label>
-        <Textarea
-          id="message"
-          required
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Let's talk about..."
-        />
-      </div>
-      <Button type="submit" className="w-full sm:w-auto">
-        Send Message <Send className="h-4 w-4" />
-      </Button>
-      <p className="font-mono text-[0.68rem] text-muted-foreground">
-        Opens your email client with this message pre-filled — nothing is sent from this page directly.
-      </p>
-    </form>
-  );
+  const [name,setName]=React.useState(""); const [email,setEmail]=React.useState(""); const [message,setMessage]=React.useState("");
+  function handleSubmit(e:React.FormEvent){e.preventDefault();const subject=encodeURIComponent(`Portfolio contact from ${name||"your site"}`);const body=encodeURIComponent(`${message}\n\n— ${name} (${email})`);window.location.href=`mailto:${recipientEmail}?subject=${subject}&body=${body}`}
+  return <form onSubmit={handleSubmit} className="space-y-5"><div className="grid grid-cols-1 gap-5 sm:grid-cols-2"><div><label htmlFor="name" className="label mb-2 block">Name</label><input id="name" required value={name} onChange={e=>setName(e.target.value)} className="w-full border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none focus:border-cobalt" placeholder="Jane Recruiter"/></div><div><label htmlFor="email" className="label mb-2 block">Email</label><input id="email" type="email" required value={email} onChange={e=>setEmail(e.target.value)} className="w-full border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none focus:border-cobalt" placeholder="jane@company.com"/></div></div><div><label htmlFor="message" className="label mb-2 block">Message</label><textarea id="message" required rows={6} value={message} onChange={e=>setMessage(e.target.value)} className="w-full border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none focus:border-cobalt" placeholder="Tell me a bit about the role…"/></div><button type="submit" className="flex items-center gap-2 border border-border-strong bg-text px-5 py-3 text-sm font-medium text-surface transition-opacity hover:opacity-85"><Send size={14}/> Send message</button><p className="font-mono text-[10px] text-muted-foreground">Opens your email client with this message pre-filled.</p></form>
 }

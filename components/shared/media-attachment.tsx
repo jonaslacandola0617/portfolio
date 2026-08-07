@@ -30,14 +30,14 @@ export function MediaAttachment({
 }) {
   const Icon = icons[fileType] ?? FileText;
   return (
-    <a href={url} target="_blank" rel="noreferrer" download className="not-prose my-6 flex max-w-3xl items-center gap-4 rounded-lg border border-border bg-card p-4 transition-colors hover:border-primary/40">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md border border-border bg-muted/40 text-primary"><Icon className="h-5 w-5" /></span>
+    <a href={url} target="_blank" rel="noreferrer" download className="not-prose my-6 flex max-w-3xl items-center gap-4 border border-border bg-surface-2 p-4 transition-colors hover:border-cobalt/40">
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center border border-border bg-surface-3 text-cobalt"><Icon className="h-5 w-5" /></span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium text-foreground">{displayName}</span>
-        {description && <span className="mt-1 block text-xs text-muted-foreground">{description}</span>}
-        <span className="mt-1 block font-mono text-[0.65rem] text-muted-foreground">{fileType.replace("_", " ")} · {formatBytes(fileSize)}</span>
+        <span className="block truncate text-sm font-medium text-text">{displayName}</span>
+        {description && <span className="mt-1 block text-xs text-text-dim">{description}</span>}
+        <span className="mt-1 block font-mono text-[0.65rem] text-text-dim">{fileType.replace("_", " ")} · {formatBytes(fileSize)}</span>
       </span>
-      <Download className="h-4 w-4 shrink-0 text-primary" />
+      <Download className="h-4 w-4 shrink-0 text-cobalt" />
     </a>
   );
 }

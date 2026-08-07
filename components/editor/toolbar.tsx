@@ -57,9 +57,8 @@ function ToolbarButton({
       aria-label={label}
       title={label}
       className={cn(
-        "flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-40",
-        active &&
-          "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
+        "flex h-7 w-7 shrink-0 items-center justify-center text-text-dim transition-colors hover:bg-surface-3 hover:text-text disabled:pointer-events-none disabled:opacity-40",
+        active && "bg-surface-3 text-cobalt",
       )}
     >
       {children}
@@ -68,7 +67,7 @@ function ToolbarButton({
 }
 
 function Divider() {
-  return <div className="mx-1 h-5 w-px bg-border" />;
+  return <div className="mx-1 h-5 w-px shrink-0 bg-border" />;
 }
 
 export function EditorToolbar({
@@ -115,7 +114,7 @@ export function EditorToolbar({
   };
 
   return (
-    <div className="flex w-full flex-wrap items-center justify-around gap-0.5 px-2 py-1.5">
+    <div className="flex min-w-max items-center gap-0.5">
       <ToolbarButton
         label="Bold"
         active={editor.isActive("bold")}

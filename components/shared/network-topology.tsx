@@ -55,7 +55,7 @@ export function NetworkTopology({
                   y1={a.y}
                   x2={b.x}
                   y2={b.y}
-                  stroke="hsl(var(--border))"
+                  stroke="var(--border)"
                   strokeWidth={2}
                 />
                 {edge.label && (
@@ -63,7 +63,7 @@ export function NetworkTopology({
                     x={midX}
                     y={midY - 6}
                     textAnchor="middle"
-                    className="fill-muted-foreground font-mono"
+                    className="fill-muted font-mono"
                     fontSize="10"
                   >
                     {edge.label}
@@ -77,13 +77,13 @@ export function NetworkTopology({
           <g key={node.id} transform={`translate(${node.x}, ${node.y})`}>
             <circle
               r="22"
-              className="fill-card stroke-primary/40"
+              className="fill-surface-2 stroke-cobalt/40"
               strokeWidth="1.5"
             />
             <text
               textAnchor="middle"
               dominantBaseline="central"
-              className="fill-primary"
+              className="fill-cobalt"
               fontSize="16"
             >
               {kindGlyph[node.kind]}
@@ -91,7 +91,7 @@ export function NetworkTopology({
             <text
               y="38"
               textAnchor="middle"
-              className="fill-foreground font-mono font-medium"
+              className="fill-text font-mono font-medium"
               fontSize="11"
             >
               {node.label}
@@ -100,7 +100,7 @@ export function NetworkTopology({
               <text
                 y="52"
                 textAnchor="middle"
-                className="fill-muted-foreground font-mono"
+                className="fill-muted font-mono"
                 fontSize="9.5"
               >
                 {node.sublabel}
