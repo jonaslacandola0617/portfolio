@@ -1,10 +1,13 @@
 import { Node, mergeAttributes } from "@tiptap/core";
+import { ReactNodeViewRenderer } from "@tiptap/react";
+import { MediaImageNodeView } from "@/components/editor/media-image-node-view";
 
 export const MediaImageExtension = Node.create({
   name: "mediaImage",
   group: "block",
   atom: true,
   draggable: true,
+  selectable: true,
   addAttributes() {
     return {
       mediaId: { default: null },
@@ -27,6 +30,23 @@ export const MediaImageExtension = Node.create({
       ["img", { src: attrs.src, alt: attrs.alt }],
       ...(caption ? [["figcaption", {}, caption]] : []),
     ];
+  },
+  addKeyboardShortcuts() {
+    const removeSelectedImage = () => {
+      const selection = this.editor.state.selection as typeof this.editor.state.selection & {
+        node?: { type?: { name?: string } };
+      };
+      if (selection.node?.type?.name !== this.name) return false;
+      return this.editor.commands.deleteSelection();
+    };
+
+    return {
+      Backspace: removeSelectedImage,
+      Delete: removeSelectedImage,
+    };
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(MediaImageNodeView);
   },
 });
 
