@@ -31,6 +31,7 @@ import {
   type MediaImageInsert,
 } from "@/components/editor/media-picker-dialog";
 import { EditorTemplateDialog } from "@/components/editor/editor-template-dialog";
+import { LinkDialog } from "@/components/editor/link-dialog";
 import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import type {
   ContentTemplate,
@@ -87,18 +88,8 @@ export function EditorToolbar({
   onApplyTemplate?: (template: ContentTemplate) => void;
 }) {
   const [picker, setPicker] = useState<"image" | "attachment" | null>(null);
+  const [linkOpen, setLinkOpen] = useState(false);
   if (!editor) return null;
-
-  const setLink = () => {
-    const previous = editor.getAttributes("link").href as string | undefined;
-    const url = window.prompt("URL", previous ?? "https://");
-    if (url === null) return;
-    if (url === "") {
-      editor.chain().focus().extendMarkRange("link").unsetLink().run();
-      return;
-    }
-    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
-  };
 
   const insertImage = (attrs: MediaImageInsert) => {
     editor
@@ -194,7 +185,7 @@ export function EditorToolbar({
       </ToolbarGroup>
 
       <ToolbarGroup>
-        <ToolbarButton label="Link" active={editor.isActive("link")} onClick={setLink}>
+        <ToolbarButton label="Link" active={editor.isActive("link")} onClick={() => setLinkOpen(true)}>
           <Link2 className="h-[13px] w-[13px]" />
         </ToolbarButton>
         <ToolbarButton label="Insert image" onClick={() => setPicker("image")}>
@@ -299,6 +290,8 @@ export function EditorToolbar({
           <Redo2 className="h-[13px] w-[13px]" />
         </ToolbarButton>
       </ToolbarGroup>
+
+      <LinkDialog editor={editor} open={linkOpen} onOpenChange={setLinkOpen} />
 
       <MediaPickerDialog
         open={picker !== null}
