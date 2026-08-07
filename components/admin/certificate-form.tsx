@@ -191,26 +191,25 @@ export function CertificateForm({
                 </div>
               </div>
 
-              <div className="grid items-end gap-4 sm:grid-cols-2">
-                <div>
-                  <Label>Skills learned</Label>
-                  <TaxonomyMultiCombobox
-                    name="skills"
-                    kind="skill"
-                    label="Skills learned"
-                    defaultValues={certificate?.skills}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="credentialUrl">Credential URL</Label>
-                  <Input
-                    id="credentialUrl"
-                    name="credentialUrl"
-                    type="url"
-                    defaultValue={certificate?.credentialUrl}
-                  />
-                  <FieldError errors={state.errors?.credentialUrl} />
-                </div>
+              <div>
+                <Label>Skills learned</Label>
+                <TaxonomyMultiCombobox
+                  name="skills"
+                  kind="skill"
+                  label="Skills learned"
+                  defaultValues={certificate?.skills}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="credentialUrl">Credential URL</Label>
+                <Input
+                  id="credentialUrl"
+                  name="credentialUrl"
+                  type="url"
+                  defaultValue={certificate?.credentialUrl}
+                />
+                <FieldError errors={state.errors?.credentialUrl} />
               </div>
 
               <SegmentedStatusField
