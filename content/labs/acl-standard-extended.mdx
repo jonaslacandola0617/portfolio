@@ -1,0 +1,58 @@
+---
+title: "Standard & Extended ACLs to Restrict Guest VLAN Traffic"
+slug: "acl-standard-extended"
+purpose: "Write a standard ACL to block the Guest VLAN from reaching Management, then an extended ACL to allow only HTTP/HTTPS from Guest to the internet edge."
+date: "2026-07-01"
+status: "in-progress"
+difficulty: "intermediate"
+tags: ["ACL", "CCNA", "Troubleshooting"]
+category: "Networking"
+---
+
+## Purpose
+
+Segmentation with VLANs alone doesn't stop routed traffic between segments — that's what ACLs are
+for. This lab layers a standard ACL (block Guest → Management entirely) and an extended ACL
+(Guest can only reach the internet edge on 80/443) on top of the VLAN lab from earlier.
+
+## Commands Used
+
+<CommandBlock title="standard ACL — block Guest to Mgmt" commands={["access-list 10 deny 192.168.20.0 0.0.0.255", "access-list 10 permit any", "interface gi0/0.99", "ip access-group 10 out"]} />
+
+## Configuration
+
+The standard ACL is applied outbound on the Management sub-interface so only traffic destined
+*to* Management from Guest is blocked, without affecting Guest's other routed traffic.
+
+## Expected Result
+
+Guest VLAN hosts should fail to reach any Management VLAN host, while continuing to reach Staff
+and the internet edge normally.
+
+## Actual Result
+
+Currently in progress — standard ACL is confirmed working. Extended ACL for the HTTP/HTTPS-only
+rule to the internet edge is still being written and tested.
+
+<Callout type="warning" title="Status: in progress">
+This lab entry will be updated once the extended ACL is verified. Logging it now, mid-lab, is
+intentional — a lab notebook should show the process, not just the finished result.
+</Callout>
+
+## Mistakes
+
+Applied the standard ACL inbound on the wrong interface first, which blocked far more traffic
+than intended — Staff lost connectivity too. `show access-lists` showed hit counts climbing on a
+line that should have been idle, which was the tell that something was catching unintended
+traffic.
+
+## Fixes
+
+Removed the ACL from the incorrect interface and reapplied it outbound, scoped specifically to
+the Management sub-interface, then re-verified Staff connectivity was restored before retesting
+the Guest-to-Management block.
+
+## Lessons Learned so far
+
+- Standard ACLs should sit as close to the *destination* as the topology allows, since they filter on source only
+- `show access-lists` hit counters are the fastest way to confirm an ACL is actually being evaluated on the traffic you expect

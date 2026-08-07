@@ -1,0 +1,212 @@
+// prisma/schema.prisma
+//
+// The CMS database is the runtime source of truth. Timeline was retired in
+// August 2026; Skills remain CMS-managed taxonomy without a public index page.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+  SCHEDULED
+}
+
+enum ProgressStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  PACKET_TRACER
+  PCAP
+  PDF
+  ZIP
+  OTHER
+}
+
+model Tag {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  projects  Project[]
+  labs      Lab[]
+  articles  Article[]
+  createdAt DateTime  @default(now())
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  name     String    @unique
+  slug     String    @unique
+  projects Project[]
+  labs     Lab[]
+  articles Article[]
+}
+
+model Skill {
+  id           String        @id @default(cuid())
+  name         String        @unique
+  group        String        @default("Ungrouped")
+  level        String
+  projects     Project[]
+  certificates Certificate[]
+}
+
+model Media {
+  id               String        @id @default(cuid())
+  url              String
+  filename         String
+  type             MediaType
+  size             Int
+  uploadedAt       DateTime      @default(now())
+  usedAsThumb      Project[]     @relation("ProjectThumbnail")
+  downloads        Download[]
+  certificateLogos Certificate[] @relation("CertificateLogo")
+}
+
+model Download {
+  id          String   @id @default(cuid())
+  label       String
+  url         String
+  type        String
+  description String?
+  sortOrder   Int      @default(0)
+  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String?
+  lab         Lab?     @relation(fields: [labId], references: [id], onDelete: Cascade)
+  labId       String?
+  media       Media?   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  mediaId     String?
+
+  @@index([projectId, sortOrder])
+  @@index([labId, sortOrder])
+  @@index([mediaId])
+}
+
+model Project {
+  id             String         @id @default(cuid())
+  title          String
+  slug           String         @unique
+  summary        String
+  content        Json
+  difficulty     Difficulty
+  progressStatus ProgressStatus @default(PLANNED)
+  publishStatus  PublishStatus  @default(DRAFT)
+  category       Category?      @relation(fields: [categoryId], references: [id])
+  categoryId     String?
+  tags           Tag[]
+  skills         Skill[]
+  technologies   String[]       @default([])
+  certificates   Certificate[]
+  downloads      Download[]
+  thumbnail      Media?         @relation("ProjectThumbnail", fields: [thumbnailId], references: [id])
+  thumbnailId    String?
+  githubUrl      String?
+  estimatedTime  String?
+  completionDate DateTime
+  publishedAt    DateTime?
+  scheduledFor   DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([publishStatus, publishedAt])
+}
+
+model Lab {
+  id             String         @id @default(cuid())
+  title          String
+  slug           String         @unique
+  purpose        String
+  content        Json
+  difficulty     Difficulty
+  progressStatus ProgressStatus @default(PLANNED)
+  publishStatus  PublishStatus  @default(DRAFT)
+  category       Category?      @relation(fields: [categoryId], references: [id])
+  categoryId     String?
+  tags           Tag[]
+  downloads      Download[]
+  labDate        DateTime
+  publishedAt    DateTime?
+  scheduledFor   DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  @@index([publishStatus, labDate])
+}
+
+model Article {
+  id            String        @id @default(cuid())
+  title         String
+  slug          String        @unique
+  summary       String
+  content       Json
+  date          DateTime
+  publishStatus PublishStatus @default(DRAFT)
+  category      Category?     @relation(fields: [categoryId], references: [id])
+  categoryId    String?
+  tags          Tag[]
+  publishedAt   DateTime?
+  scheduledFor  DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([publishStatus, publishedAt])
+}
+
+model Certificate {
+  id              String         @id @default(cuid())
+  slug            String         @unique
+  name            String
+  issuer          String
+  logo            String         @default("default")
+  logoMedia       Media?         @relation("CertificateLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
+  logoMediaId     String?
+  content         Json?
+  progressStatus  ProgressStatus @default(COMPLETED)
+  publishStatus   PublishStatus  @default(DRAFT)
+  progressLabel   String         @default("Completed")
+  progressPercent Int            @default(100)
+  dateStarted     DateTime?
+  dateCompleted   DateTime?
+  credentialUrl   String?
+  skills          Skill[]
+  projects        Project[]
+  publishedAt     DateTime?
+  scheduledFor    DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([logoMediaId])
+}
+
+model SiteSettings {
+  id                String   @id @default("singleton")
+  name              String
+  role              String
+  tagline           String
+  email             String
+  githubUrl         String
+  linkedinUrl       String
+  resumeUrl         String
+  currentlyLearning Json
+  aboutPage         Json?
+  updatedAt         DateTime @updatedAt
+}

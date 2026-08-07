@@ -1,0 +1,51 @@
+---
+title: "VLAN Creation & 802.1Q Trunking Between Two Switches"
+slug: "vlan-trunking-lab"
+purpose: "Create three VLANs across two switches, configure an 802.1Q trunk between them, and verify tagged traffic crosses correctly."
+date: "2026-02-14"
+status: "completed"
+difficulty: "beginner"
+tags: ["VLANs", "Switching", "Packet Tracer", "CCNA"]
+category: "Networking"
+---
+
+## Purpose
+
+Before attempting inter-VLAN routing, this lab isolates just the Layer 2 piece: can two switches
+correctly carry three VLANs across a single trunk link, with hosts in the same VLAN reaching each
+other and hosts in different VLANs staying isolated?
+
+## Commands Used
+
+<CommandBlock title="both switches" commands={["vlan 10", "name STAFF", "vlan 20", "name GUEST", "vlan 99", "name MGMT", "interface gi0/1", "switchport mode trunk", "switchport trunk allowed vlan 10,20,99"]} />
+
+## Configuration
+
+Access ports were assigned per host, and the link between SW1 and SW2 was configured as an
+802.1Q trunk carrying all three VLANs.
+
+## Expected Result
+
+Hosts in the same VLAN on different switches should ping each other successfully. Hosts in
+different VLANs should fail to ping each other (no routing configured yet — that's intentional).
+
+## Actual Result
+
+Same-VLAN pings across switches succeeded. Cross-VLAN pings correctly failed with "Destination
+host unreachable," confirming isolation was working as expected at Layer 2.
+
+## Mistakes
+
+Left the native VLAN mismatched between the two switches initially (VLAN 1 on one, VLAN 99 on the
+other), which didn't break connectivity in this lab but would generate a native VLAN mismatch
+warning in a real environment — worth fixing for good practice.
+
+## Fixes
+
+Set `switchport trunk native vlan 99` on both ends to match, and confirmed with
+`show interfaces trunk` that both sides reported the same native VLAN.
+
+## Lessons Learned
+
+- `show interfaces trunk` is the fastest way to confirm both the allowed list and the native VLAN match on both ends
+- Isolation "working" (failed pings) can look identical to a misconfiguration — cross-check with `show vlan brief` before assuming success

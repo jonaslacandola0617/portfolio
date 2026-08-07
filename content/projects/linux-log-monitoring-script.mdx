@@ -1,0 +1,82 @@
+---
+title: "Linux Log Monitor: Flagging Failed SSH Logins"
+slug: "linux-log-monitoring-script"
+summary: "A small Python + bash utility that tails auth.log, flags repeated failed SSH attempts from the same IP, and writes a plain-text alert summary."
+category: "Security"
+difficulty: "intermediate"
+status: "completed"
+tags: ["Linux", "Python", "SIEM", "Bash", "Authentication"]
+technologies: ["Python 3", "Bash", "systemd", "cron"]
+skills: ["Linux Command Line", "Python", "SIEM Fundamentals", "Authentication & Access Control"]
+estimatedTime: "3 hours"
+completionDate: "2026-06-20"
+lastUpdated: "2026-06-24"
+githubUrl: "https://github.com/alexrivera-sec/linux-log-monitor"
+downloads:
+  - { label: "monitor.py", href: "https://github.com/alexrivera-sec/linux-log-monitor", type: "other" }
+  - { label: "GitHub Repository", href: "https://github.com/alexrivera-sec/linux-log-monitor", type: "github" }
+---
+
+## Overview
+
+A basic hardening step for any SSH-exposed box is knowing when someone is trying to brute-force
+their way in. Rather than reach for a full SIEM immediately, I built a small script to understand
+what a SIEM is actually doing under the hood: parsing logs, applying a rule, and raising an alert.
+
+## Objectives
+
+- Parse `/var/log/auth.log` for failed password attempts
+- Group failures by source IP within a rolling time window
+- Flag any IP with 5+ failures in 10 minutes
+- Write a human-readable summary and (optionally) email it
+
+## Configuration
+
+```python
+# monitor.py — simplified core logic
+import re
+from collections import defaultdict
+from datetime import datetime, timedelta
+
+PATTERN = re.compile(r"Failed password .* from (?P<ip>\d+\.\d+\.\d+\.\d+)")
+WINDOW = timedelta(minutes=10)
+THRESHOLD = 5
+
+def scan(lines):
+    attempts = defaultdict(list)
+    for line in lines:
+        match = PATTERN.search(line)
+        if not match:
+            continue
+        ip = match.group("ip")
+        attempts[ip].append(datetime.now())
+
+    flagged = {ip: len(times) for ip, times in attempts.items() if len(times) >= THRESHOLD}
+    return flagged
+```
+
+Running it on a schedule with cron:
+
+<CommandBlock title="crontab -e" commands={["*/10 * * * * /usr/bin/python3 /opt/monitor.py >> /var/log/monitor-alerts.log"]} />
+
+## Verification
+
+<CommandBlock title="test run" commands={["sudo python3 monitor.py --test-file sample_auth.log", "Output: 203.0.113.44 flagged — 7 failed attempts in 6 minutes"]} />
+
+<Callout type="warning" title="Lab environment only">
+This script was built and tested against a sample log file in an isolated VM, not a
+production system. It's a learning exercise in log parsing and alerting logic, not a
+production-grade intrusion detection tool.
+</Callout>
+
+## Troubleshooting
+
+My regex initially missed IPv6-formatted log lines and dropped them silently. Since the goal was
+learning the parsing logic rather than full protocol coverage, I documented the limitation instead
+of scope-creeping the script, and left an IPv6 pattern as a "next iteration" note.
+
+## Lessons Learned
+
+- Most of the "SIEM magic" is honestly just disciplined log parsing plus a time-window rule
+- Testing against a static sample file first made the logic much faster to debug than tailing a live log
+- Writing the limitation down (no IPv6 support yet) is more useful to a future reader than pretending it's complete
