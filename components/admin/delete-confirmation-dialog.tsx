@@ -77,7 +77,7 @@ export function DeleteConfirmationDialog({
           <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
             <div>
               <Dialog.Title className="font-display text-base font-semibold text-text">{heading}</Dialog.Title>
-              <Dialog.Description className="mt-1 text-sm text-text-dim">Permanent removal</Dialog.Description>
+              <Dialog.Description className="sr-only">{description}</Dialog.Description>
             </div>
             <Dialog.Close disabled={pending} aria-label="Close dialog" className="shrink-0 text-muted hover:text-text disabled:opacity-40">
               <X className="h-4 w-4" />
@@ -98,9 +98,9 @@ export function DeleteConfirmationDialog({
                 Cancel
               </button>
             </Dialog.Close>
-            <button type="button" onClick={confirm} disabled={pending} className="flex items-center gap-2 border border-vermilion bg-vermilion px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60">
+            <button type="button" onClick={confirm} disabled={pending} aria-label={confirmLabel} className="flex items-center gap-2 border border-vermilion bg-vermilion px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60">
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {pending ? "Deleting…" : confirmLabel}
+              {pending ? "Deleting…" : "Delete"}
             </button>
           </div>
         </Dialog.Content>

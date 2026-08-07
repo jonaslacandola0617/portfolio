@@ -81,10 +81,11 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
       enabled={mode === "edit"}
       storageKey="cms:lab:inspector"
       contentLabel="lab"
-      title={lab?.title}
+      title={title}
       backHref="/admin/labs"
     >
       <form
+        data-bauhaus-metadata-sheet={mode === "edit" ? "true" : undefined}
         onSubmit={editorForm.onSubmit}
         className={
           mode === "edit"
@@ -101,7 +102,7 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
         <div
           className={
             mode === "edit"
-              ? "min-h-0 space-y-6 overflow-y-auto px-6 py-3 scrollbar-thin"
+              ? "min-h-0 space-y-6 overflow-y-auto px-5 py-5 scrollbar-thin"
               : "space-y-6"
           }
         >
@@ -109,7 +110,7 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
             className={mode === "edit" ? "border-0 bg-transparent" : undefined}
           >
             <CardContent
-              className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+              className={mode === "edit" ? "space-y-6 p-0" : "space-y-5 pt-6"}
             >
               <div
                 className={
@@ -263,6 +264,15 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
               initialResources={lab.downloads}
             />
           )}
+
+          {mode === "edit" && (
+            <div className="border border-vermilion/30 bg-vermilion/5 p-4">
+              <p className="label mb-1 text-vermilion">Danger Zone</p>
+              <p className="text-xs text-text-dim">
+                Deleting this lab removes it from the public site immediately.
+              </p>
+            </div>
+          )}
         </div>
 
         <div
@@ -288,7 +298,7 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
           <div
             className={
               mode === "edit"
-                ? "grid gap-2"
+                ? "flex items-center justify-between gap-2"
                 : "flex items-center justify-between"
             }
           >
@@ -297,17 +307,19 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
                 mode === "create" ? "Creating..." : "Saving changes..."
               }
               forcePending={editorForm.isCoordinating}
-              className={mode === "edit" ? "w-full" : undefined}
+              className={mode === "edit" ? "order-2" : undefined}
             >
               {mode === "create" ? "Create lab" : "Save changes"}
             </SubmitButton>
             {mode === "edit" && lab && (
               <DeleteButton
+                variant="sheet"
+                label="Delete this lab"
                 contentType="lab"
                 recordTitle={lab.title}
                 onDelete={() => deleteLabAction(lab.id)}
                 onSuccess={() => router.push("/admin/labs")}
-                className="w-full justify-center"
+                className="order-1 justify-center"
               />
             )}
           </div>
@@ -323,6 +335,7 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
             onSave={autosaveLabContentAction}
             onReady={editorForm.registerEditor}
             media={media}
+            documentTitle={title}
           />
         </div>
       )}

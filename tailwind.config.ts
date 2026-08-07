@@ -9,7 +9,7 @@ const config: Config = {
         ink: "var(--ink)", graphite: "var(--graphite)", charcoal: "var(--charcoal)",
         surface: "var(--surface)", "surface-2": "var(--surface-2)", "surface-3": "var(--surface-3)",
         bone: "var(--bone)", paper: "var(--paper)", border: "var(--border)", "border-strong": "var(--border-strong)",
-        muted: { DEFAULT: "var(--surface-3)", foreground: "var(--muted)" },
+        muted: "var(--muted)", "muted-foreground": "var(--muted)",
         text: "var(--text)", "text-dim": "var(--text-dim)", cobalt: "var(--cobalt)", "cobalt-dim": "var(--cobalt-dim)",
         vermilion: "var(--vermilion)", "vermilion-dim": "var(--vermilion-dim)", signal: "var(--signal-yellow)", teal: "var(--signal-teal)",
         background: "var(--surface)", foreground: "var(--text)", input: "var(--border)", ring: "var(--cobalt)",

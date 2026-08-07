@@ -82,10 +82,11 @@ export function CertificateForm({
       enabled={mode === "edit"}
       storageKey="cms:certificate:inspector"
       contentLabel="certificate"
-      title={certificate?.name}
+      title={name}
       backHref="/admin/certificates"
     >
       <form
+        data-bauhaus-metadata-sheet={mode === "edit" ? "true" : undefined}
         onSubmit={editorForm.onSubmit}
         className={
           mode === "edit"
@@ -104,7 +105,7 @@ export function CertificateForm({
         <div
           className={
             mode === "edit"
-              ? "min-h-0 space-y-6 overflow-y-auto px-6 py-3 scrollbar-thin"
+              ? "min-h-0 space-y-6 overflow-y-auto px-5 py-5 scrollbar-thin"
               : "space-y-6"
           }
         >
@@ -112,7 +113,7 @@ export function CertificateForm({
             className={mode === "edit" ? "border-0 bg-transparent" : undefined}
           >
             <CardContent
-              className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+              className={mode === "edit" ? "space-y-6 p-0" : "space-y-5 pt-6"}
             >
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -245,6 +246,15 @@ export function CertificateForm({
               </div>
             </CardContent>
           </Card>
+
+          {mode === "edit" && (
+            <div className="border border-vermilion/30 bg-vermilion/5 p-4">
+              <p className="label mb-1 text-vermilion">Danger Zone</p>
+              <p className="text-xs text-text-dim">
+                Deleting this certificate removes it from the public site immediately.
+              </p>
+            </div>
+          )}
         </div>
 
         <div className={mode === "edit" ? "sticky bottom-0 space-y-2 border-t border-border bg-surface-2 px-5 py-4" : "space-y-3"}>
@@ -261,21 +271,25 @@ export function CertificateForm({
               Fix the highlighted metadata fields, then save again.
             </FormMessage>
           )}
-          <div className="flex items-center justify-end gap-4">
+          <div className={mode === "edit" ? "flex items-center justify-between gap-2" : "flex items-center justify-end gap-4"}>
             <SubmitButton
               pendingLabel={
                 mode === "create" ? "Creating..." : "Saving changes..."
               }
               forcePending={editorForm.isCoordinating}
+              className={mode === "edit" ? "order-2" : undefined}
             >
               {mode === "create" ? "Create certificate" : "Save changes"}
             </SubmitButton>
             {mode === "edit" && certificate && (
               <DeleteButton
+                variant="sheet"
+                label="Delete this certificate"
                 contentType="certificate"
                 recordTitle={certificate.name}
                 onDelete={() => deleteCertificateAction(certificate.id)}
                 onSuccess={() => router.push("/admin/certificates")}
+                className="order-1 justify-center"
               />
             )}
           </div>
@@ -291,6 +305,7 @@ export function CertificateForm({
             onSave={autosaveCertificateContentAction}
             onReady={editorForm.registerEditor}
             media={media}
+            documentTitle={name}
           />
         </div>
       )}

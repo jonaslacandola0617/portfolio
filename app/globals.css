@@ -144,3 +144,17 @@
 
 @keyframes admin-drawer-in { from { transform: translateX(-100%); } to { transform: translateX(0); } }
 .admin-drawer-in { animation: admin-drawer-in .25s cubic-bezier(.16,1,.3,1) both; }
+
+/* CMS metadata sheets follow the Bauhaus prototype's recessed panel layering:
+   the sheet is surface-2 while its form controls sit on surface. */
+[data-bauhaus-metadata-sheet="true"] input:not([type="hidden"]):not([type="checkbox"]):not([role="combobox"]),
+[data-bauhaus-metadata-sheet="true"] textarea,
+[data-bauhaus-metadata-sheet="true"] select {
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+@keyframes bauhaus-sheet-in { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@keyframes bauhaus-sheet-out { from { transform: translateX(0); } to { transform: translateX(100%); } }
+.bauhaus-sheet[data-state="open"] { animation: bauhaus-sheet-in .3s cubic-bezier(.16,1,.3,1) both; }
+.bauhaus-sheet[data-state="closed"] { animation: bauhaus-sheet-out .3s cubic-bezier(.16,1,.3,1) both; }
