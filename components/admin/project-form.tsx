@@ -92,7 +92,7 @@ export function ProjectForm({
   );
   const [title, setTitle] = useState(project?.title ?? "");
   const [slug, setSlug] = useState(project?.slug ?? "");
-  const [slugTouched, setSlugTouched] = useState(mode === "edit");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [publishStatus, setPublishStatus] = useState(
     project?.publishStatus ?? "DRAFT",
   );
