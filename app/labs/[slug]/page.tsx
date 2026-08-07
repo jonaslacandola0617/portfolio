@@ -1,4 +1,123 @@
-import type {Metadata} from "next";import Link from "next/link";import {notFound} from "next/navigation";import {ArrowLeft,Download} from "lucide-react";import {ContentRenderer} from "@/components/shared/content-renderer";import {Tag} from "@/components/shared/tag";import {StatusBadge} from "@/components/shared/status-badges";import {getAllLabSlugs,getLabBySlug} from "@/lib/content";import {formatDate} from "@/lib/utils";
-export async function generateStaticParams(){const slugs=await getAllLabSlugs();return slugs.map(slug=>({slug}))}
-export async function generateMetadata({params}:{params:{slug:string}}):Promise<Metadata>{const lab=await getLabBySlug(params.slug);return lab?{title:lab.frontmatter.title,description:lab.frontmatter.purpose}:{}}
-export default async function LabPage({params}:{params:{slug:string}}){const lab=await getLabBySlug(params.slug);if(!lab)notFound();const{frontmatter,content}=lab;return <div><header className="border-b border-border px-6 py-10 sm:px-10 sm:py-14 lg:px-14"><div className="mx-auto max-w-3xl"><Link href="/labs" className="mb-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-text"><ArrowLeft size={12}/> All Labs</Link><div className="mb-4 flex flex-wrap items-center gap-3"><span className="label text-cobalt">{frontmatter.category} Lab</span><StatusBadge status={frontmatter.status}/><span className="font-mono text-xs text-muted-foreground">{formatDate(frontmatter.date)}</span></div><h1 className="font-display text-3xl font-semibold leading-tight text-text sm:text-4xl">{frontmatter.title}</h1></div></header><div className="mx-auto max-w-3xl px-6 py-12 sm:px-10 lg:px-14"><section className="mb-10"><p className="idx mb-2">01 — Objective</p><p className="text-[15px] leading-relaxed text-text">{frontmatter.purpose}</p></section><section className="mb-10"><p className="idx mb-4">02 — Lab Record</p><ContentRenderer content={content} context={{model:"Lab",id:lab.recordId,slug:frontmatter.slug,title:frontmatter.title}}/></section>{frontmatter.downloads?.length?<section className="mb-10"><p className="idx mb-4">03 — Resources</p><div className="divide-y divide-border border border-border bg-surface-2">{frontmatter.downloads.map(d=><a key={`${d.href}-${d.label}`} href={d.href} download className="flex items-center gap-3 px-4 py-3 text-sm text-text-dim hover:text-text"><Download size={14} className="text-cobalt"/><span className="flex-1">{d.label}</span><span className="label">Download</span></a>)}</div></section>:null}<div className="flex flex-wrap gap-1.5 border-t border-border pt-6">{frontmatter.tags.map(t=><Tag key={t}>{t}</Tag>)}</div></div></div>}
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft, Download } from "lucide-react";
+import { ContentRenderer } from "@/components/shared/content-renderer";
+import { TableOfContents } from "@/components/shared/table-of-contents";
+import { Tag } from "@/components/shared/tag";
+import { StatusBadge } from "@/components/shared/status-badges";
+import { getAllLabSlugs, getLabBySlug } from "@/lib/content";
+import {
+  extractContentHeadings,
+  type ContentHeading,
+} from "@/lib/content-headings";
+import { formatDate } from "@/lib/utils";
+
+export async function generateStaticParams() {
+  const slugs = await getAllLabSlugs();
+  return slugs.map((slug) => ({ slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}): Promise<Metadata> {
+  const lab = await getLabBySlug(params.slug);
+  return lab
+    ? { title: lab.frontmatter.title, description: lab.frontmatter.purpose }
+    : {};
+}
+
+export default async function LabPage({ params }: { params: { slug: string } }) {
+  const lab = await getLabBySlug(params.slug);
+  if (!lab) notFound();
+
+  const { frontmatter, content } = lab;
+  const contentHeadings = extractContentHeadings(content);
+  const tocItems: ContentHeading[] = [
+    { id: "lab-objective", text: "Objective", level: 2 },
+    { id: "lab-record", text: "Lab Record", level: 2 },
+    ...contentHeadings,
+    ...(frontmatter.downloads?.length
+      ? ([{ id: "lab-resources", text: "Resources", level: 2 }] satisfies ContentHeading[])
+      : []),
+  ];
+
+  return (
+    <div>
+      <header className="border-b border-border px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
+        <div className="mx-auto max-w-6xl">
+          <div className="max-w-3xl">
+            <Link
+              href="/labs"
+              className="mb-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-text"
+            >
+              <ArrowLeft size={12} /> All Labs
+            </Link>
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <span className="label text-cobalt">{frontmatter.category} Lab</span>
+              <StatusBadge status={frontmatter.status} />
+              <span className="font-mono text-xs text-muted-foreground">
+                {formatDate(frontmatter.date)}
+              </span>
+            </div>
+            <h1 className="font-display text-3xl font-semibold leading-tight text-text sm:text-4xl">
+              {frontmatter.title}
+            </h1>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto grid max-w-6xl gap-12 px-6 py-12 sm:px-10 lg:px-14 xl:grid-cols-[minmax(0,1fr)_220px]">
+        <main className="min-w-0 max-w-3xl">
+          <section id="lab-objective" className="mb-10 scroll-mt-8">
+            <p className="idx mb-2">01 — Objective</p>
+            <p className="text-[15px] leading-relaxed text-text">{frontmatter.purpose}</p>
+          </section>
+
+          <section id="lab-record" className="mb-10 scroll-mt-8">
+            <p className="idx mb-4">02 — Lab Record</p>
+            <ContentRenderer
+              content={content}
+              context={{
+                model: "Lab",
+                id: lab.recordId,
+                slug: frontmatter.slug,
+                title: frontmatter.title,
+              }}
+            />
+          </section>
+
+          {frontmatter.downloads?.length ? (
+            <section id="lab-resources" className="mb-10 scroll-mt-8">
+              <p className="idx mb-4">03 — Resources</p>
+              <div className="divide-y divide-border border border-border bg-surface-2">
+                {frontmatter.downloads.map((download) => (
+                  <a
+                    key={`${download.href}-${download.label}`}
+                    href={download.href}
+                    download
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-text-dim hover:text-text"
+                  >
+                    <Download size={14} className="text-cobalt" />
+                    <span className="flex-1">{download.label}</span>
+                    <span className="label">Download</span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          <div className="flex flex-wrap gap-1.5 border-t border-border pt-6">
+            {frontmatter.tags.map((tag) => (
+              <Tag key={tag}>{tag}</Tag>
+            ))}
+          </div>
+        </main>
+
+        <TableOfContents items={tocItems} />
+      </div>
+    </div>
+  );
+}
