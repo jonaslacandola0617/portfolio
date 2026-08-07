@@ -308,7 +308,7 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
             {mode === "edit" && lab && (
               <DeleteButton
                 variant="sheet"
-                label="Delete this lab"
+                label="Delete"
                 contentType="lab"
                 recordTitle={lab.title}
                 onDelete={() => deleteLabAction(lab.id)}
