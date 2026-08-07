@@ -1,10 +1,14 @@
 "use client";
 
 import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ContentTemplate, TemplateContentType } from "@/lib/editor/templates";
 import { getEditorExtensions } from "@/lib/editor/extensions";
 import { EditorToolbar } from "@/components/editor/toolbar";
+import {
+  EditorContextToolbar,
+  type EditorContextPosition,
+} from "@/components/editor/editor-context-toolbar";
 import { useAutosave } from "@/hooks/use-autosave";
 import {
   serializeTipTapDocument,
@@ -38,6 +42,7 @@ export function EditorShell({
   media = [],
   documentTitle,
 }: EditorShellProps) {
+  const [contextPosition, setContextPosition] = useState<EditorContextPosition | null>(null);
   const invokeSave = useCallback(
     async (editorOutput: unknown, clientRevision: number): Promise<SaveResult> => {
       try {
@@ -110,6 +115,39 @@ export function EditorShell({
     [editor],
   );
 
+  const dismissContextToolbar = useCallback(() => {
+    setContextPosition(null);
+  }, []);
+
+  const openContextToolbar = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (!editor) return;
+      event.preventDefault();
+
+      const resolved = editor.view.posAtCoords({
+        left: event.clientX,
+        top: event.clientY,
+      });
+      if (resolved) {
+        const { from, to } = editor.state.selection;
+        if (from === to || resolved.pos < from || resolved.pos > to) {
+          editor.commands.setTextSelection(resolved.pos);
+        }
+      }
+      editor.commands.focus();
+
+      const flipX = event.clientX > window.innerWidth / 2;
+      const flipY = event.clientY > window.innerHeight / 2;
+      setContextPosition({
+        x: event.clientX + (flipX ? -8 : 8),
+        y: event.clientY + (flipY ? -8 : 8),
+        flipX,
+        flipY,
+      });
+    },
+    [editor],
+  );
+
   useEffect(() => {
     if (!onReady) return;
     if (!editor) {
@@ -137,6 +175,13 @@ export function EditorShell({
   );
   useAuthoringEditorHeader(headerState);
 
+  const toolbarContentType =
+    contentType === "certificate"
+      ? undefined
+      : (contentType as TemplateContentType);
+  const toolbarApplyTemplate =
+    contentType === "certificate" ? undefined : applyTemplate;
+
   return (
     <div className="editor-workspace flex h-full min-h-0 flex-col bg-surface">
       <div className="z-10 shrink-0 border-b border-border bg-surface/95 backdrop-blur">
@@ -144,27 +189,34 @@ export function EditorShell({
           <EditorToolbar
             editor={editor}
             media={media}
-            contentType={
-              contentType === "certificate"
-                ? undefined
-                : (contentType as TemplateContentType)
-            }
-            onApplyTemplate={
-              contentType === "certificate" ? undefined : applyTemplate
-            }
+            contentType={toolbarContentType}
+            onApplyTemplate={toolbarApplyTemplate}
           />
         </div>
       </div>
-      <div className="thin-scroll min-h-0 flex-1 overflow-auto bg-surface px-5 py-8 sm:px-10 lg:px-0">
+
+      <div
+        className="thin-scroll min-h-0 flex-1 overflow-auto bg-surface px-5 py-8 sm:px-10 lg:px-0"
+        onScroll={dismissContextToolbar}
+      >
         <div className="mx-auto max-w-3xl">
           <h1 className="font-display text-3xl font-semibold text-text sm:text-4xl">
             {documentTitle || "Untitled Draft"}
           </h1>
-          <div className="mt-8">
+          <div className="mt-8" onContextMenu={openContextToolbar}>
             <EditorContent editor={editor} />
           </div>
         </div>
       </div>
+
+      <EditorContextToolbar
+        editor={editor}
+        position={contextPosition}
+        media={media}
+        contentType={toolbarContentType}
+        onApplyTemplate={toolbarApplyTemplate}
+        onDismiss={dismissContextToolbar}
+      />
     </div>
   );
 }
