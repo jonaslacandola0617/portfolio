@@ -10,7 +10,11 @@ import {
 import { getDashboardOverview } from "@/lib/services/dashboard-service";
 import { StatCard } from "@/components/admin/stat-card";
 import { PageHeader, PageShell } from "@/components/shared/page-header";
-import type { ContentTypeMetric, DashboardSection } from "@/types/admin";
+import type {
+  ContentTypeMetric,
+  DashboardSection,
+  RecentlyUpdatedItem,
+} from "@/types/admin";
 
 const metricIcons = {
   projects: FolderGit2,
@@ -64,11 +68,49 @@ const activityIcons = {
   CERTIFICATE: BadgeCheck,
 } as const;
 
+function RecentActivity({
+  section,
+}: {
+  section: DashboardSection<RecentlyUpdatedItem[]>;
+}) {
+  if (!section.ok) return <SectionFailure message={section.message} />;
+
+  const recentItems = section.data.slice(0, 4);
+
+  if (!recentItems.length) {
+    return (
+      <p className="border border-border px-4 py-8 text-sm text-muted">
+        No content updates yet.
+      </p>
+    );
+  }
+
+  return (
+    <div className="border border-border bg-surface-2">
+      {recentItems.map((item, index) => {
+        const Icon = activityIcons[item.type] ?? GitCommitHorizontal;
+        return (
+          <Link
+            key={`${item.type}-${item.id}`}
+            href={item.href}
+            className={`flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface-3 ${index !== recentItems.length - 1 ? "border-b border-border" : ""}`}
+          >
+            <Icon className="h-3.5 w-3.5 shrink-0 text-cobalt" />
+            <span className="min-w-0 flex-1 truncate text-sm text-text">
+              {item.title}
+            </span>
+            <span className="shrink-0 font-mono text-xs text-muted">
+              {dashboardDate(item.updatedAt)}
+            </span>
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
 export default async function AdminDashboardPage() {
   const overview = await getDashboardOverview();
-  const recentItems = overview.recentlyUpdated.ok
-    ? overview.recentlyUpdated.data.slice(0, 4)
-    : null;
 
   return (
     <div>
@@ -84,36 +126,7 @@ export default async function AdminDashboardPage() {
 
         <div>
           <p className="idx mb-3">Recent Activity</p>
-          {recentItems ? (
-            recentItems.length ? (
-              <div className="border border-border bg-surface-2">
-                {recentItems.map((item, index) => {
-                  const Icon = activityIcons[item.type] ?? GitCommitHorizontal;
-                  return (
-                    <Link
-                      key={`${item.type}-${item.id}`}
-                      href={item.href}
-                      className={`flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface-3 ${index !== recentItems.length - 1 ? "border-b border-border" : ""}`}
-                    >
-                      <Icon className="h-3.5 w-3.5 shrink-0 text-cobalt" />
-                      <span className="min-w-0 flex-1 truncate text-sm text-text">
-                        {item.title}
-                      </span>
-                      <span className="shrink-0 font-mono text-xs text-muted">
-                        {dashboardDate(item.updatedAt)}
-                      </span>
-                    </Link>
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="border border-border px-4 py-8 text-sm text-muted">
-                No content updates yet.
-              </p>
-            )
-          ) : (
-            <SectionFailure message={overview.recentlyUpdated.message} />
-          )}
+          <RecentActivity section={overview.recentlyUpdated} />
         </div>
       </PageShell>
     </div>
