@@ -10,13 +10,12 @@ import { EditorShell } from "@/components/editor/editor-shell";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { FormMessage } from "@/components/admin/form-message";
 import { DeleteButton } from "@/components/admin/delete-button";
+import { SegmentedStatusField } from "@/components/admin/segmented-status-field";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
 import { TaxonomyMultiCombobox } from "@/components/admin/taxonomy-combobox";
 import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
-import { SheetClose } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
 import { CertificateLogoPicker } from "@/components/admin/certificate-logo-picker";
 import { QuerySuccessToast } from "@/components/admin/query-success-toast";
 import { DateSelector } from "@/components/admin/date-selector";
@@ -46,6 +45,12 @@ interface CertificateFormProps {
     content: JSONContent;
   };
 }
+
+const publishStatusOptions = [
+  { value: "DRAFT", label: "Draft" },
+  { value: "PUBLISHED", label: "Published" },
+  { value: "ARCHIVED", label: "Archived" },
+];
 
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
@@ -208,35 +213,19 @@ export function CertificateForm({
                 </div>
               </div>
 
-              <div
-                className={
-                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-                }
-              >
-                <div>
-                  <Label htmlFor="publishStatus">Publish status</Label>
-                  <p className="mb-2 mt-1 text-xs text-muted-foreground">
-                    Publish manually when the certificate is ready.
-                  </p>
-                  <select
-                    id="publishStatus"
-                    name="publishStatus"
-                    value={publishStatus}
-                    onChange={(e) => setPublishStatus(e.target.value)}
-                    className="flex h-10 w-full border border-border bg-surface px-3 text-sm"
-                  >
-                    <option value="DRAFT">Draft</option>
-                    <option value="PUBLISHED">Published</option>
-                    <option value="ARCHIVED">Archived</option>
-                  </select>
-                </div>
-              </div>
+              <SegmentedStatusField
+                name="publishStatus"
+                label="Publish status"
+                value={publishStatus}
+                onValueChange={setPublishStatus}
+                options={publishStatusOptions}
+                description="Publish manually when the certificate is ready."
+              />
 
               <div className="sm:col-span-2">
                 <Label>Certificate Logo</Label>
                 <p className="mb-2 mt-1 text-xs text-muted-foreground">
-                  Upload or choose the issuer/certification image shown
-                  publicly.
+                  Upload or choose the issuer/certification image shown publicly.
                 </p>
                 <CertificateLogoPicker
                   media={media}
@@ -257,7 +246,13 @@ export function CertificateForm({
           )}
         </div>
 
-        <div className={mode === "edit" ? "sticky bottom-0 space-y-2 border-t border-border bg-surface-2 px-5 py-4" : "space-y-3"}>
+        <div
+          className={
+            mode === "edit"
+              ? "sticky bottom-0 space-y-2 border-t border-border bg-surface-2 px-5 py-4"
+              : "space-y-3"
+          }
+        >
           {editorForm.coordinationError && (
             <FormMessage variant="error">
               {editorForm.coordinationError}
@@ -271,11 +266,15 @@ export function CertificateForm({
               Fix the highlighted metadata fields, then save again.
             </FormMessage>
           )}
-          <div className={mode === "edit" ? "flex items-center justify-between gap-2" : "flex items-center justify-end gap-4"}>
+          <div
+            className={
+              mode === "edit"
+                ? "flex items-center justify-between gap-2"
+                : "flex items-center justify-end gap-4"
+            }
+          >
             <SubmitButton
-              pendingLabel={
-                mode === "create" ? "Creating..." : "Saving changes..."
-              }
+              pendingLabel={mode === "create" ? "Creating..." : "Saving changes..."}
               forcePending={editorForm.isCoordinating}
               className={mode === "edit" ? "order-2" : undefined}
             >
