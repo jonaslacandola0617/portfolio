@@ -11,6 +11,7 @@ import { EditorShell } from "@/components/editor/editor-shell";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { FormMessage } from "@/components/admin/form-message";
 import { DeleteButton } from "@/components/admin/delete-button";
+import { SegmentedStatusField } from "@/components/admin/segmented-status-field";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
@@ -48,12 +49,23 @@ interface ArticleFormProps {
   };
 }
 
+const publishStatusOptions = [
+  { value: "DRAFT", label: "Draft" },
+  { value: "PUBLISHED", label: "Published" },
+  { value: "ARCHIVED", label: "Archived" },
+];
+
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
 }
 
-export function ArticleForm({ mode, article, media = [], templateId }: ArticleFormProps) {
+export function ArticleForm({
+  mode,
+  article,
+  media = [],
+  templateId,
+}: ArticleFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const justCreated = mode === "edit" && searchParams.get("created") === "1";
@@ -196,36 +208,23 @@ export function ArticleForm({ mode, article, media = [], templateId }: ArticleFo
                 </div>
               </div>
 
-              <div
-                className={
-                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-                }
-              >
-                <div>
-                  <Label htmlFor="publishStatus">Publish status</Label>
-                  <p className="mb-2 mt-1 text-xs text-muted-foreground">
-                    Publish manually when the article is ready.
-                  </p>
-                  <select
-                    id="publishStatus"
-                    name="publishStatus"
-                    value={publishStatus}
-                    onChange={(e) => setPublishStatus(e.target.value)}
-                    className="flex h-10 w-full border border-border bg-surface px-3 text-sm"
-                  >
-                    <option value="DRAFT">Draft</option>
-                    <option value="PUBLISHED">Published</option>
-                    <option value="ARCHIVED">Archived</option>
-                  </select>
-                </div>
-              </div>
+              <SegmentedStatusField
+                name="publishStatus"
+                label="Publish status"
+                value={publishStatus}
+                onValueChange={setPublishStatus}
+                options={publishStatusOptions}
+                description="Publish manually when the article is ready."
+              />
             </CardContent>
           </Card>
 
           {mode === "create" && !templateId && (
             <TemplateSelector templates={articleTemplates} />
           )}
-          {mode === "create" && templateId && <input type="hidden" name="templateId" value={templateId} />}
+          {mode === "create" && templateId && (
+            <input type="hidden" name="templateId" value={templateId} />
+          )}
 
           {mode === "edit" && (
             <div className="border border-vermilion/30 bg-vermilion/5 p-4">
@@ -265,9 +264,7 @@ export function ArticleForm({ mode, article, media = [], templateId }: ArticleFo
             }
           >
             <SubmitButton
-              pendingLabel={
-                mode === "create" ? "Creating..." : "Saving changes..."
-              }
+              pendingLabel={mode === "create" ? "Creating..." : "Saving changes..."}
               forcePending={editorForm.isCoordinating}
               className={mode === "edit" ? "order-2" : undefined}
             >
