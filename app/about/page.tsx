@@ -2,15 +2,17 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Download } from "lucide-react";
 import { PageHeader, PageShell } from "@/components/shared/page-header";
-import { aboutPageStaticCopy } from "@/lib/about-defaults";
+import { Tag } from "@/components/shared/tag";
 import { getAboutPage } from "@/lib/db/queries/about";
 import { getSiteSettings } from "@/lib/db/queries/settings";
-import { siteConfig } from "@/lib/site-config";
 
 export const metadata: Metadata = { title: "About" };
 
 export default async function AboutPage() {
-  const [about, settings] = await Promise.all([getAboutPage(), getSiteSettings()]);
+  const [about, settings] = await Promise.all([
+    getAboutPage(),
+    getSiteSettings(),
+  ]);
   const initials = settings.name
     .split(" ")
     .map((word) => word[0])
@@ -43,13 +45,13 @@ export default async function AboutPage() {
 
           <div className="max-w-content">
             <p className="mb-8 border-l-2 border-vermilion pl-5 font-display text-xl leading-snug text-text sm:text-2xl">
-              &quot;{aboutPageStaticCopy.quote}&quot;
+              &quot;{about.quote}&quot;
             </p>
 
             <section className="mb-8">
               <p className="idx mb-2">01 — Background</p>
               <p className="mb-4 text-[15px] leading-relaxed text-text">
-                {about.biography}
+                {about.background}
               </p>
             </section>
 
@@ -59,13 +61,8 @@ export default async function AboutPage() {
                 {about.currentFocus}
               </p>
               <div className="flex flex-wrap gap-1.5">
-                {siteConfig.currentFocusStack.map((item) => (
-                  <span
-                    key={item}
-                    className="label border border-border px-1.5 py-0.5 text-muted"
-                  >
-                    {item}
-                  </span>
+                {about.focusTags.map((item) => (
+                  <Tag key={item}>{item}</Tag>
                 ))}
               </div>
             </section>
@@ -80,7 +77,7 @@ export default async function AboutPage() {
             <section>
               <p className="idx mb-2">04 — What&apos;s Next</p>
               <p className="text-[15px] leading-relaxed text-text">
-                {aboutPageStaticCopy.whatsNext}
+                {about.whatsNext}
               </p>
             </section>
           </div>

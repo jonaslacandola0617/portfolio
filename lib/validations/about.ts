@@ -3,51 +3,72 @@ import { z } from "zod";
 const trimmed = (label: string, max: number) =>
   z.string().trim().min(1, `${label} is required`).max(max, `${label} is too long`);
 
-const currentAboutPageSchema = z.object({
-  biography: trimmed("Biography", 4000),
+export const aboutPageSchema = z.object({
+  quote: trimmed("Opening quote", 500),
+  background: trimmed("Background", 4000),
   currentFocus: trimmed("Current focus", 3000),
+  focusTags: z.array(trimmed("Focus tag", 80)).min(1).max(20),
   learningPhilosophy: trimmed("Learning philosophy", 3000),
+  whatsNext: trimmed("What's next", 3000),
 });
 
-function normalizeLegacyAboutPage(value: unknown): unknown {
-  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+export type AboutPageValues = z.infer<typeof aboutPageSchema>;
 
-  const record = value as Record<string, unknown>;
-  if (
-    typeof record.biography === "string" ||
-    typeof record.currentFocus === "string" ||
-    typeof record.learningPhilosophy === "string"
-  ) {
-    return value;
-  }
+const interimAboutPageSchema = z.object({
+  biography: z.string(),
+  currentFocus: z.string(),
+  learningPhilosophy: z.string(),
+});
 
-  const paragraphs = Array.isArray(record.paragraphs)
-    ? record.paragraphs.filter((paragraph): paragraph is string => typeof paragraph === "string")
-    : [];
+const legacyAboutPageSchema = z.object({
+  paragraphs: z.array(z.string()).optional(),
+  currentFocus: z.array(z.string()).optional(),
+}).passthrough();
 
-  // Compatibility with the pre-Bauhaus About JSON contract. SiteSettings.aboutPage
-  // is a JSON column, so no database migration is required: old records are adapted
-  // at the application boundary and are rewritten in the new shape on the next save.
-  if (paragraphs.length || "pillars" in record || "focusLabel" in record) {
+/**
+ * Reads both historical About JSON contracts without requiring a database migration.
+ * SiteSettings.aboutPage is intentionally JSON, so shape evolution happens at this
+ * boundary and the next admin save rewrites the record in the current Bauhaus shape.
+ */
+export function normalizeAboutPage(
+  value: unknown,
+  fallback: AboutPageValues,
+): AboutPageValues {
+  const current = aboutPageSchema.safeParse(value);
+  if (current.success) return current.data;
+
+  const interim = interimAboutPageSchema.safeParse(value);
+  if (interim.success) {
     return {
-      biography:
-        paragraphs[0] ??
-        "I'm building toward a career in cybersecurity and network administration, coming at it from the hands-on side first.",
-      currentFocus:
-        paragraphs[1] ??
-        "Working through the CCNA curriculum and the Google Cybersecurity Professional Certificate in parallel.",
+      ...fallback,
+      background: interim.data.biography.trim() || fallback.background,
+      currentFocus: interim.data.currentFocus.trim() || fallback.currentFocus,
       learningPhilosophy:
-        paragraphs[2] ??
-        "I don't consider something learned until I've done it hands-on and written it down.",
+        interim.data.learningPhilosophy.trim() || fallback.learningPhilosophy,
     };
   }
 
-  return value;
+  const legacy = legacyAboutPageSchema.safeParse(value);
+  if (legacy.success) {
+    const paragraphs = legacy.data.paragraphs ?? [];
+    return {
+      ...fallback,
+      background: paragraphs[0]?.trim() || fallback.background,
+      currentFocus: paragraphs[1]?.trim() || fallback.currentFocus,
+      learningPhilosophy:
+        paragraphs[2]?.trim() || fallback.learningPhilosophy,
+      focusTags:
+        legacy.data.currentFocus?.map((item) => item.trim()).filter(Boolean) ||
+        fallback.focusTags,
+    };
+  }
+
+  return fallback;
 }
 
-export const aboutPageSchema = z.preprocess(
-  normalizeLegacyAboutPage,
-  currentAboutPageSchema,
-);
-
-export type AboutPageValues = z.infer<typeof currentAboutPageSchema>;
+export function parseNonEmptyLines(value: FormDataEntryValue | null) {
+  return String(value ?? "")
+    .split(/\r?\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}

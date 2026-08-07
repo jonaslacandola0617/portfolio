@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { prisma } from "@/lib/db";
 import { readWithPolicy } from "@/lib/db/read-policy";
-import { aboutPageSchema, type AboutPageValues } from "@/lib/validations/about";
+import { normalizeAboutPage, type AboutPageValues } from "@/lib/validations/about";
 import { defaultAboutPage } from "@/lib/about-defaults";
 
 export const getAboutPage = cache(async (): Promise<AboutPageValues> =>
@@ -12,6 +12,6 @@ export const getAboutPage = cache(async (): Promise<AboutPageValues> =>
       select: { aboutPage: true },
     });
     if (!row?.aboutPage) return defaultAboutPage;
-    return aboutPageSchema.parse(row.aboutPage);
+    return normalizeAboutPage(row.aboutPage, defaultAboutPage);
   })
 );

@@ -3,7 +3,7 @@
 import { requireAdmin } from "@/lib/services/auth-service";
 import { classifyServiceError } from "@/lib/services/action-errors";
 import { upsertAboutPage } from "@/lib/services/about-admin-service";
-import { aboutPageSchema } from "@/lib/validations/about";
+import { aboutPageSchema, parseNonEmptyLines } from "@/lib/validations/about";
 import type { ActionResult } from "@/types/admin";
 
 export async function updateAboutAction(
@@ -13,13 +13,20 @@ export async function updateAboutAction(
   try {
     await requireAdmin();
   } catch {
-    return { success: false, code: "AUTH_ERROR", message: "Your admin session has expired." };
+    return {
+      success: false,
+      code: "AUTH_ERROR",
+      message: "Your admin session has expired.",
+    };
   }
 
   const parsed = aboutPageSchema.safeParse({
-    biography: formData.get("biography"),
+    quote: formData.get("quote"),
+    background: formData.get("background"),
     currentFocus: formData.get("currentFocus"),
+    focusTags: parseNonEmptyLines(formData.get("focusTags")),
     learningPhilosophy: formData.get("learningPhilosophy"),
+    whatsNext: formData.get("whatsNext"),
   });
 
   if (!parsed.success) {
