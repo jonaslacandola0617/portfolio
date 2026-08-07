@@ -16,7 +16,7 @@ export const siteConfig = {
   social: {
     github: "https://github.com/jonaslacandola-sec",
     linkedin: "https://linkedin.com/in/jonaslacandola-sec",
-    twitter: "https://x.com/jonaslacandola",
+    twitter: "https://x.com/jonaslacandola-sec",
   },
   resumeUrl: "/resume.pdf",
   siteUrl: "https://jonaslacandola.vercel.app",
