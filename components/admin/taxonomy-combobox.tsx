@@ -199,12 +199,24 @@ export function TaxonomyMultiCombobox({
   return (
     <div ref={rootRef} className="relative">
       <input type="hidden" name={name} value={selected.join(", ")} />
-      <div className={cn("flex min-h-10 flex-wrap items-center gap-1.5 border border-border bg-surface px-2 py-1.5", open && "border-cobalt")}>
-        {selected.map((item) => (
-          <span key={normalized(item)} className="inline-flex items-center gap-1 border border-border bg-surface-2 px-2 py-1 text-xs text-text-dim">
-            {item}<button type="button" aria-label={`Remove ${item}`} onClick={() => setSelected((current) => current.filter((value) => normalized(value) !== normalized(item)))}><X className="h-3 w-3" /></button>
-          </span>
-        ))}
+      <div className={cn("border border-border bg-surface p-2", open && "border-cobalt")}>
+        {selected.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {selected.map((item) => (
+              <span key={normalized(item)} className="flex items-center gap-1 border border-border bg-surface-2 px-2 py-1 text-[11px] text-text-dim">
+                {item}
+                <button
+                  type="button"
+                  aria-label={`Remove ${item}`}
+                  onClick={() => setSelected((current) => current.filter((value) => normalized(value) !== normalized(item)))}
+                  className="text-muted hover:text-vermilion"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
         <input
           aria-label={label}
           aria-controls={listId}
@@ -213,6 +225,7 @@ export function TaxonomyMultiCombobox({
           aria-activedescendant={open && items[activeIndex] ? `${listId}-option-${activeIndex}` : undefined}
           role="combobox"
           value={query}
+          placeholder={kind === "tag" ? "Add a tag…" : kind === "skill" ? "Add a skill…" : "Add…"}
           onFocus={() => setOpen(true)}
           onChange={(event) => { setQuery(event.target.value); setOpen(true); }}
           onKeyDown={(event) => {
@@ -232,7 +245,7 @@ export function TaxonomyMultiCombobox({
             if (event.key === "Backspace" && !query && selected.length) setSelected((current) => current.slice(0, -1));
             if (event.key === "Escape") setOpen(false);
           }}
-          className="min-w-24 flex-1 bg-transparent px-1 py-1 text-sm outline-none"
+          className="w-full bg-transparent px-1 text-sm text-text outline-none placeholder:text-muted"
         />
       </div>
       {open && (

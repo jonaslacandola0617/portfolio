@@ -87,10 +87,11 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
       enabled={mode === "edit"}
       storageKey="cms:project:inspector"
       contentLabel="project"
-      title={project?.title}
+      title={title}
       backHref="/admin/projects"
     >
       <form
+        data-bauhaus-metadata-sheet={mode === "edit" ? "true" : undefined}
         onSubmit={editorForm.onSubmit}
         className={
           mode === "edit"
@@ -107,7 +108,7 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
         <div
           className={
             mode === "edit"
-              ? "min-h-0 space-y-6 overflow-y-auto px-6 py-3 scrollbar-thin"
+              ? "min-h-0 space-y-6 overflow-y-auto px-5 py-5 scrollbar-thin"
               : "space-y-6"
           }
         >
@@ -115,7 +116,7 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
             className={mode === "edit" ? "border-0 bg-transparent" : undefined}
           >
             <CardContent
-              className={mode === "edit" ? "space-y-5 p-0" : "space-y-5 pt-6"}
+              className={mode === "edit" ? "space-y-6 p-0" : "space-y-5 pt-6"}
             >
               <div
                 className={
@@ -244,7 +245,7 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
 
               <div
                 className={
-                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+                  mode === "edit" ? "grid grid-cols-2 gap-4" : "grid gap-4 sm:grid-cols-3"
                 }
               >
                 <div>
@@ -267,7 +268,7 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
                   />
                   <FieldError errors={state.errors?.completionDate} />
                 </div>
-                <div>
+                <div className={mode === "edit" ? "col-span-2" : undefined}>
                   <Label htmlFor="githubUrl">GitHub URL</Label>
                   <Input
                     id="githubUrl"
@@ -309,6 +310,15 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
             <TemplateSelector templates={projectTemplates} />
           )}
           {mode === "create" && templateId && <input type="hidden" name="templateId" value={templateId} />}
+
+          {mode === "edit" && (
+            <div className="border border-vermilion/30 bg-vermilion/5 p-4">
+              <p className="label mb-1 text-vermilion">Danger Zone</p>
+              <p className="text-xs text-text-dim">
+                Deleting this project removes it from the public site immediately.
+              </p>
+            </div>
+          )}
         </div>
 
         <div
@@ -334,7 +344,7 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
           <div
             className={
               mode === "edit"
-                ? "grid gap-2"
+                ? "flex items-center justify-between gap-2"
                 : "flex items-center justify-between"
             }
           >
@@ -343,7 +353,7 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
                 mode === "create" ? "Creating..." : "Saving changes..."
               }
               forcePending={editorForm.isCoordinating}
-              className={mode === "edit" ? "w-full" : undefined}
+              className={mode === "edit" ? "order-2" : undefined}
             >
               {mode === "create" ? "Create project" : "Save changes"}
             </SubmitButton>
@@ -352,11 +362,13 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
               here was invalid HTML and unreliable. */}
             {mode === "edit" && project && (
               <DeleteButton
+                variant="sheet"
+                label="Delete this project"
                 contentType="project"
                 recordTitle={project.title}
                 onDelete={() => deleteProjectAction(project.id)}
                 onSuccess={() => router.push("/admin/projects")}
-                className="w-full justify-center"
+                className="order-1 justify-center"
               />
             )}
           </div>
@@ -372,6 +384,7 @@ export function ProjectForm({ mode, project, media = [], templateId }: ProjectFo
             onSave={autosaveProjectContentAction}
             onReady={editorForm.registerEditor}
             media={media}
+            documentTitle={title}
           />
         </div>
       )}

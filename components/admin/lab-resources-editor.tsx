@@ -97,20 +97,38 @@ export function LabResourcesEditor({
   };
 
   return (
-    <section className="space-y-3 border border-border p-4">
+    <section className="space-y-3">
       <div>
-        <h3 className="font-display text-sm font-semibold text-text">Downloads and resources</h3>
-        <p className="mt-1 text-xs text-text-dim">Associations are removed independently; Media Library files are never deleted here.</p>
+        <p className="label mb-2">Resources</p>
+        <p className="text-xs text-text-dim">
+          Attach downloadable files to this lab. Removing an association does not delete the Media Library file.
+        </p>
       </div>
+
       <div className="flex gap-2">
-        <select aria-label="Media Library resource" value={selectedId} onChange={(event) => setSelectedId(event.target.value)} className="h-10 min-w-0 flex-1 border border-border bg-surface px-3 text-sm">
-          {available.map((item) => <option key={item.id} value={item.id}>{item.filename}</option>)}
+        <select
+          aria-label="Media Library resource"
+          value={selectedId}
+          onChange={(event) => setSelectedId(event.target.value)}
+          className="h-10 min-w-0 flex-1 border border-border bg-surface px-3 text-sm text-text outline-none focus:border-cobalt"
+        >
+          {available.map((item) => (
+            <option key={item.id} value={item.id}>{item.filename}</option>
+          ))}
         </select>
-        <button type="button" onClick={add} disabled={!selectedId} className="inline-flex h-10 items-center gap-1.5 border border-border px-3 text-sm hover:bg-surface-3 disabled:opacity-50"><Plus className="h-4 w-4" />Add</button>
+        <button
+          type="button"
+          onClick={add}
+          disabled={!selectedId}
+          className="inline-flex h-10 items-center gap-1.5 border border-border px-3 text-sm text-text-dim hover:border-border-strong hover:text-text disabled:opacity-50"
+        >
+          <Plus className="h-3.5 w-3.5" /> Add
+        </button>
       </div>
-      <label className="inline-flex h-9 cursor-pointer items-center gap-2 border border-border px-3 text-sm hover:bg-surface-3">
-        {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <UploadCloud className="h-4 w-4" />}
-        {uploading ? "Uploading…" : "Upload and add resource"}
+
+      <label className="flex w-full cursor-pointer items-center justify-center gap-2 border border-dashed border-border px-3 py-2 text-xs text-muted hover:border-border-strong hover:text-text-dim">
+        {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <UploadCloud className="h-3.5 w-3.5" />}
+        {uploading ? "Uploading…" : "+ Upload and add resource"}
         <input
           type="file"
           hidden
@@ -118,23 +136,45 @@ export function LabResourcesEditor({
           onChange={(event) => event.target.files?.[0] && void uploadResource(event.target.files[0])}
         />
       </label>
-      {resources.map((resource, index) => {
-        const item = available.find((candidate) => candidate.id === resource.mediaId);
-        return (
-          <div key={resource.mediaId} className="space-y-2 border border-border bg-surface p-3">
-            <p className="truncate font-mono text-[0.65rem] text-text-dim">{item?.filename ?? resource.mediaId}</p>
-            <div><Label htmlFor={`resource-label-${index}`}>Display name</Label><Input id={`resource-label-${index}`} value={resource.label} onChange={(event) => setResources((current) => current.map((entry, entryIndex) => entryIndex === index ? { ...entry, label: event.target.value } : entry))} /></div>
-            <div><Label htmlFor={`resource-description-${index}`}>Description</Label><Input id={`resource-description-${index}`} value={resource.description} onChange={(event) => setResources((current) => current.map((entry, entryIndex) => entryIndex === index ? { ...entry, description: event.target.value } : entry))} /></div>
-            <div className="flex justify-end gap-1">
-              <button type="button" aria-label="Move resource up" onClick={() => move(index, -1)} disabled={index === 0} className="p-1.5 text-text-dim hover:bg-surface-3 disabled:opacity-30"><ChevronUp className="h-4 w-4" /></button>
-              <button type="button" aria-label="Move resource down" onClick={() => move(index, 1)} disabled={index === resources.length - 1} className="p-1.5 text-text-dim hover:bg-surface-3 disabled:opacity-30"><ChevronDown className="h-4 w-4" /></button>
-              <button type="button" aria-label="Remove resource association" onClick={() => setResources((current) => current.filter((_, entryIndex) => entryIndex !== index))} className="p-1.5 text-vermilion hover:bg-vermilion-dim"><Trash2 className="h-4 w-4" /></button>
+
+      <div className="space-y-2">
+        {resources.map((resource, index) => {
+          const item = available.find((candidate) => candidate.id === resource.mediaId);
+          return (
+            <div key={resource.mediaId} className="border border-border bg-surface px-3 py-3">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <p className="min-w-0 truncate text-xs text-text-dim">{item?.filename ?? resource.mediaId}</p>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button type="button" aria-label="Move resource up" onClick={() => move(index, -1)} disabled={index === 0} className="p-1 text-muted hover:text-text disabled:opacity-30"><ChevronUp className="h-3.5 w-3.5" /></button>
+                  <button type="button" aria-label="Move resource down" onClick={() => move(index, 1)} disabled={index === resources.length - 1} className="p-1 text-muted hover:text-text disabled:opacity-30"><ChevronDown className="h-3.5 w-3.5" /></button>
+                  <button type="button" aria-label="Remove resource association" onClick={() => setResources((current) => current.filter((_, entryIndex) => entryIndex !== index))} className="p-1 text-vermilion"><Trash2 className="h-3.5 w-3.5" /></button>
+                </div>
+              </div>
+              <div className="space-y-3">
+                <div>
+                  <Label htmlFor={`resource-label-${index}`}>Display name</Label>
+                  <Input id={`resource-label-${index}`} value={resource.label} onChange={(event) => setResources((current) => current.map((entry, entryIndex) => entryIndex === index ? { ...entry, label: event.target.value } : entry))} />
+                </div>
+                <div>
+                  <Label htmlFor={`resource-description-${index}`}>Description</Label>
+                  <Input id={`resource-description-${index}`} value={resource.description} onChange={(event) => setResources((current) => current.map((entry, entryIndex) => entryIndex === index ? { ...entry, description: event.target.value } : entry))} />
+                </div>
+              </div>
             </div>
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
+
       {message && <p role="alert" className="text-xs text-vermilion">{message.text}</p>}
-      <button type="button" onClick={save} disabled={pending} className="inline-flex h-9 items-center gap-2 bg-text px-3 text-sm font-medium text-surface disabled:opacity-50">{pending && <Loader2 className="h-4 w-4 animate-spin" />}{pending ? "Saving resources…" : "Save resources"}</button>
+      <button
+        type="button"
+        onClick={save}
+        disabled={pending}
+        className="inline-flex items-center gap-2 border border-border-strong bg-text px-3 py-2 text-sm font-medium text-surface disabled:opacity-50"
+      >
+        {pending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+        {pending ? "Saving resources…" : "Save resources"}
+      </button>
     </section>
   );
 }

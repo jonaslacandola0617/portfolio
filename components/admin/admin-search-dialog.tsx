@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Search, FolderGit2, FlaskConical, NotebookPen, BadgeCheck } from "lucide-react";
+import { Search, X, FolderGit2, FlaskConical, NotebookPen, BadgeCheck } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { searchAdminContent, type AdminSearchResult } from "@/lib/services/admin-search-service";
@@ -71,7 +71,7 @@ export function AdminSearchDialog() {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-xl border-border-strong bg-surface-2 p-0">
+        <DialogContent className="max-w-xl border-border-strong bg-surface-2 p-0 sm:top-32 [&>button]:hidden">
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
             <Search className="h-4 w-4 text-muted" />
             <input
@@ -81,6 +81,15 @@ export function AdminSearchDialog() {
               placeholder="Search projects, labs, journal, certificates…"
               className="flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted"
             />
+            <kbd className="hidden border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted sm:inline-block">ESC</kbd>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className="text-muted hover:text-text sm:hidden"
+              aria-label="Close search"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
           <div className="thin-scroll max-h-96 overflow-y-auto p-2">
             {loading && <p className="px-3 py-8 text-center text-sm text-muted">Searching…</p>}

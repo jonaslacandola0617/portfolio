@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, BadgeCheck, FlaskConical, FolderGit2, NotebookPen } from "lucide-react";
+import { AlertTriangle, BadgeCheck, FlaskConical, FolderGit2, NotebookPen, GitCommitHorizontal } from "lucide-react";
 import { getDashboardOverview } from "@/lib/services/dashboard-service";
 import { StatCard } from "@/components/admin/stat-card";
 import { PageHeader, PageShell } from "@/components/shared/page-header";
@@ -32,19 +32,27 @@ function Metrics({ section }: { section: DashboardSection<ContentTypeMetric[]> }
   );
 }
 
-function relativeTime(value: string) {
-  const delta = Date.now() - new Date(value).getTime();
-  const minutes = Math.max(0, Math.floor(delta / 60_000));
-  if (minutes < 1) return "Just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return days === 1 ? "Yesterday" : `${days}d ago`;
+function dashboardDate(value: string) {
+  return new Date(value).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
 }
+
+const activityIcons = {
+  PROJECT: FolderGit2,
+  LAB: FlaskConical,
+  ARTICLE: NotebookPen,
+  CERTIFICATE: BadgeCheck,
+} as const;
+
 
 export default async function AdminDashboardPage() {
   const overview = await getDashboardOverview();
+  const recentItems = overview.recentlyUpdated.ok
+    ? overview.recentlyUpdated.data.slice(0, 4)
+    : null;
 
   return (
     <div>
@@ -56,24 +64,23 @@ export default async function AdminDashboardPage() {
 
         <div>
           <p className="idx mb-3">Recent Activity</p>
-          {overview.recentlyUpdated.ok ? (
-            overview.recentlyUpdated.data.length ? (
+          {recentItems ? (
+            recentItems.length ? (
               <div className="border border-border bg-surface-2">
-                {overview.recentlyUpdated.data.map((item, index) => (
-                  <Link
-                    key={`${item.type}-${item.id}`}
-                    href={item.href}
-                    className={`grid gap-1 px-4 py-3 transition-colors hover:bg-surface-3 sm:grid-cols-[88px_1fr_110px_90px] sm:items-center sm:gap-3 ${index ? "border-t border-border" : ""}`}
-                  >
-                    <span className="label text-cobalt">{item.type}</span>
-                    <span className="truncate text-sm font-medium text-text">{item.title}</span>
-                    <span className="label flex items-center gap-1.5 text-text-dim">
-                      <span className={`h-1.5 w-1.5 rounded-full ${item.status === "PUBLISHED" ? "bg-teal" : "bg-signal"}`} />
-                      {item.status}
-                    </span>
-                    <span className="font-mono text-xs text-muted sm:text-right">{relativeTime(item.updatedAt)}</span>
-                  </Link>
-                ))}
+                {recentItems.map((item, index) => {
+                  const Icon = activityIcons[item.type] ?? GitCommitHorizontal;
+                  return (
+                    <Link
+                      key={`${item.type}-${item.id}`}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-5 py-3.5 transition-colors hover:bg-surface-3 ${index !== recentItems.length - 1 ? "border-b border-border" : ""}`}
+                    >
+                      <Icon className="h-3.5 w-3.5 shrink-0 text-cobalt" />
+                      <span className="min-w-0 flex-1 truncate text-sm text-text">{item.title}</span>
+                      <span className="shrink-0 font-mono text-xs text-muted">{dashboardDate(item.updatedAt)}</span>
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <p className="border border-border px-4 py-8 text-sm text-muted">No content updates yet.</p>

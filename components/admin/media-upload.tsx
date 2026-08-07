@@ -38,15 +38,17 @@ export function MediaUpload() {
       onDragOver={(event) => { event.preventDefault(); setDragging(true); }}
       onDragLeave={() => setDragging(false)}
       onDrop={(event) => { event.preventDefault(); setDragging(false); if (event.dataTransfer.files.length) void handleFiles(event.dataTransfer.files); }}
-      className={cn("flex flex-col items-center justify-center border border-dashed px-6 py-9 text-center transition-colors", dragging ? "border-cobalt bg-cobalt-dim" : "border-border-strong bg-surface-2")}
+      className={cn("flex flex-col items-center justify-center gap-3 border border-dashed px-6 py-10 text-center transition-colors sm:gap-4", dragging ? "border-cobalt bg-cobalt-dim" : "border-border-strong bg-surface-2")}
     >
       <input ref={inputRef} type="file" multiple hidden onChange={(event) => event.target.files && void handleFiles(event.target.files)} />
-      {uploading ? <Loader2 className="h-5 w-5 animate-spin text-cobalt" /> : <UploadCloud className="h-5 w-5 text-cobalt" />}
-      <p className="mt-2 text-sm text-text">
-        {uploading ? "Uploading…" : "Drag files here, or "}
-        {!uploading && <button type="button" onClick={() => inputRef.current?.click()} className="font-medium text-text hover:text-cobalt">click to upload</button>}
-      </p>
-      <p className="mt-1 font-mono text-[11px] text-muted">Images, PDF, ZIP, PCAP, Packet Tracer (.pkt), video</p>
+      {uploading ? <Loader2 className="h-6 w-6 animate-spin text-muted" /> : <UploadCloud className="h-6 w-6 text-muted" />}
+      <div>
+        <p className="text-sm text-text">
+          {uploading ? "Uploading…" : "Drag files here, or "}
+          {!uploading && <button type="button" onClick={() => inputRef.current?.click()} className="font-medium text-cobalt">click to upload</button>}
+        </p>
+        <p className="mt-0.5 font-mono text-xs text-muted">Images, PDF, ZIP, PCAP, Packet Tracer (.pkt), video</p>
+      </div>
       {error && <p className="mt-3 text-xs text-vermilion">{error}</p>}
     </div>
   );

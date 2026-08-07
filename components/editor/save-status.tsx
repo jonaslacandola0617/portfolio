@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Loader2, CircleDot, AlertTriangle } from "lucide-react";
+import { Cloud, Loader2, CircleDot, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type SaveStatus = "idle" | "unsaved" | "saving" | "retrying" | "saved" | "error";
@@ -36,9 +36,9 @@ export function SaveStatusIndicator({ status, errorMessage, onRetry }: SaveStatu
 
   return (
     <div className="flex flex-col items-end gap-1" role="status" aria-live="polite">
-      <span className={cn("flex items-center gap-1.5 font-mono text-xs", className)}>
+      <span className={cn("label flex items-center gap-1.5", className)}>
         {(status === "saving" || status === "retrying") && <Loader2 className="h-3 w-3 animate-spin" />}
-        {status === "saved" && <Check className="h-3 w-3" />}
+        {status === "saved" && <Cloud className="h-3 w-3" />}
         {status === "unsaved" && <CircleDot className="h-3 w-3" />}
         {status === "error" && <AlertTriangle className="h-3 w-3" />}
         {label}
