@@ -76,7 +76,7 @@ export function CertificateForm({
   );
   const [name, setName] = useState(certificate?.name ?? "");
   const [slug, setSlug] = useState(certificate?.slug ?? "");
-  const [slugTouched, setSlugTouched] = useState(mode === "edit");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [publishStatus, setPublishStatus] = useState(
     certificate?.publishStatus ?? "DRAFT",
   );
