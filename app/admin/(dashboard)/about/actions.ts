@@ -3,7 +3,7 @@
 import { requireAdmin } from "@/lib/services/auth-service";
 import { classifyServiceError } from "@/lib/services/action-errors";
 import { upsertAboutPage } from "@/lib/services/about-admin-service";
-import { aboutPageSchema, parseNonEmptyLines } from "@/lib/validations/about";
+import { aboutPageSchema } from "@/lib/validations/about";
 import type { ActionResult } from "@/types/admin";
 
 export async function updateAboutAction(
@@ -15,19 +15,13 @@ export async function updateAboutAction(
   } catch {
     return { success: false, code: "AUTH_ERROR", message: "Your admin session has expired." };
   }
+
   const parsed = aboutPageSchema.safeParse({
-    eyebrow: formData.get("eyebrow"),
-    title: formData.get("title"),
-    description: formData.get("description"),
-    paragraphs: parseNonEmptyLines(formData.get("paragraphs")),
-    pillars: [0, 1, 2].map((index) => ({
-      icon: formData.get(`pillarIcon${index}`),
-      title: formData.get(`pillarTitle${index}`),
-      body: formData.get(`pillarBody${index}`),
-    })),
-    focusLabel: formData.get("focusLabel"),
-    currentFocus: parseNonEmptyLines(formData.get("currentFocus")),
+    biography: formData.get("biography"),
+    currentFocus: formData.get("currentFocus"),
+    learningPhilosophy: formData.get("learningPhilosophy"),
   });
+
   if (!parsed.success) {
     return {
       success: false,
@@ -36,6 +30,7 @@ export async function updateAboutAction(
       errors: parsed.error.flatten().fieldErrors as Record<string, string[]>,
     };
   }
+
   try {
     await upsertAboutPage(parsed.data);
     return { success: true, message: "About page saved and published." };
