@@ -80,8 +80,8 @@ export function AuthoringWorkspace({
 
   return (
     <EditorHeaderBridge.Provider value={setEditorHeader}>
-      <div className="flex min-h-[calc(100vh-53px)] flex-col lg:min-h-screen">
-        <div className="sticky top-[53px] z-20 bg-surface/95 backdrop-blur lg:top-0">
+      <div className="flex h-[calc(100dvh-53px)] min-h-0 flex-col overflow-hidden lg:h-[100dvh]">
+        <div className="sticky top-[53px] z-20 shrink-0 bg-surface/95 backdrop-blur lg:top-0">
           <div className="flex items-center justify-between gap-3 px-5 py-3">
             <div className="flex min-w-0 items-center gap-3">
               {backHref && (
@@ -142,7 +142,7 @@ export function AuthoringWorkspace({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1">{editor}</div>
+        <div className="min-h-0 flex-1 overflow-hidden">{editor}</div>
       </div>
     </EditorHeaderBridge.Provider>
   );
