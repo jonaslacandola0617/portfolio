@@ -45,7 +45,7 @@ export const getAllCertificates = cache(async (): Promise<Certification[]> =>
     const certificates = (await prisma.certificate.findMany({
       where: { publishStatus: "PUBLISHED" },
       include: { skills: true, logoMedia: { select: { url: true } } },
-      orderBy: [{ dateCompleted: "desc" }, { name: "asc" }],
+      orderBy: [{ sortOrder: "asc" }, { dateCompleted: "desc" }, { name: "asc" }],
     })) as CertificateWithRelations[];
     return certificates.map(mapCertificate);
   })

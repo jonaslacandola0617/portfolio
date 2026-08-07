@@ -1,7 +1,11 @@
 import { ManagementList, type ManagementListRow } from "@/components/admin/management-list";
 import { getAllCertificatesForAdmin } from "@/lib/services/certificate-admin-service";
 import { formatDate } from "@/lib/utils";
-import { deleteCertificateAction, bulkDeleteCertificatesAction } from "@/app/admin/(dashboard)/certificates/actions";
+import {
+  deleteCertificateAction,
+  bulkDeleteCertificatesAction,
+  reorderCertificatesAction,
+} from "@/app/admin/(dashboard)/certificates/actions";
 
 export default async function AdminCertificatesPage() {
   const items = await getAllCertificatesForAdmin();
@@ -25,6 +29,7 @@ export default async function AdminCertificatesPage() {
       itemLabelPlural="certificates"
       deleteOneAction={deleteCertificateAction}
       deleteManyAction={bulkDeleteCertificatesAction}
+      reorderAction={reorderCertificatesAction}
     />
   );
 }

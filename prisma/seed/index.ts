@@ -140,13 +140,13 @@ async function seedArticles() {
 
 async function seedCertificates() {
   console.log(`\nSeeding ${certifications.length} certificates from lib/data/certifications.ts...\n`);
-  for (const cert of certifications) {
+  for (const [sortOrder, cert] of certifications.entries()) {
     const record = await prisma.certificate.upsert({
       where: { slug: cert.id },
       create: {
         slug: cert.id, name: cert.name, issuer: cert.issuer, logo: cert.logo,
         progressStatus: "COMPLETED", publishStatus: "PUBLISHED", progressLabel: "Completed",
-        progressPercent: 100,
+        progressPercent: 100, sortOrder,
         dateStarted: cert.dateStarted ? new Date(`${cert.dateStarted}T00:00:00.000Z`) : undefined,
         dateCompleted: cert.dateCompleted ? new Date(`${cert.dateCompleted}T00:00:00.000Z`) : undefined,
         credentialUrl: cert.credentialUrl, publishedAt: new Date(),

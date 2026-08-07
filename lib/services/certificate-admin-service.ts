@@ -17,6 +17,7 @@ interface AdminCertificateListItem {
   publishStatus: string;
   updatedAt: Date;
   issuer: string;
+  sortOrder: number;
 }
 
 interface AdminCertificateDetail {
@@ -37,9 +38,9 @@ interface AdminCertificateDetail {
 }
 
 export async function getAllCertificatesForAdmin(): Promise<AdminCertificateListItem[]> {
-  return prisma.certificate.findMany({ orderBy: { updatedAt: "desc" } }) as Promise<
-    AdminCertificateListItem[]
-  >;
+  return prisma.certificate.findMany({
+    orderBy: [{ sortOrder: "asc" }, { dateCompleted: "desc" }, { name: "asc" }],
+  }) as Promise<AdminCertificateListItem[]>;
 }
 
 export async function getCertificateForEdit(id: string): Promise<AdminCertificateDetail | null> {
@@ -52,6 +53,10 @@ export async function getCertificateForEdit(id: string): Promise<AdminCertificat
 export async function createCertificate(fm: CertificateFormValues) {
   const skills = await skillRelationInput(fm.skills, { group: UNGROUPED_SKILL_GROUP, level: "practiced" });
   await validateLogoMedia(fm.logoMediaId);
+  const lastCertificate = await prisma.certificate.findFirst({
+    orderBy: { sortOrder: "desc" },
+    select: { sortOrder: true },
+  });
   const cert = await prisma.certificate.create({
     data: {
       name: fm.name,
@@ -63,6 +68,7 @@ export async function createCertificate(fm: CertificateFormValues) {
       publishStatus: fm.publishStatus,
       progressLabel: "Completed",
       progressPercent: 100,
+      sortOrder: (lastCertificate?.sortOrder ?? -1) + 1,
       dateStarted: fm.dateStarted ? dateOnly(fm.dateStarted) : null,
       dateCompleted: fm.dateCompleted ? dateOnly(fm.dateCompleted) : null,
       credentialUrl: fm.credentialUrl || null,
@@ -117,6 +123,28 @@ export async function updateCertificateContent(id: string, content: TipTapDoc) {
   if (cert.publishStatus === "PUBLISHED") revalidateContent("certificate");
   const readBack = await prisma.certificate.findUnique({ where: { id }, select: { content: true } });
   return readBack?.content;
+}
+
+export async function reorderCertificates(ids: string[]): Promise<void> {
+  const uniqueIds = new Set(ids);
+  if (uniqueIds.size !== ids.length) {
+    throw new Error("VALIDATION: Certificate order contains duplicate records.");
+  }
+
+  const existing = await prisma.certificate.findMany({ select: { id: true } });
+  if (existing.length !== ids.length || existing.some((certificate) => !uniqueIds.has(certificate.id))) {
+    throw new Error("VALIDATION: Certificate order is stale. Refresh the page and try again.");
+  }
+
+  await prisma.$transaction(
+    ids.map((id, sortOrder) =>
+      prisma.certificate.update({
+        where: { id },
+        data: { sortOrder },
+      }),
+    ),
+  );
+  revalidateContent("certificate");
 }
 
 function dateOnly(value: string): Date {

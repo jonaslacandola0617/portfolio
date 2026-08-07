@@ -184,6 +184,7 @@ model Certificate {
   publishStatus   PublishStatus  @default(DRAFT)
   progressLabel   String         @default("Completed")
   progressPercent Int            @default(100)
+  sortOrder       Int            @default(0)
   dateStarted     DateTime?
   dateCompleted   DateTime?
   credentialUrl   String?
@@ -195,6 +196,7 @@ model Certificate {
   updatedAt       DateTime       @updatedAt
 
   @@index([logoMediaId])
+  @@index([sortOrder])
 }
 
 model SiteSettings {

@@ -8,6 +8,7 @@ import {
   updateCertificateContent,
   deleteCertificate,
   deleteCertificates,
+  reorderCertificates,
 } from "@/lib/services/certificate-admin-service";
 import { certificateFormSchema } from "@/lib/validations/certificate";
 import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
@@ -85,6 +86,22 @@ export async function updateCertificateAction(
 
 export async function autosaveCertificateContentAction(payload: SaveContentPayload): Promise<SaveResult> {
   return saveEditorContent("certificate", payload, updateCertificateContent);
+}
+
+export async function reorderCertificatesAction(ids: string[]): Promise<ActionResult> {
+  await requireAdmin();
+  const parsed = bulkDeleteSchema.safeParse({ ids });
+  if (!parsed.success) {
+    return { success: false, message: parsed.error.issues[0]?.message ?? "Invalid certificate order." };
+  }
+
+  try {
+    await reorderCertificates(parsed.data.ids);
+    return { success: true, message: "Certificate order saved." };
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, { operation: "update", contentType: "certificate" });
+  }
 }
 
 export async function deleteCertificateAction(id: string): Promise<DeleteResult> {
