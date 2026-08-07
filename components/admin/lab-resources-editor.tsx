@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { upload } from "@vercel/blob/client";
-import { ChevronDown, ChevronUp, Loader2, Plus, Trash2, UploadCloud } from "lucide-react";
+import { ChevronDown, ChevronUp, Loader2, Trash2, UploadCloud } from "lucide-react";
 import { updateLabResourcesAction } from "@/app/admin/(dashboard)/labs/actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,18 +28,11 @@ export function LabResourcesEditor({
   const [mediaItems, setMediaItems] = useState(media);
   const available = useMemo(() => mediaItems.filter((item) => item.type !== "IMAGE"), [mediaItems]);
   const [resources, setResources] = useState(initialResources);
-  const [selectedId, setSelectedId] = useState(available[0]?.id ?? "");
   const [pending, startTransition] = useTransition();
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<{ success: boolean; text: string } | null>(null);
   const { success } = useToast();
 
-  const add = () => {
-    const item = available.find((candidate) => candidate.id === selectedId);
-    if (!item || resources.some((resource) => resource.mediaId === item.id)) return;
-    setResources((current) => [...current, { mediaId: item.id, label: item.filename, description: "" }]);
-    setMessage(null);
-  };
   const move = (index: number, direction: -1 | 1) => {
     const target = index + direction;
     if (target < 0 || target >= resources.length) return;
@@ -49,6 +42,7 @@ export function LabResourcesEditor({
       return next;
     });
   };
+
   const save = () => startTransition(async () => {
     const result = await updateLabResourcesAction({
       labId,
@@ -63,6 +57,7 @@ export function LabResourcesEditor({
       setMessage({ success: false, text: result.message ?? "Resources could not be saved." });
     }
   });
+
   const uploadResource = async (file: File) => {
     setUploading(true);
     setMessage(null);
@@ -78,7 +73,6 @@ export function LabResourcesEditor({
         size: file.size,
       });
       setMediaItems((current) => [created, ...current]);
-      setSelectedId(created.id);
       setResources((current) => [
         ...current,
         { mediaId: created.id, label: created.filename, description: "" },
@@ -103,27 +97,6 @@ export function LabResourcesEditor({
         <p className="text-xs text-text-dim">
           Attach downloadable files to this lab. Removing an association does not delete the Media Library file.
         </p>
-      </div>
-
-      <div className="flex gap-2">
-        <select
-          aria-label="Media Library resource"
-          value={selectedId}
-          onChange={(event) => setSelectedId(event.target.value)}
-          className="h-10 min-w-0 flex-1 border border-border bg-surface px-3 text-sm text-text outline-none focus:border-cobalt"
-        >
-          {available.map((item) => (
-            <option key={item.id} value={item.id}>{item.filename}</option>
-          ))}
-        </select>
-        <button
-          type="button"
-          onClick={add}
-          disabled={!selectedId}
-          className="inline-flex h-10 items-center gap-1.5 border border-border px-3 text-sm text-text-dim hover:border-border-strong hover:text-text disabled:opacity-50"
-        >
-          <Plus className="h-3.5 w-3.5" /> Add
-        </button>
       </div>
 
       <label className="flex w-full cursor-pointer items-center justify-center gap-2 border border-dashed border-border px-3 py-2 text-xs text-muted hover:border-border-strong hover:text-text-dim">
