@@ -80,7 +80,7 @@ export function ArticleForm({
   );
   const [title, setTitle] = useState(article?.title ?? "");
   const [slug, setSlug] = useState(article?.slug ?? "");
-  const [slugTouched, setSlugTouched] = useState(mode === "edit");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [publishStatus, setPublishStatus] = useState(
     article?.publishStatus ?? "DRAFT",
   );
