@@ -1,0 +1,3 @@
+import type {Metadata} from "next";import {PageHeader,PageShell} from "@/components/shared/page-header";import {ProjectIndex} from "@/components/shared/project-index";import {getAllProjects} from "@/lib/content";
+export const metadata:Metadata={title:"Projects"};
+export default async function ProjectsPage(){const projects=await getAllProjects();return <div><PageHeader index="02" eyebrow="Index" title="Projects" description="Applied work across networking, security, and software — each entry documented as a self-contained case study: objective, process, and evidence."/><PageShell>{projects.length?<ProjectIndex projects={projects.map(p=>p.frontmatter)}/>:<p className="text-sm text-text-dim">No published projects yet.</p>}</PageShell></div>}

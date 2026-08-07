@@ -1,0 +1,119 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import {
+  Search,
+  FolderGit2,
+  FlaskConical,
+  NotebookPen,
+  Award,
+  X,
+} from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { useSearch } from "@/hooks/use-search";
+
+const typeIcon = {
+  project: FolderGit2,
+  lab: FlaskConical,
+  article: NotebookPen,
+  certificate: Award,
+};
+const typeLabel = {
+  project: "Projects",
+  lab: "Labs",
+  article: "Journal",
+  certificate: "Certifications",
+};
+
+export function SearchDialog() {
+  const { open, setOpen, index } = useSearch();
+  const [query, setQuery] = React.useState("");
+
+  React.useEffect(() => {
+    if (!open) setQuery("");
+  }, [open]);
+
+  const results = React.useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return index
+      .filter(
+        (item) =>
+          !q ||
+          item.title.toLowerCase().includes(q) ||
+          item.summary.toLowerCase().includes(q) ||
+          item.tags.some((tag) => tag.toLowerCase().includes(q)),
+      )
+      .slice(0, 12);
+  }, [query, index]);
+
+  const groups = (Object.keys(typeLabel) as (keyof typeof typeLabel)[])
+    .map((type) => ({
+      type,
+      label: typeLabel[type],
+      items: results.filter((result) => result.type === type),
+    }))
+    .filter((group) => group.items.length);
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogContent className="max-w-xl sm:top-32 [&>button]:hidden">
+        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
+          <Search className="h-4 w-4 text-muted" />
+          <input
+            autoFocus
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search projects, labs, journal, certifications…"
+            className="w-full bg-transparent font-body text-sm text-text outline-none placeholder:text-muted"
+          />
+          <kbd className="hidden shrink-0 border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted sm:block">
+            ESC
+          </kbd>
+          <button
+            type="button"
+            onClick={() => setOpen(false)}
+            aria-label="Close search"
+            className="sm:hidden"
+          >
+            <X className="h-4 w-4 text-muted" />
+          </button>
+        </div>
+
+        <div className="thin-scroll max-h-80 overflow-y-auto p-2">
+          {groups.length === 0 ? (
+            <div className="px-3 py-10 text-center">
+              <p className="text-sm text-text-dim">No results for &ldquo;{query}&rdquo;</p>
+              <p className="mt-1 text-xs text-muted">Try a project, lab, or technology name.</p>
+            </div>
+          ) : (
+            groups.map((group) => (
+              <div key={group.type} className="mb-1">
+                <div className="label px-2 py-1.5">{group.label}</div>
+                {group.items.map((item) => {
+                  const Icon = typeIcon[item.type];
+                  return (
+                    <Link
+                      key={`${item.type}:${item.title}:${item.href}`}
+                      href={item.href}
+                      onClick={() => setOpen(false)}
+                      className="flex w-full items-center gap-2.5 px-2 py-2 text-left text-sm text-text transition-colors hover:bg-surface-3"
+                    >
+                      <Icon className="h-3.5 w-3.5 shrink-0 text-cobalt" />
+                      <span className="truncate">{item.title}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))
+          )}
+        </div>
+
+        <div className="flex items-center justify-between border-t border-border px-4 py-2">
+          <span className="label">Search</span>
+          <span className="font-mono text-[10px] text-muted">↑↓ navigate · ↵ select</span>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

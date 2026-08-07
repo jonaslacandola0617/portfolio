@@ -1,0 +1,269 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { GripVertical, Loader2 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { DeleteButton } from "@/components/admin/delete-button";
+import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
+import {
+  bulkDeleteSkillsAction,
+  deleteSkillAction,
+  updateSkillGroupAction,
+} from "@/app/admin/(dashboard)/skills/actions";
+import { UNGROUPED_SKILL_GROUP, cleanSkillGroup, skillGroupKey } from "@/lib/skill-groups";
+import { useToast } from "@/components/ui/toast";
+
+export interface GroupedSkillRow {
+  id: string;
+  name: string;
+  group: string;
+  level: string;
+  projectCount: number;
+}
+
+interface Feedback {
+  skillId: string;
+  message: string;
+}
+
+export function GroupedSkillsManager({
+  initialSkills,
+  groups,
+}: {
+  initialSkills: GroupedSkillRow[];
+  groups: string[];
+}) {
+  const router = useRouter();
+  const { success } = useToast();
+  const [skills, setSkills] = useState(initialSkills);
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [feedback, setFeedback] = useState<Feedback | null>(null);
+  const orderedGroups = useMemo(() => {
+    const values = new Map<string, string>();
+    for (const group of [...groups, ...skills.map((skill) => skill.group), UNGROUPED_SKILL_GROUP]) {
+      const clean = cleanSkillGroup(group);
+      values.set(skillGroupKey(clean), clean);
+    }
+    return [...values.values()].sort((left, right) => {
+      if (left === UNGROUPED_SKILL_GROUP) return 1;
+      if (right === UNGROUPED_SKILL_GROUP) return -1;
+      return left.localeCompare(right);
+    });
+  }, [groups, skills]);
+
+  const move = async (skillId: string, destination: string) => {
+    if (pendingIds.has(skillId)) return;
+    const canonical = orderedGroups.find((group) => skillGroupKey(group) === skillGroupKey(destination));
+    if (!canonical) return;
+    const current = skills.find((skill) => skill.id === skillId);
+    if (!current || skillGroupKey(current.group) === skillGroupKey(canonical)) return;
+
+    const originalGroup = current.group;
+    setSkills((items) => items.map((skill) => skill.id === skillId ? { ...skill, group: canonical } : skill));
+    setPendingIds((ids) => new Set(ids).add(skillId));
+    setFeedback(null);
+    try {
+      const result = await updateSkillGroupAction({ id: skillId, group: canonical });
+      if (!result.success) {
+        setSkills((items) => items.map((skill) => skill.id === skillId ? { ...skill, group: originalGroup } : skill));
+        setFeedback({ skillId, message: result.message ?? "The Skill group could not be changed." });
+        return;
+      }
+      const savedGroup = result.group ?? canonical;
+      setSkills((items) => items.map((skill) => skill.id === skillId ? { ...skill, group: savedGroup } : skill));
+      setFeedback(null);
+      success(result.message ?? `Moved to ${savedGroup}.`, {
+        id: `skill-group:${skillId}:${skillGroupKey(savedGroup)}`,
+      });
+      router.refresh();
+    } catch {
+      setSkills((items) => items.map((skill) => skill.id === skillId ? { ...skill, group: originalGroup } : skill));
+      setFeedback({ skillId, message: "The Skill group could not be changed." });
+    } finally {
+      setPendingIds((ids) => {
+        const next = new Set(ids);
+        next.delete(skillId);
+        return next;
+      });
+      setDraggingId(null);
+    }
+  };
+
+  const toggleSelected = (id: string) => {
+    setSelected((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleGroup = (ids: string[]) => {
+    setSelected((current) => {
+      const next = new Set(current);
+      const allSelected = ids.length > 0 && ids.every((id) => next.has(id));
+      for (const id of ids) {
+        if (allSelected) next.delete(id);
+        else next.add(id);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <div>
+      {selected.size > 0 && (
+        <div className="mb-4 flex items-center justify-between border border-border bg-surface-2 px-3 py-2">
+          <span className="text-sm text-foreground">{selected.size} selected</span>
+          <DeleteConfirmationDialog
+            contentType="skill"
+            count={selected.size}
+            description={`Permanently delete ${selected.size} selected Skill${selected.size === 1 ? "" : "s"}. Existing content relationships will be detached.`}
+            confirmLabel={`Delete ${selected.size} Skill${selected.size === 1 ? "" : "s"}`}
+            onConfirm={() => bulkDeleteSkillsAction([...selected])}
+            onSuccess={() => {
+              setSkills((items) => items.filter((skill) => !selected.has(skill.id)));
+              setSelected(new Set());
+              router.refresh();
+            }}
+            trigger={<button type="button" className="border border-vermilion px-3 py-1.5 text-xs font-medium text-vermilion hover:bg-vermilion/10">Delete selected</button>}
+          />
+        </div>
+      )}
+
+      <div className="space-y-7">
+        {orderedGroups.map((group) => {
+          const rows = skills.filter((skill) => skillGroupKey(skill.group) === skillGroupKey(group));
+          const selectableIds = rows
+            .filter((skill) => !pendingIds.has(skill.id))
+            .map((skill) => skill.id);
+          const selectedInGroup = selectableIds.filter((id) =>
+            selected.has(id),
+          ).length;
+          const allInGroupSelected =
+            selectableIds.length > 0 &&
+            selectedInGroup === selectableIds.length;
+          const someInGroupSelected =
+            selectedInGroup > 0 && !allInGroupSelected;
+          return (
+            <section
+              key={skillGroupKey(group)}
+              onDragOver={(event) => {
+                if (draggingId) event.preventDefault();
+              }}
+              onDrop={(event) => {
+                event.preventDefault();
+                const id = event.dataTransfer.getData("text/skill-id") || draggingId;
+                if (id) void move(id, group);
+              }}
+              className={`border transition-colors ${draggingId ? "border-cobalt bg-surface-2" : "border-border"}`}
+            >
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2.5">
+                <h2 className="idx">{group}</h2>
+                <div className="flex items-center gap-3">
+                  {rows.length > 0 && (
+                    <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground">
+                      <input
+                        type="checkbox"
+                        ref={(node) => {
+                          if (node) node.indeterminate = someInGroupSelected;
+                        }}
+                        checked={allInGroupSelected}
+                        disabled={selectableIds.length === 0}
+                        onChange={() => toggleGroup(selectableIds)}
+                        aria-label={`Select all skills in ${group}`}
+                        className="h-4 w-4 border-border accent-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      />
+                      Select all
+                    </label>
+                  )}
+                  <span className="font-mono text-[10px] text-muted">
+                    {rows.length}
+                  </span>
+                </div>
+              </div>
+              {rows.length === 0 ? (
+                <p className="px-4 py-6 text-sm text-muted-foreground">Drop a Skill here or use its group selector.</p>
+              ) : (
+                <div className="divide-y divide-border">
+                  {rows.map((skill) => {
+                    const pending = pendingIds.has(skill.id);
+                    const message = feedback?.skillId === skill.id ? feedback : null;
+                    return (
+                      <div
+                        key={skill.id}
+                        draggable={!pending}
+                        onDragStart={(event) => {
+                          event.dataTransfer.setData("text/skill-id", skill.id);
+                          event.dataTransfer.effectAllowed = "move";
+                          setDraggingId(skill.id);
+                        }}
+                        onDragEnd={() => setDraggingId(null)}
+                        className={`px-4 py-2.5 transition-opacity ${pending ? "opacity-65" : ""}`}
+                      >
+                        <div className="flex flex-wrap items-center gap-3">
+                          <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground" aria-hidden="true" />
+                          <input
+                            type="checkbox"
+                            checked={selected.has(skill.id)}
+                            disabled={pending}
+                            onChange={() => toggleSelected(skill.id)}
+                            aria-label={`Select ${skill.name}`}
+                            className="h-4 w-4 border-border accent-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                          />
+                          <Link href={`/admin/skills/${skill.id}`} className="min-w-40 flex-1">
+                            <span className="block text-sm font-medium text-text">{skill.name}</span>
+                            <span className="font-mono text-[10px] text-muted">Used by {skill.projectCount} project{skill.projectCount === 1 ? "" : "s"}</span>
+                          </Link>
+                          <Badge variant="default">{skill.level}</Badge>
+                          <label className="sr-only" htmlFor={`skill-group-${skill.id}`}>Group for {skill.name}</label>
+                          <div className="relative">
+                            <select
+                              id={`skill-group-${skill.id}`}
+                              value={group}
+                              disabled={pending}
+                              onChange={(event) => void move(skill.id, event.target.value)}
+                              className="h-8 border border-border bg-surface-2 pl-3 pr-8 text-xs text-text disabled:opacity-60"
+                            >
+                              {orderedGroups.map((option) => <option key={skillGroupKey(option)} value={option}>{option}</option>)}
+                            </select>
+                            {pending && <Loader2 className="pointer-events-none absolute right-2 top-2.5 h-3.5 w-3.5 animate-spin text-primary" />}
+                          </div>
+                          <DeleteButton
+                            variant="icon"
+                            label={`Delete ${skill.name}`}
+                            contentType="skill"
+                            recordTitle={skill.name}
+                            onDelete={() => deleteSkillAction(skill.id)}
+                            onSuccess={() => {
+                              setSkills((items) => items.filter((item) => item.id !== skill.id));
+                              setSelected((current) => {
+                                const next = new Set(current);
+                                next.delete(skill.id);
+                                return next;
+                              });
+                              router.refresh();
+                            }}
+                          />
+                        </div>
+                        {message && (
+                          <p role="alert" className="mt-2 pl-7 text-xs text-destructive">
+                            {message.message}
+                          </p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
