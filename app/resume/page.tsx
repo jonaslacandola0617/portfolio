@@ -9,7 +9,7 @@ export default async function ResumePage() {
   const settings = await getSiteSettings();
   return (
     <div>
-      <PageHeader index="08" eyebrow="Document" title="Résumé" description="Current résumé, kept up to date as certifications and projects progress." />
+      <PageHeader index="06" eyebrow="Document" title="Résumé" description="Current résumé, kept up to date as certifications and projects progress." />
       <PageShell>
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-[1fr_280px]">
           <div className="border border-border-strong bg-surface-2">

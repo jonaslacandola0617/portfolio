@@ -14,10 +14,6 @@ const items = [
   { label: "Media Library", href: "/admin/media", idx: "06" },
   { label: "About", href: "/admin/about", idx: "07" },
   { label: "Settings", href: "/admin/settings", idx: "08" },
-  // Timeline is a real production content type that is not present in the
-  // static prototype. Keep the feature accessible without changing the
-  // prototype navigation language or interaction model.
-  { label: "Timeline", href: "/admin/timeline", idx: "09" },
 ] as const;
 
 function isActivePath(pathname: string, href: string) {

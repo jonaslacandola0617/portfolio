@@ -2,7 +2,7 @@
 
 import { requireAdmin } from "@/lib/services/auth-service";
 import { classifyServiceError } from "@/lib/services/action-errors";
-import { upsertAboutPage } from "@/lib/services/about-admin-service";
+import { replaceAboutProfileImage, upsertAboutPage } from "@/lib/services/about-admin-service";
 import { aboutPageSchema, parseNonEmptyLines } from "@/lib/validations/about";
 import type { ActionResult } from "@/types/admin";
 
@@ -13,14 +13,12 @@ export async function updateAboutAction(
   try {
     await requireAdmin();
   } catch {
-    return {
-      success: false,
-      code: "AUTH_ERROR",
-      message: "Your admin session has expired.",
-    };
+    return { success: false, code: "AUTH_ERROR", message: "Your admin session has expired." };
   }
 
+  const profileImageUrl = String(formData.get("profileImageUrl") ?? "").trim() || null;
   const parsed = aboutPageSchema.safeParse({
+    profileImageUrl,
     quote: formData.get("quote"),
     background: formData.get("background"),
     currentFocus: formData.get("currentFocus"),
@@ -45,6 +43,36 @@ export async function updateAboutAction(
     const failure = classifyServiceError(error, {
       contentType: "settings",
       operation: "update-about",
+      recordId: "singleton",
+    });
+    return { success: false, code: failure.code, message: failure.message };
+  }
+}
+
+export async function updateAboutProfileImageAction(
+  profileImageUrl: string | null,
+): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+  } catch {
+    return { success: false, code: "AUTH_ERROR", message: "Your admin session has expired." };
+  }
+
+  if (profileImageUrl !== null) {
+    try {
+      new URL(profileImageUrl);
+    } catch {
+      return { success: false, code: "VALIDATION_ERROR", message: "The uploaded profile image URL is invalid." };
+    }
+  }
+
+  try {
+    await replaceAboutProfileImage(profileImageUrl);
+    return { success: true, message: profileImageUrl ? "Profile photo updated." : "Profile photo removed." };
+  } catch (error) {
+    const failure = classifyServiceError(error, {
+      contentType: "settings",
+      operation: "update-about-profile-image",
       recordId: "singleton",
     });
     return { success: false, code: failure.code, message: failure.message };

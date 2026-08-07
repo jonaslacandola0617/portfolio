@@ -1,3 +1,0 @@
-import type {Metadata} from "next";import {PageHeader,PageShell} from "@/components/shared/page-header";import {Timeline} from "@/components/shared/timeline";import {getAllTimelineEntries} from "@/lib/db/queries/timeline";
-export const metadata:Metadata={title:"Timeline"};
-export default async function TimelinePage(){const entries=await getAllTimelineEntries();return <div><PageHeader index="06" eyebrow="Chronology" title="Learning Journey" description="A running log of the path so far — month by month, in the order it actually happened."/><PageShell>{entries.length?<Timeline entries={entries}/>:<p className="text-sm text-text-dim">No published timeline entries yet.</p>}</PageShell></div>}

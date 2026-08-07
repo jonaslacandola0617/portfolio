@@ -25,16 +25,23 @@ export default async function AboutPage() {
       <PageShell>
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_1fr]">
           <div className="lg:sticky lg:top-8 lg:self-start">
-            <div className="relative flex aspect-square w-full items-center justify-center border border-border-strong bg-surface-2">
-              <div className="absolute left-3 top-3 h-8 w-8 border border-border" />
-              <span className="font-display text-5xl font-semibold text-cobalt">
-                {initials}
-              </span>
-              <div className="absolute bottom-3 right-3 h-3 w-3 bg-vermilion" />
+            <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden border border-border-strong bg-surface-2">
+              {about.profileImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={about.profileImageUrl}
+                  alt={`${settings.name} profile`}
+                  className="h-full w-full object-cover grayscale"
+                />
+              ) : (
+                <span className="font-display text-5xl font-semibold text-cobalt">
+                  {initials}
+                </span>
+              )}
+              <div className="pointer-events-none absolute left-3 top-3 h-8 w-8 border border-border" />
+              <div className="pointer-events-none absolute bottom-3 right-3 h-3 w-3 bg-vermilion" />
             </div>
-            <p className="mt-4 text-xs text-muted">
-              Geometric identity placeholder — no portrait on file.
-            </p>
+            <p className="mt-4 text-xs text-muted">Profile</p>
             <Link
               href="/resume"
               className="mt-5 flex items-center justify-center gap-2 border border-border-strong bg-text px-4 py-2.5 text-sm font-medium text-surface"

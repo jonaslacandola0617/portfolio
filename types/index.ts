@@ -51,19 +51,9 @@ export interface ArticleFrontmatter {
   featured?: boolean;
 }
 
-export interface ContentItem<T> {
-  frontmatter: T;
-  content: string;
-  readingTime?: string;
-}
-
 /**
- * Same role as ContentItem<T>, for content types that have migrated to
- * Prisma (Project, as of Phase 2). `content` is `unknown` rather than a
- * TipTap-specific type here deliberately — ContentRenderer is the one
- * place that actually trusts and validates its shape (via
- * lib/validations/content.ts), so every other call site is forced to
- * treat it as opaque rather than assume it's well-formed.
+ * Shared wrapper for Prisma-backed long-form content. `content` is `unknown`
+ * deliberately; ContentRenderer validates the TipTap shape at the rendering boundary.
  */
 export interface DbContentItem<T> {
   recordId: string;
@@ -85,15 +75,6 @@ export interface Certification {
   content?: unknown;
 }
 
-export interface TimelineEntry {
-  id: string;
-  date: string;
-  title: string;
-  description: string;
-  category: "networking" | "security" | "linux" | "programming" | "milestone";
-  tags?: string[];
-}
-
 export interface SkillItem {
   name: string;
   level: "learning" | "practiced" | "comfortable";
@@ -104,10 +85,4 @@ export interface SkillCategory {
   category: string;
   icon: string;
   skills: SkillItem[];
-}
-
-export interface NavItem {
-  label: string;
-  href: string;
-  icon: string;
 }

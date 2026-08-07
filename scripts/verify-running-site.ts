@@ -20,24 +20,17 @@ async function get(pathname: string): Promise<string> {
   return body;
 }
 
+async function expectMissing(pathname: string) {
+  const response = await fetch(`${baseUrl}${pathname}`);
+  assert(response.status === 404, `${pathname} should be retired but returned HTTP ${response.status}`);
+}
+
 async function main() {
   const [projects, labs, articles, certificates, tag] = await Promise.all([
-    prisma.project.findMany({
-      where: { publishStatus: "PUBLISHED" },
-      select: { slug: true, title: true },
-    }),
-    prisma.lab.findMany({
-      where: { publishStatus: "PUBLISHED" },
-      select: { slug: true, title: true },
-    }),
-    prisma.article.findMany({
-      where: { publishStatus: "PUBLISHED" },
-      select: { slug: true, title: true },
-    }),
-    prisma.certificate.findMany({
-      where: { publishStatus: "PUBLISHED" },
-      select: { name: true },
-    }),
+    prisma.project.findMany({ where: { publishStatus: "PUBLISHED" }, select: { slug: true, title: true } }),
+    prisma.lab.findMany({ where: { publishStatus: "PUBLISHED" }, select: { slug: true, title: true } }),
+    prisma.article.findMany({ where: { publishStatus: "PUBLISHED" }, select: { slug: true, title: true } }),
+    prisma.certificate.findMany({ where: { publishStatus: "PUBLISHED" }, select: { name: true } }),
     prisma.tag.findFirst({
       where: {
         OR: [
@@ -49,18 +42,9 @@ async function main() {
       select: {
         name: true,
         slug: true,
-        projects: {
-          where: { publishStatus: "PUBLISHED" },
-          select: { title: true },
-        },
-        labs: {
-          where: { publishStatus: "PUBLISHED" },
-          select: { title: true },
-        },
-        articles: {
-          where: { publishStatus: "PUBLISHED" },
-          select: { title: true },
-        },
+        projects: { where: { publishStatus: "PUBLISHED" }, select: { title: true } },
+        labs: { where: { publishStatus: "PUBLISHED" }, select: { title: true } },
+        articles: { where: { publishStatus: "PUBLISHED" }, select: { title: true } },
       },
     }),
   ]);
@@ -70,7 +54,7 @@ async function main() {
   const labList = await get("/labs");
   const articleList = await get("/journal");
   const certificateList = await get("/certifications");
-  await Promise.all(["/timeline", "/skills"].map(get));
+  await Promise.all([expectMissing("/timeline"), expectMissing("/skills")]);
 
   for (const project of projects) {
     assert(projectList.includes(project.title), `/projects is missing ${project.slug}`);
@@ -112,6 +96,9 @@ async function main() {
   for (const pathname of expectedDetailPaths) {
     assert(sitemap.includes(pathname), `sitemap is missing ${pathname}`);
   }
+  assert(!sitemap.includes("/timeline"), "sitemap still contains retired /timeline");
+  assert(!sitemap.includes("/skills"), "sitemap still contains retired /skills");
+
   const publishedTagCount = await prisma.tag.count({
     where: {
       OR: [
@@ -122,7 +109,7 @@ async function main() {
     },
   });
   const sitemapUrlCount = (sitemap.match(/<url>/g) ?? []).length;
-  const expectedSitemapUrls = 10 + projects.length + labs.length + articles.length + publishedTagCount;
+  const expectedSitemapUrls = 8 + projects.length + labs.length + articles.length + publishedTagCount;
   assert(
     sitemapUrlCount === expectedSitemapUrls,
     `sitemap URL count ${sitemapUrlCount} did not match expected ${expectedSitemapUrls}`
@@ -131,7 +118,7 @@ async function main() {
   console.log(
     `[site-verify] projects=${projects.length} labs=${labs.length} articles=${articles.length} certificates=${certificates.length} tags=${publishedTagCount} sitemapUrls=${sitemapUrlCount}`
   );
-  console.log(`[site-verify] tag=${tag.slug} taggedItems=${taggedTitles.length} routes=ok search=ok sitemap=ok`);
+  console.log(`[site-verify] tag=${tag.slug} taggedItems=${taggedTitles.length} routes=ok retiredRoutes=ok search=ok sitemap=ok`);
 }
 
 main()

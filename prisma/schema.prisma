@@ -1,7 +1,7 @@
 // prisma/schema.prisma
 //
-// Phase 0 deliverable — review before running the first migration.
-// Design notes are inline as comments; see docs/CMS_MIGRATION_PLAN.md §3 for the full rationale.
+// The CMS database is the runtime source of truth. Timeline was retired in
+// August 2026; Skills remain CMS-managed taxonomy without a public index page.
 
 generator client {
   provider = "prisma-client-js"
@@ -9,13 +9,9 @@ generator client {
 
 datasource db {
   provider  = "postgresql"
-  url       = env("DATABASE_URL") // pooled connection (pgbouncer) — used at runtime
-  directUrl = env("DIRECT_URL")   // unpooled — used by `prisma migrate`
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
-// ─────────────────────────────────────────────────────────
-// ENUMS
-// ─────────────────────────────────────────────────────────
 
 enum Difficulty {
   BEGINNER
@@ -23,8 +19,6 @@ enum Difficulty {
   ADVANCED
 }
 
-/// CMS workflow state — "is this record visible on the public site."
-/// Applies uniformly to every content type per the Publishing requirement.
 enum PublishStatus {
   DRAFT
   PUBLISHED
@@ -32,12 +26,6 @@ enum PublishStatus {
   SCHEDULED
 }
 
-/// Real-world progress state — "how far along is this lab/project/cert."
-/// This is the existing `ContentStatus` concept from types/index.ts and
-/// StatusBadge.tsx, unchanged in meaning. It is DELIBERATELY a separate
-/// field from PublishStatus: a lab can be publishStatus=PUBLISHED while its
-/// progressStatus=IN_PROGRESS (you publish the notebook entry *while*
-/// still working the lab, same as several of the existing seed labs do).
 enum ProgressStatus {
   PLANNED
   IN_PROGRESS
@@ -54,26 +42,16 @@ enum MediaType {
   OTHER
 }
 
-// ─────────────────────────────────────────────────────────
-// SHARED TAXONOMY
-// ─────────────────────────────────────────────────────────
-
-/// Many-to-many across every content type. `slug` is normalized (lowercase,
-/// no punctuation) so /tags/[tag] keeps working with zero page changes.
 model Tag {
-  id        String          @id @default(cuid())
-  name      String          @unique
-  slug      String          @unique
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
   projects  Project[]
   labs      Lab[]
   articles  Article[]
-  timeline  TimelineEntry[]
-  createdAt DateTime        @default(now())
+  createdAt DateTime  @default(now())
 }
 
-/// One category per content item (not many-to-many) — matches the current
-/// free-text `category: string` field on Project/Lab/Article frontmatter,
-/// just normalized into a lookup table instead of a duplicated string.
 model Category {
   id       String    @id @default(cuid())
   name     String    @unique
@@ -83,40 +61,32 @@ model Category {
   articles Article[]
 }
 
-/// NOTE: `group` here is the Skills-page section heading ("Networking",
-/// "Cybersecurity", "Programming") — a different axis from Category above
-/// (content taxonomy). Kept as a plain string rather than its own table;
-/// promote it to a lookup table later if the list of groups grows.
 model Skill {
   id           String        @id @default(cuid())
   name         String        @unique
   group        String        @default("Ungrouped")
-  level        String // "learning" | "practiced" | "comfortable"
+  level        String
   projects     Project[]
   certificates Certificate[]
 }
 
 model Media {
-  id          String    @id @default(cuid())
-  url         String // Vercel Blob URL, returned at upload time
-  filename    String
-  type        MediaType
-  size        Int // bytes
-  uploadedAt  DateTime  @default(now())
-  usedAsThumb Project[] @relation("ProjectThumbnail")
-  downloads   Download[]
+  id               String        @id @default(cuid())
+  url              String
+  filename         String
+  type             MediaType
+  size             Int
+  uploadedAt       DateTime      @default(now())
+  usedAsThumb      Project[]     @relation("ProjectThumbnail")
+  downloads        Download[]
   certificateLogos Certificate[] @relation("CertificateLogo")
 }
 
-/// Scoped to Project for now (the only content type with a Downloads
-/// section today). Nullable FK rather than a polymorphic relation — Prisma
-/// doesn't support true polymorphism cleanly; add labId/articleId nullable
-/// FKs here if Labs/Articles need downloads later.
 model Download {
   id          String   @id @default(cuid())
   label       String
   url         String
-  type        String // "packet-tracer" | "config" | "github" | "pdf" | "other"
+  type        String
   description String?
   sortOrder   Int      @default(0)
   project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -130,11 +100,6 @@ model Download {
   @@index([labId, sortOrder])
   @@index([mediaId])
 }
-
-// ─────────────────────────────────────────────────────────
-// CONTENT TYPES
-// content: Json  ← TipTap/ProseMirror document, NOT markdown/MDX
-// ─────────────────────────────────────────────────────────
 
 model Project {
   id             String         @id @default(cuid())
@@ -178,7 +143,7 @@ model Lab {
   categoryId     String?
   tags           Tag[]
   downloads      Download[]
-  labDate        DateTime // the "date" a lab was performed, distinct from createdAt/updatedAt
+  labDate        DateTime
   publishedAt    DateTime?
   scheduledFor   DateTime?
   createdAt      DateTime       @default(now())
@@ -193,8 +158,7 @@ model Article {
   slug          String        @unique
   summary       String
   content       Json
-  date          DateTime // authored/dated timeline, distinct from publishedAt (CMS workflow) —
-  // same reasoning as Project.completionDate and Lab.labDate
+  date          DateTime
   publishStatus PublishStatus @default(DRAFT)
   category      Category?     @relation(fields: [categoryId], references: [id])
   categoryId    String?
@@ -209,16 +173,13 @@ model Article {
 
 model Certificate {
   id              String         @id @default(cuid())
-  slug            String         @unique // stable reference for Project.relatedCertification
-  // reconciliation (see prisma/seed/certificates.ts) — the original static
-  // data used readable ids like "ccna" for this same purpose; cuid() ids
-  // aren't suitable for that, so slug carries it instead.
+  slug            String         @unique
   name            String
   issuer          String
-  logo            String         @default("default") // legacy fallback icon key
+  logo            String         @default("default")
   logoMedia       Media?         @relation("CertificateLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
   logoMediaId     String?
-  content         Json? // optional longer write-up; card view uses the scalar fields below
+  content         Json?
   progressStatus  ProgressStatus @default(COMPLETED)
   publishStatus   PublishStatus  @default(DRAFT)
   progressLabel   String         @default("Completed")
@@ -236,25 +197,6 @@ model Certificate {
   @@index([logoMediaId])
 }
 
-model TimelineEntry {
-  id            String        @id @default(cuid())
-  date          DateTime
-  title         String
-  description   String
-  category      String // "networking" | "security" | "linux" | "programming" | "milestone"
-  tags          Tag[]
-  publishStatus PublishStatus @default(PUBLISHED) // timeline entries default-publish; they're low-risk
-  publishedAt   DateTime?
-  scheduledFor  DateTime?
-  createdAt     DateTime      @default(now())
-
-  @@index([publishStatus, date])
-}
-
-/// Singleton row (id is always "singleton") powering the CMS "Settings"
-/// screen — name, bio, links, and the home page's "Currently Learning"
-/// list, currently hardcoded in lib/site-config.ts. That file becomes the
-/// seed default rather than the runtime source of truth.
 model SiteSettings {
   id                String   @id @default("singleton")
   name              String
@@ -264,32 +206,7 @@ model SiteSettings {
   githubUrl         String
   linkedinUrl       String
   resumeUrl         String
-  currentlyLearning Json // [{ label: string, href: string }]
-  aboutPage        Json?
+  currentlyLearning Json
+  aboutPage         Json?
   updatedAt         DateTime @updatedAt
 }
-
-// ─────────────────────────────────────────────────────────
-// FUTURE — revision history (NOT implemented in Phase 0)
-// ─────────────────────────────────────────────────────────
-//
-// Confirmed as a Phase 4+ requirement. Nothing above blocks adding it:
-// `content` is already an opaque Json blob, `updatedAt` already exists on
-// every content model, and cuid() ids are stable snapshot targets. When
-// it's time, the plan is one revision table per content type (same
-// non-polymorphic pattern already used for Download, rather than one
-// generic table trying to reference four different parents):
-//
-//   model ProjectRevision {
-//     id        String   @id @default(cuid())
-//     project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-//     projectId String
-//     content   Json               // snapshot of Project.content at save time
-//     editedBy  String             // admin email/id at time of save
-//     label     String?            // optional "v3" / "before troubleshooting rewrite"
-//     createdAt DateTime @default(now())
-//     @@index([projectId, createdAt])
-//   }
-//
-// ...mirrored as LabRevision, ArticleRevision, CertificateRevision. Adding
-// these later is a pure additive migration — no existing column changes.

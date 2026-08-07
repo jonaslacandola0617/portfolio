@@ -16,7 +16,6 @@ async function main() {
       prisma.lab.count({ where: { publishStatus: "SCHEDULED" } }),
       prisma.article.count({ where: { publishStatus: "SCHEDULED" } }),
       prisma.certificate.count({ where: { publishStatus: "SCHEDULED" } }),
-      prisma.timelineEntry.count({ where: { publishStatus: "SCHEDULED" } }),
     ]),
   ]);
 

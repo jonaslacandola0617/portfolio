@@ -1,8 +1,7 @@
 /**
  * SITE CONFIG
  * ───────────
- * This is the one file to edit to make this portfolio yours.
- * Name, bio, links, and the "currently learning" widget all live here.
+ * Seed/runtime fallback for identity, links, and the "currently learning" widget.
  */
 
 export const siteConfig = {
@@ -27,9 +26,9 @@ export const siteConfig = {
   currentlyLearning: [
     { label: "CCNA — Module 8: Subnetting", href: "/certifications" },
     { label: "Google Cybersecurity — Course 2", href: "/certifications" },
-    { label: "Static & Default Routing", href: "/timeline" },
-    { label: "VLANs & Trunking", href: "/timeline" },
-    { label: "Linux command line fundamentals", href: "/timeline" },
+    { label: "Static & Default Routing", href: "/labs/static-routing-configuration" },
+    { label: "VLANs & Trunking", href: "/labs/vlan-trunking-lab" },
+    { label: "Linux command line fundamentals", href: "/labs/linux-file-permissions-practice" },
   ],
 
   currentFocusStack: [
@@ -50,8 +49,6 @@ export const navItems = [
   { label: "Labs", href: "/labs", icon: "FlaskConical" },
   { label: "Journal", href: "/journal", icon: "NotebookPen" },
   { label: "Certifications", href: "/certifications", icon: "BadgeCheck" },
-  { label: "Timeline", href: "/timeline", icon: "GitCommitHorizontal" },
-  { label: "Skills", href: "/skills", icon: "Layers" },
   { label: "Resume", href: "/resume", icon: "FileText" },
   { label: "Contact", href: "/contact", icon: "Mail" },
 ] as const;

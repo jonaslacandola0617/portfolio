@@ -5,6 +5,7 @@ import type { AboutPageValues } from "@/lib/validations/about";
  * runtime fallback when the About JSON has not been saved yet.
  */
 export const defaultAboutPage: AboutPageValues = {
+  profileImageUrl: null,
   quote:
     "I got into this field by taking things apart — first literally, then packet by packet.",
   background:

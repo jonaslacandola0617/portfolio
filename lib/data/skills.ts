@@ -1,6 +1,7 @@
 /**
- * As of Phase 3, this file is seed data, not runtime data — the public
- * /skills page reads from Postgres via lib/db/queries/skills.ts.
+ * Seed data for the CMS-managed Skill taxonomy. Skills remain available in
+ * admin and can be attached to Projects/Certificates; there is no standalone
+ * public Skills page.
  */
 import type { SkillCategory } from "@/types";
 

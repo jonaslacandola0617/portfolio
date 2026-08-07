@@ -13,27 +13,26 @@ async function main() {
   if (audit.invalid.length > 0) throw new Error(`${audit.invalid.length} invalid TipTap document(s)`);
 
   const counts = await readWithPolicy("verify.publicCounts", null, () =>
-      Promise.all([
-        prisma.project.count({ where: { publishStatus: "PUBLISHED" } }),
-        prisma.lab.count({ where: { publishStatus: "PUBLISHED" } }),
-        prisma.article.count({ where: { publishStatus: "PUBLISHED" } }),
-        prisma.certificate.count({ where: { publishStatus: "PUBLISHED" } }),
-        prisma.timelineEntry.count({ where: { publishStatus: "PUBLISHED" } }),
-        prisma.skill.count(),
-        prisma.tag.count({
-          where: {
-            OR: [
-              { projects: { some: { publishStatus: "PUBLISHED" } } },
-              { labs: { some: { publishStatus: "PUBLISHED" } } },
-              { articles: { some: { publishStatus: "PUBLISHED" } } },
-            ],
-          },
-        }),
-        prisma.siteSettings.count({ where: { id: "singleton" } }),
-      ])
-    );
+    Promise.all([
+      prisma.project.count({ where: { publishStatus: "PUBLISHED" } }),
+      prisma.lab.count({ where: { publishStatus: "PUBLISHED" } }),
+      prisma.article.count({ where: { publishStatus: "PUBLISHED" } }),
+      prisma.certificate.count({ where: { publishStatus: "PUBLISHED" } }),
+      prisma.skill.count(),
+      prisma.tag.count({
+        where: {
+          OR: [
+            { projects: { some: { publishStatus: "PUBLISHED" } } },
+            { labs: { some: { publishStatus: "PUBLISHED" } } },
+            { articles: { some: { publishStatus: "PUBLISHED" } } },
+          ],
+        },
+      }),
+      prisma.siteSettings.count({ where: { id: "singleton" } }),
+    ])
+  );
   if (!counts) throw new Error("Public count query returned no result");
-  const [projects, labs, articles, certificates, timeline, skills, tags, settings] = counts;
+  const [projects, labs, articles, certificates, skills, tags, settings] = counts;
 
   if (settings !== 1) throw new Error(`Expected one SiteSettings singleton row; found ${settings}`);
   const sampleTag = await readWithPolicy("verify.tagLookup", null, () =>
@@ -64,7 +63,7 @@ async function main() {
   if (sampleTag && sampleTagCount === 0) throw new Error(`Tag ${sampleTag.slug} has no published content`);
 
   console.log(
-    `[build-data] projects=${projects} labs=${labs} articles=${articles} certificates=${certificates} timeline=${timeline} skills=${skills} tags=${tags} settings=${settings}`
+    `[build-data] projects=${projects} labs=${labs} articles=${articles} certificates=${certificates} skills=${skills} tags=${tags} settings=${settings}`
   );
   console.log(
     `[build-data] tagLookup=${sampleTag ? `${sampleTag.slug}:${sampleTagCount}` : "none"} status=ok`

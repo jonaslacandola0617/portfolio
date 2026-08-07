@@ -34,9 +34,7 @@ export function SkillForm({ mode, skill, groups }: SkillFormProps) {
   return (
     <div className="space-y-6">
       <form action={formAction} className="space-y-6">
-        {/* This action redirects to /admin/skills?created=1 / ?updated=1
-            on success — see components/admin/timeline-form.tsx's comment
-            for why only the failure path renders locally. */}
+        {/* Create/update redirects on success; only failures render locally. */}
         {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
 
         <Card>

@@ -4,6 +4,7 @@ const trimmed = (label: string, max: number) =>
   z.string().trim().min(1, `${label} is required`).max(max, `${label} is too long`);
 
 export const aboutPageSchema = z.object({
+  profileImageUrl: z.string().url().nullable(),
   quote: trimmed("Opening quote", 500),
   background: trimmed("Background", 4000),
   currentFocus: trimmed("Current focus", 3000),
@@ -13,6 +14,8 @@ export const aboutPageSchema = z.object({
 });
 
 export type AboutPageValues = z.infer<typeof aboutPageSchema>;
+
+const aboutPageWithoutProfileImageSchema = aboutPageSchema.omit({ profileImageUrl: true });
 
 const interimAboutPageSchema = z.object({
   biography: z.string(),
@@ -26,7 +29,7 @@ const legacyAboutPageSchema = z.object({
 }).passthrough();
 
 /**
- * Reads both historical About JSON contracts without requiring a database migration.
+ * Reads historical About JSON contracts without requiring a database migration.
  * SiteSettings.aboutPage is intentionally JSON, so shape evolution happens at this
  * boundary and the next admin save rewrites the record in the current Bauhaus shape.
  */
@@ -36,6 +39,11 @@ export function normalizeAboutPage(
 ): AboutPageValues {
   const current = aboutPageSchema.safeParse(value);
   if (current.success) return current.data;
+
+  const currentWithoutProfile = aboutPageWithoutProfileImageSchema.safeParse(value);
+  if (currentWithoutProfile.success) {
+    return { ...currentWithoutProfile.data, profileImageUrl: null };
+  }
 
   const interim = interimAboutPageSchema.safeParse(value);
   if (interim.success) {
