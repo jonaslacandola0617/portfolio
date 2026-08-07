@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Check, FileQuestion, Globe, Code2, Network, ShieldCheck, GitMerge, BookOpen, GraduationCap, RefreshCcw, ClipboardList, Wrench, ScanSearch } from "lucide-react";
+import { createDraftFromTemplateAction, type CreateDraftState } from "@/app/admin/(dashboard)/draft-actions";
 import type { ContentTemplate } from "@/lib/editor/templates";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +25,22 @@ function TemplateIcon({ template }: { template: ContentTemplate }) {
   return <Icon className="h-4 w-4" />;
 }
 
+function StartWritingButton({ template }: { template: ContentTemplate }) {
+  const { pending } = useFormStatus();
+  const label = template.name.replace(/^Blank (project|article|lab)$/i, "Blank");
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="border border-border-strong bg-text px-5 py-2.5 text-sm font-medium text-surface disabled:opacity-60"
+    >
+      {pending ? "Creating draft…" : `Start writing with "${label}"`}
+    </button>
+  );
+}
+
+const initialState: CreateDraftState = { success: false };
+
 export function TemplateStart({
   kindLabel,
   templates,
@@ -33,6 +51,7 @@ export function TemplateStart({
   cancelHref: string;
 }) {
   const [selected, setSelected] = useState(templates[1]?.id ?? templates[0]?.id ?? "");
+  const [state, action] = useFormState(createDraftFromTemplateAction, initialState);
   const selectedTemplate = templates.find((template) => template.id === selected) ?? templates[0];
 
   return (
@@ -81,15 +100,18 @@ export function TemplateStart({
         })}
       </div>
 
+      {state.message && (
+        <p role="alert" className="mt-4 text-sm text-vermilion">{state.message}</p>
+      )}
+
       <div className="mt-8 flex items-center justify-between border-t border-border pt-6">
         <Link href={cancelHref} className="text-sm text-text-dim hover:text-text">Cancel</Link>
         {selectedTemplate && (
-          <Link
-            href={`?template=${encodeURIComponent(selectedTemplate.id)}`}
-            className="border border-border-strong bg-text px-5 py-2.5 text-sm font-medium text-surface"
-          >
-            Continue with "{selectedTemplate.name.replace(/^Blank (project|article|lab)$/i, "Blank")}"
-          </Link>
+          <form action={action}>
+            <input type="hidden" name="contentType" value={selectedTemplate.contentType} />
+            <input type="hidden" name="templateId" value={selectedTemplate.id} />
+            <StartWritingButton template={selectedTemplate} />
+          </form>
         )}
       </div>
     </div>
