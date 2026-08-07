@@ -11,6 +11,7 @@ import { EditorShell } from "@/components/editor/editor-shell";
 import { SubmitButton } from "@/components/admin/submit-button";
 import { FormMessage } from "@/components/admin/form-message";
 import { DeleteButton } from "@/components/admin/delete-button";
+import { SegmentedStatusField } from "@/components/admin/segmented-status-field";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
@@ -51,6 +52,18 @@ interface LabFormProps {
     downloads: Array<{ mediaId: string; label: string; description: string }>;
   };
 }
+
+const realWorldStatusOptions = [
+  { value: "PLANNED", label: "Planned" },
+  { value: "IN_PROGRESS", label: "In progress" },
+  { value: "COMPLETED", label: "Completed" },
+];
+
+const publishStatusOptions = [
+  { value: "DRAFT", label: "Draft" },
+  { value: "PUBLISHED", label: "Published" },
+  { value: "ARCHIVED", label: "Archived" },
+];
 
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
@@ -112,6 +125,13 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
             <CardContent
               className={mode === "edit" ? "space-y-6 p-0" : "space-y-5 pt-6"}
             >
+              <SegmentedStatusField
+                name="progressStatus"
+                label="Real-world status"
+                defaultValue={lab?.progressStatus ?? "PLANNED"}
+                options={realWorldStatusOptions}
+              />
+
               <div
                 className={
                   mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
@@ -160,7 +180,7 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
 
               <div
                 className={
-                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-3"
+                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
                 }
               >
                 <div>
@@ -185,19 +205,6 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
                     <option value="BEGINNER">Beginner</option>
                     <option value="INTERMEDIATE">Intermediate</option>
                     <option value="ADVANCED">Advanced</option>
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="progressStatus">Real-world status</Label>
-                  <select
-                    id="progressStatus"
-                    name="progressStatus"
-                    defaultValue={lab?.progressStatus ?? "PLANNED"}
-                    className="flex h-10 w-full border border-border bg-surface px-3 text-sm"
-                  >
-                    <option value="PLANNED">Planned</option>
-                    <option value="IN_PROGRESS">In progress</option>
-                    <option value="COMPLETED">Completed</option>
                   </select>
                 </div>
               </div>
@@ -229,34 +236,23 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
                 </div>
               </div>
 
-              <div
-                className={
-                  mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"
-                }
-              >
-                <div>
-                  <Label htmlFor="publishStatus">Publish status</Label>
-                  <p className="mb-2 mt-1 text-xs text-muted-foreground">
-                    Publish manually when the lab is ready.
-                  </p>
-                  <select
-                    id="publishStatus"
-                    name="publishStatus"
-                    value={publishStatus}
-                    onChange={(e) => setPublishStatus(e.target.value)}
-                    className="flex h-10 w-full border border-border bg-surface px-3 text-sm"
-                  >
-                    <option value="DRAFT">Draft</option>
-                    <option value="PUBLISHED">Published</option>
-                    <option value="ARCHIVED">Archived</option>
-                  </select>
-                </div>
-              </div>
+              <SegmentedStatusField
+                name="publishStatus"
+                label="Publish status"
+                value={publishStatus}
+                onValueChange={setPublishStatus}
+                options={publishStatusOptions}
+                description="Publish manually when the lab is ready."
+              />
             </CardContent>
           </Card>
 
-          {mode === "create" && !templateId && <TemplateSelector templates={labTemplates} />}
-          {mode === "create" && templateId && <input type="hidden" name="templateId" value={templateId} />}
+          {mode === "create" && !templateId && (
+            <TemplateSelector templates={labTemplates} />
+          )}
+          {mode === "create" && templateId && (
+            <input type="hidden" name="templateId" value={templateId} />
+          )}
           {mode === "edit" && lab && (
             <LabResourcesEditor
               labId={lab.id}
@@ -303,9 +299,7 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
             }
           >
             <SubmitButton
-              pendingLabel={
-                mode === "create" ? "Creating..." : "Saving changes..."
-              }
+              pendingLabel={mode === "create" ? "Creating..." : "Saving changes..."}
               forcePending={editorForm.isCoordinating}
               className={mode === "edit" ? "order-2" : undefined}
             >
