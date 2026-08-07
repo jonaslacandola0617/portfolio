@@ -46,7 +46,7 @@ export function DeleteButton({
             isIcon
               ? "h-8 w-8 border-border text-text-dim hover:border-vermilion hover:text-vermilion"
               : isSheet
-                ? "h-10 border-transparent px-0 font-normal text-vermilion hover:text-vermilion"
+                ? "h-10 border-vermilion px-3 font-normal text-vermilion hover:bg-vermilion/10"
                 : "h-10 border-vermilion px-3 text-vermilion hover:bg-vermilion/10",
             className,
           )}
