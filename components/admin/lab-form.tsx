@@ -83,7 +83,7 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
   );
   const [title, setTitle] = useState(lab?.title ?? "");
   const [slug, setSlug] = useState(lab?.slug ?? "");
-  const [slugTouched, setSlugTouched] = useState(mode === "edit");
+  const [slugTouched, setSlugTouched] = useState(false);
   const [publishStatus, setPublishStatus] = useState(
     lab?.publishStatus ?? "DRAFT",
   );
