@@ -5,6 +5,7 @@ import { CodeBlock } from "@/components/shared/code-block";
 import { MediaImage } from "@/components/shared/media-image";
 import { MediaAttachment } from "@/components/shared/media-attachment";
 import { validateTipTapDoc } from "@/lib/validations/content";
+import { getHeadingText, nextHeadingAnchor } from "@/lib/content-headings";
 import {
   diagnoseTipTapDocument,
   formatContentDiagnostic,
@@ -16,23 +17,6 @@ import type {
   TipTapInlineNode,
   TipTapMark,
 } from "@/types/tiptap";
-
-/**
- * Read-only renderer for TipTap JSON — a plain recursive function, not a
- * live `@tiptap/react` Editor instance in `editable: false` mode.
- *
- * That's a deliberate refinement of what ARCHITECTURE.md originally
- * described ("editor and renderer share the same extension config").
- * ProseMirror's EditorView is fundamentally DOM-dependent and isn't a
- * natural fit for static generation / Server Components — using it here
- * would mean either losing `generateStaticParams` for project pages or
- * hydrating a full editor instance just to display text. This function
- * gets the same "can't drift from what the schema defines" guarantee a
- * different way: both this renderer and the Phase 4 editor will be
- * built against the same JSON contract in types/tiptap.ts and
- * lib/validations/content.ts — the shared source of truth is the schema,
- * not a shared runtime instance.
- */
 
 function renderMarks(node: TipTapInlineNode, key: number): React.ReactNode {
   if (node.type === "hardBreak") return <br key={key} />;
@@ -54,7 +38,12 @@ function applyMark(mark: TipTapMark, content: React.ReactNode, key: number): Rea
       return <code key={key}>{content}</code>;
     case "link":
       return (
-        <a key={key} href={mark.attrs.href} target={mark.attrs.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer">
+        <a
+          key={key}
+          href={mark.attrs.href}
+          target={mark.attrs.href.startsWith("http") ? "_blank" : undefined}
+          rel="noreferrer"
+        >
           {content}
         </a>
       );
@@ -62,21 +51,34 @@ function applyMark(mark: TipTapMark, content: React.ReactNode, key: number): Rea
 }
 
 function renderInline(nodes: TipTapInlineNode[] | undefined) {
-  return (nodes ?? []).map((n, i) => renderMarks(n, i));
+  return (nodes ?? []).map((node, index) => renderMarks(node, index));
 }
 
-function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
+function renderBlock(
+  node: TipTapBlockNode,
+  key: number,
+  headingCounts: Map<string, number>,
+): React.ReactNode {
   switch (node.type) {
     case "heading": {
       const Tag = `h${node.attrs.level}` as keyof JSX.IntrinsicElements;
-      return <Tag key={key}>{renderInline(node.content)}</Tag>;
+      const id = nextHeadingAnchor(getHeadingText(node.content), headingCounts);
+      return (
+        <Tag key={key} id={id} className="scroll-mt-8">
+          {renderInline(node.content)}
+        </Tag>
+      );
     }
 
     case "paragraph":
       return <p key={key}>{renderInline(node.content)}</p>;
 
     case "blockquote":
-      return <blockquote key={key}>{node.content.map((n, i) => renderBlock(n, i))}</blockquote>;
+      return (
+        <blockquote key={key}>
+          {node.content.map((child, index) => renderBlock(child, index, headingCounts))}
+        </blockquote>
+      );
 
     case "horizontalRule":
       return <hr key={key} />;
@@ -84,8 +86,10 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
     case "bulletList":
       return (
         <ul key={key}>
-          {node.content.map((li, i) => (
-            <li key={i}>{li.content.map((n, j) => renderBlock(n, j))}</li>
+          {node.content.map((item, index) => (
+            <li key={index}>
+              {item.content.map((child, childIndex) => renderBlock(child, childIndex, headingCounts))}
+            </li>
           ))}
         </ul>
       );
@@ -93,8 +97,10 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
     case "orderedList":
       return (
         <ol key={key} start={node.attrs?.start} type={node.attrs?.type ?? undefined}>
-          {node.content.map((li, i) => (
-            <li key={i}>{li.content.map((n, j) => renderBlock(n, j))}</li>
+          {node.content.map((item, index) => (
+            <li key={index}>
+              {item.content.map((child, childIndex) => renderBlock(child, childIndex, headingCounts))}
+            </li>
           ))}
         </ol>
       );
@@ -104,14 +110,14 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
         <CodeBlock
           key={key}
           language={node.attrs.language ?? undefined}
-          code={(node.content ?? []).map((n) => n.text).join("")}
+          code={(node.content ?? []).map((child) => child.text).join("")}
         />
       );
 
     case "callout":
       return (
         <Callout key={key} type={node.attrs.variant} title={node.attrs.title ?? undefined}>
-          {node.content.map((n, i) => renderBlock(n, i))}
+          {node.content.map((child, index) => renderBlock(child, index, headingCounts))}
         </Callout>
       );
 
@@ -131,20 +137,29 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
       return (
         <table key={key}>
           <tbody>
-            {node.content.map((row, i) => (
-              <tr key={i}>
-                {row.content.map((cell, j) => {
-                  // Real TipTap table cells hold block content (usually
-                  // one paragraph) — see types/tiptap.ts's
-                  // TipTapTableCellNode comment.
-                  const cellChildren = cell.content.map((n, k) => renderBlock(n, k));
+            {node.content.map((row, index) => (
+              <tr key={index}>
+                {row.content.map((cell, cellIndex) => {
+                  const cellChildren = cell.content.map((child, childIndex) =>
+                    renderBlock(child, childIndex, headingCounts),
+                  );
                   const style = cell.attrs?.align ? { textAlign: cell.attrs.align } : undefined;
                   return cell.type === "tableHeader" ? (
-                    <th key={j} colSpan={cell.attrs?.colspan} rowSpan={cell.attrs?.rowspan} style={style}>
+                    <th
+                      key={cellIndex}
+                      colSpan={cell.attrs?.colspan}
+                      rowSpan={cell.attrs?.rowspan}
+                      style={style}
+                    >
                       {cellChildren}
                     </th>
                   ) : (
-                    <td key={j} colSpan={cell.attrs?.colspan} rowSpan={cell.attrs?.rowspan} style={style}>
+                    <td
+                      key={cellIndex}
+                      colSpan={cell.attrs?.colspan}
+                      rowSpan={cell.attrs?.rowspan}
+                      style={style}
+                    >
                       {cellChildren}
                     </td>
                   );
@@ -158,10 +173,14 @@ function renderBlock(node: TipTapBlockNode, key: number): React.ReactNode {
     case "taskList":
       return (
         <ul key={key} data-type="taskList" className="task-list">
-          {node.content.map((item, i) => (
-            <li key={i} data-checked={item.attrs.checked} className="flex items-start gap-2">
+          {node.content.map((item, index) => (
+            <li key={index} data-checked={item.attrs.checked} className="flex items-start gap-2">
               <input type="checkbox" checked={item.attrs.checked} readOnly className="mt-1.5" />
-              <div>{item.content.map((n, j) => renderBlock(n, j))}</div>
+              <div>
+                {item.content.map((child, childIndex) =>
+                  renderBlock(child, childIndex, headingCounts),
+                )}
+              </div>
             </li>
           ))}
         </ul>
@@ -188,6 +207,11 @@ export function ContentRenderer({
   }
 
   const doc = result.data as TipTapDoc;
+  const headingCounts = new Map<string, number>();
 
-  return <div className="prose-docs">{doc.content.map((node, i) => renderBlock(node, i))}</div>;
+  return (
+    <div className="prose-docs">
+      {doc.content.map((node, index) => renderBlock(node, index, headingCounts))}
+    </div>
+  );
 }
