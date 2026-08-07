@@ -51,7 +51,7 @@ export function MediaImage({
           </button>
         </DialogTrigger>
 
-        <DialogContent className="w-[calc(100%-1.5rem)] max-w-[min(96vw,1440px)] border-border-strong bg-surface-2 p-3 sm:p-4 [&>button]:right-3 [&>button]:top-3 [&>button]:border [&>button]:border-border-strong [&>button]:bg-surface-2 [&>button]:p-2">
+        <DialogContent className="w-[96vw] max-w-[1440px] border-border-strong bg-surface-2 p-3 sm:p-4 [&>button]:right-3 [&>button]:top-3 [&>button]:border [&>button]:border-border-strong [&>button]:bg-surface-2 [&>button]:p-2">
           <div className="flex max-h-[88vh] min-h-0 flex-col pt-8">
             <div className="min-h-0 flex-1 overflow-auto bg-ink/20 p-2">
               {/* eslint-disable-next-line @next/next/no-img-element */}
