@@ -64,7 +64,7 @@ export function EditorTemplateDialog({
         </button>
       </DialogTrigger>
 
-      <DialogContent className="top-6 grid max-h-[calc(100dvh-3rem)] max-w-4xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-surface-2 p-0 sm:top-10 sm:max-h-[calc(100dvh-5rem)]">
+      <DialogContent className="grid max-h-[calc(100dvh-3rem)] max-w-4xl grid-rows-[auto_minmax(0,1fr)_auto] overflow-hidden bg-surface-2 p-0 sm:max-h-[calc(100dvh-5rem)]">
         {pending ? (
           <>
             <div className="px-6 pb-4 pt-6 pr-12">

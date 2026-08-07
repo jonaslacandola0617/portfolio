@@ -34,7 +34,7 @@ const config: Config = {
       keyframes: {
         "accordion-down": { from: { height: "0" }, to: { height: "var(--radix-accordion-content-height)" } },
         "accordion-up": { from: { height: "var(--radix-accordion-content-height)" }, to: { height: "0" } },
-        "fade-up": { "0%": { opacity: "0", transform: "translateY(8px)" }, "100%": { opacity: "1", transform: "translateY(0)" } },
+        "fade-up": { "0%": { opacity: "0", translate: "0 8px" }, "100%": { opacity: "1", translate: "0 0" } },
         "fade-in": { "0%": { opacity: "0" }, "100%": { opacity: "1" } },
         "pulse-node": { "0%,100%": { opacity: "1" }, "50%": { opacity: ".35" } },
       },

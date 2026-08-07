@@ -71,7 +71,7 @@ export function AdminSearchDialog() {
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-xl border-border-strong bg-surface-2 p-0 sm:top-32 [&>button]:hidden">
+        <DialogContent className="top-24 translate-y-0 max-w-xl border-border-strong bg-surface-2 p-0 sm:top-32 [&>button]:hidden">
           <div className="flex items-center gap-2 border-b border-border px-4 py-3">
             <Search className="h-4 w-4 text-muted" />
             <input
