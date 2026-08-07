@@ -11,10 +11,10 @@ export const siteConfig = {
   tagline:
     "Focused on networking, security operations, and continuous, documented learning.",
   location:
-    "Based in the United States \u00b7 open to remote & on-site SOC/NetAdmin roles",
-  email: "alex.rivera.sec@protonmail.com",
+    "Based in the Philippines \u00b7 open to remote & on-site SOC/NetAdmin roles",
+  email: "jonas.lacandola.sec@protonmail.com",
   social: {
-    github: "https://github.com/alexrivera-sec",
+    github: "https://github.com/jonaslacandola-sec",
     linkedin: "https://linkedin.com/in/jonaslacandola-sec",
     twitter: "https://x.com/jonaslacandola",
   },
@@ -26,9 +26,15 @@ export const siteConfig = {
   currentlyLearning: [
     { label: "CCNA — Module 8: Subnetting", href: "/certifications" },
     { label: "Google Cybersecurity — Course 2", href: "/certifications" },
-    { label: "Static & Default Routing", href: "/labs/static-routing-configuration" },
+    {
+      label: "Static & Default Routing",
+      href: "/labs/static-routing-configuration",
+    },
     { label: "VLANs & Trunking", href: "/labs/vlan-trunking-lab" },
-    { label: "Linux command line fundamentals", href: "/labs/linux-file-permissions-practice" },
+    {
+      label: "Linux command line fundamentals",
+      href: "/labs/linux-file-permissions-practice",
+    },
   ],
 
   currentFocusStack: [
