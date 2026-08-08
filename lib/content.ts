@@ -17,16 +17,6 @@ import {
 import { getAllCertificates } from "@/lib/db/queries/certificates";
 import { getAllPublishedTags } from "@/lib/db/queries/tags";
 
-/**
- * As of Phase 3, every content type in this file is Prisma-backed — the
- * content/*.mdx files this used to read (via fs + gray-matter) are
- * retired; see docs/PHASE_3_REPORT.md. Every exported function below
- * keeps the exact name and shape it had when it read the filesystem —
- * that's what made each phase of this migration a swap behind a seam
- * instead of a rewrite (see docs/CMS_MIGRATION_PLAN.md §0).
- */
-
-// ─── Projects ────────────────────────────────────────────────
 export async function getAllProjects() {
   return dbGetAllProjects();
 }
@@ -39,7 +29,6 @@ export async function getAllProjectSlugs() {
   return dbGetAllProjectSlugs();
 }
 
-// ─── Labs ────────────────────────────────────────────────────
 export async function getAllLabs() {
   return dbGetAllLabs();
 }
@@ -52,7 +41,6 @@ export async function getAllLabSlugs() {
   return dbGetAllLabSlugs();
 }
 
-// ─── Articles (Learning Journal) ────────────────────────────
 export async function getAllArticles() {
   return dbGetAllArticles();
 }
@@ -65,10 +53,6 @@ export async function getAllArticleSlugs() {
   return dbGetAllArticleSlugs();
 }
 
-// ─── Cross-collection helpers ───────────────────────────────
-// All three sources are async now (Phase 3) — simpler than Phase 2's
-// in-between state, where this had to mix an async source with two sync
-// ones.
 export async function getAllTags(): Promise<{ tag: string; count: number }[]> {
   const tags = await getAllPublishedTags();
   return tags.map(({ name, count }) => ({ tag: name, count }));

@@ -1,81 +1,77 @@
-# Cyber Portfolio CMS
+# Jonas Lacandola — Cybersecurity Portfolio
 
-A documentation-style cybersecurity and networking portfolio with a private CMS, built with
-Next.js 14, TypeScript, Tailwind CSS, Prisma 6, Neon PostgreSQL, Auth.js, TipTap, and Vercel Blob.
+Personal portfolio and private CMS for documenting projects, networking and security labs, certifications, and learning notes.
 
-PostgreSQL is the runtime source of truth for Projects, Labs, Journal Articles, Certificates,
-Skills, Tags, and Site Settings. Skills are CMS-managed taxonomy used by portfolio content; there
-is no standalone public Skills page. Timeline was retired in August 2026 from both the public site
-and CMS/backend.
+Live site: https://www.jonasl.online
 
-## Setup
+## Stack
 
-Use Node.js 20 or newer and npm. Copy `.env.example` to `.env` and fill in the required values.
-Never commit `.env`.
+- Next.js 15 and React 19
+- TypeScript and Tailwind CSS
+- Prisma with Neon PostgreSQL
+- Auth.js with GitHub OAuth
+- TipTap for long-form content
+- Vercel Blob for media storage
 
-Database connection roles:
+## How content works
 
-- `DATABASE_URL`: pooled Neon hostname (`-pooler`) with SSL; used by Prisma Client.
-- `DIRECT_URL`: distinct unpooled Neon hostname with SSL; used by Prisma migration/schema tools.
+PostgreSQL is the runtime source of truth for Projects, Labs, Journal entries, Certificates, Skills, Tags, Categories, Media, and Site Settings. Public pages read from the database, while the private `/admin` area manages content through authenticated forms and editor actions.
 
-Then run:
+The repository does not ship demo Projects, Labs, or Journal entries. Those are created and maintained through the CMS.
+
+## Local setup
+
+Use Node.js 20 or newer.
 
 ```bash
+cp .env.example .env
 npm ci
 npm run db:generate
 npm run db:migrate:deploy
-npm run db:seed
 npm run dev
 ```
 
-Open <http://localhost:3000>. GitHub sign-in is restricted to `ADMIN_EMAIL`.
+Open `http://localhost:3000`.
 
-## Required migration for Timeline retirement
+For a completely empty database, `npm run db:seed` can initialize the Site Settings row. It does not create demo portfolio content.
 
-The migration `20260807173000_remove_timeline` drops the old Timeline tag join table and
-`TimelineEntry` table. This is intentionally destructive because Timeline has been removed from the
-product. Run the normal migration deployment before starting the updated application against an
-existing database:
+## Authentication
+
+The CMS uses GitHub OAuth and is restricted to the email configured in `ADMIN_EMAIL`.
+
+Local callback:
+
+```text
+http://localhost:3000/api/auth/callback/github
+```
+
+Production callback:
+
+```text
+https://www.jonasl.online/api/auth/callback/github
+```
+
+## Media
+
+CMS media is stored in Vercel Blob. Upload routes are authenticated and require `BLOB_READ_WRITE_TOKEN` in the deployment environment.
+
+## Database migrations
+
+Prisma migration files are intentionally kept in version control so a new database can reproduce the current schema.
 
 ```bash
 npm run db:migrate:deploy
 npm run db:generate
 ```
 
-The About profile-image addition itself requires no schema migration because its URL is stored in
-the existing `SiteSettings.aboutPage` JSON value.
-
-## About profile photo
-
-`/admin/about` has a dedicated JPEG/PNG/WebP upload control. It uses its own authenticated Vercel
-Blob token route at `/api/admin/about/profile-image/upload`. Profile photos do **not** create a
-`Media` database row and do not appear in the Media Library. Replacing/removing a photo cleans up
-the prior Blob on a best-effort basis.
-
-## Content and build verification
+## Useful checks
 
 ```bash
-npm run validate:editor-content
-npm run verify:save-pipeline
 npm run audit:content
-npm run verify:build-data
+npm run verify:save-pipeline
 npm run verify:revalidation
-npm run verify:phase6-data
+npm run verify:build-data
 npm run build
-npm run start
 ```
 
-`npm run build` is intentionally strict. It runs the content/database preflight and sets
-`STRICT_BUILD_DATA=1` for `next build`; a database read failure cannot silently become empty
-static pages.
-
-## Main routes
-
-Public navigation is Home, About, Projects, Labs, Journal, Certifications, Résumé, and Contact.
-`/skills` and `/timeline` are intentionally retired. The private CMS remains under `/admin`, with
-Skills management retained and Timeline administration removed.
-
-## Architecture
-
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the current architecture. Historical phase reports under
-`docs/` remain implementation history and may describe surfaces that were later retired.
+See `ARCHITECTURE.md` for a concise overview of the current application structure.
