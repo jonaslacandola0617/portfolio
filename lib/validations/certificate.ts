@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { httpsUrlSchema } from "@/lib/validations/url";
 
 const optionalDateSchema = z.string().trim().refine((value) => {
   if (!value) return true;
@@ -20,7 +21,7 @@ export const certificateFormSchema = z.object({
   skills: z.array(z.string().min(1)).default([]),
   dateStarted: optionalDateSchema.optional().or(z.literal("")),
   dateCompleted: optionalDateSchema.optional().or(z.literal("")),
-  credentialUrl: z.string().url().optional().or(z.literal("")),
+  credentialUrl: httpsUrlSchema.optional().or(z.literal("")),
   scheduledFor: z.string().optional().or(z.literal("")),
 });
 
