@@ -19,7 +19,7 @@ export const siteConfig = {
     twitter: "https://x.com/jonaslacandola-sec",
   },
   resumeUrl: "/resume.pdf",
-  siteUrl: "https://jonaslacandola.vercel.app",
+  siteUrl: "https://www.jonasl.online",
   description:
     "Cybersecurity & networking portfolio — labs, projects, and a running learning journal covering CCNA, Google Cybersecurity, Linux, and packet analysis.",
 
