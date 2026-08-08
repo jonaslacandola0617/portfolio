@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { safeHrefSchema, vercelPublicBlobUrlSchema } from "@/lib/validations/url";
 
 /**
  * Mirrors types/tiptap.ts exactly. Two call sites:
@@ -21,7 +22,7 @@ const markSchema: z.ZodType<any> = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("link"),
     attrs: z.object({
-      href: z.string(),
+      href: safeHrefSchema,
       target: z.string().nullable().optional(),
       rel: z.string().nullable().optional(),
       class: z.string().nullable().optional(),
@@ -87,7 +88,7 @@ const mediaImageNodeSchema = z.object({
   type: z.literal("mediaImage"),
   attrs: z.object({
     mediaId: z.string().min(1).max(128),
-    src: z.string().url(),
+    src: vercelPublicBlobUrlSchema,
     alt: z.string().trim().min(1, "Image alternative text is required").max(300),
     caption: z.string().max(500).nullable().optional(),
     alignment: z.enum(["left", "center", "right", "wide"]),
@@ -99,7 +100,7 @@ const mediaAttachmentNodeSchema = z.object({
   type: z.literal("mediaAttachment"),
   attrs: z.object({
     mediaId: z.string().min(1).max(128),
-    url: z.string().url(),
+    url: vercelPublicBlobUrlSchema,
     displayName: z.string().trim().min(1).max(200),
     description: z.string().max(500).nullable().optional(),
     fileType: z.enum(["VIDEO", "PACKET_TRACER", "PCAP", "PDF", "ZIP", "OTHER"]),
