@@ -9,6 +9,8 @@ import { getAllArticles, getAllArticleSlugs, getArticleBySlug } from "@/lib/cont
 import { extractContentHeadings } from "@/lib/content-headings";
 import { formatDate } from "@/lib/utils";
 
+type ArticleParams = Promise<{ slug: string }>;
+
 export async function generateStaticParams() {
   const slugs = await getAllArticleSlugs();
   return slugs.map((slug) => ({ slug }));
@@ -17,16 +19,18 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: ArticleParams;
 }): Promise<Metadata> {
-  const article = await getArticleBySlug(params.slug);
+  const { slug } = await params;
+  const article = await getArticleBySlug(slug);
   return article
     ? { title: article.frontmatter.title, description: article.frontmatter.summary }
     : {};
 }
 
-export default async function ArticlePage({ params }: { params: { slug: string } }) {
-  const article = await getArticleBySlug(params.slug);
+export default async function ArticlePage({ params }: { params: ArticleParams }) {
+  const { slug } = await params;
+  const article = await getArticleBySlug(slug);
   if (!article) notFound();
 
   const { frontmatter, content, readingTime } = article;
