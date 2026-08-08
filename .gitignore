@@ -19,9 +19,9 @@ yarn-debug.log*
 yarn-error.log*
 /docs/debug/*.log
 
-# local env files
-.env*.local
-.env
+# local/production environment files
+.env*
+!.env.example
 
 # typescript
 *.tsbuildinfo

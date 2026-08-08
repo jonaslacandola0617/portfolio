@@ -1,6 +1,7 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/services/auth-service";
+import { getMediaUploadPolicy } from "@/lib/validations/media";
 
 /**
  * The one legitimate exception to "Server Actions over API routes"
@@ -11,6 +12,11 @@ import { requireAdmin } from "@/lib/services/auth-service";
  * actual file bytes, which matters because Vercel Functions cap request
  * bodies at ~4.5 MB and PCAP/Packet Tracer/video files routinely exceed
  * that.
+ *
+ * Security-sensitive file policy is enforced here, before bytes are sent
+ * to Blob, and then validated again when the Media row is created. This
+ * prevents oversized/unsupported orphan Blobs if a caller obtains a token
+ * but never completes the database-record step.
  *
  * `onUploadCompleted` below is Vercel's server-to-server webhook — it
  * does NOT fire against `localhost` in local dev (Vercel's servers can't
@@ -27,22 +33,11 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async () => {
+      onBeforeGenerateToken: async (pathname) => {
         await requireAdmin();
+        const policy = getMediaUploadPolicy(pathname);
         return {
-          allowedContentTypes: [
-            "image/png",
-            "image/jpeg",
-            "image/webp",
-            "image/gif",
-            "application/pdf",
-            "application/zip",
-            "application/vnd.tcpdump.pcap",
-            "application/octet-stream",
-            "text/plain",
-            "video/mp4",
-            "video/webm",
-          ],
+          ...policy,
           addRandomSuffix: true,
         };
       },

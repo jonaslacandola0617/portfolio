@@ -3,8 +3,11 @@ import { ProjectForm } from "@/components/admin/project-form";
 import { getProjectForEdit } from "@/lib/services/project-admin-service";
 import { getAllMedia } from "@/lib/services/media-admin-service";
 
-export default async function EditProjectPage({ params }: { params: { id: string } }) {
-  const [project, media] = await Promise.all([getProjectForEdit(params.id), getAllMedia()]);
+type ProjectEditParams = Promise<{ id: string }>;
+
+export default async function EditProjectPage({ params }: { params: ProjectEditParams }) {
+  const { id } = await params;
+  const [project, media] = await Promise.all([getProjectForEdit(id), getAllMedia()]);
   if (!project) notFound();
   return (
     <ProjectForm

@@ -25,11 +25,11 @@ export function useAutosave<T>(
   const [isSaving, setIsSaving] = useState(false);
 
   const saveRef = useRef(save);
-  const latestValueRef = useRef<T>();
+  const latestValueRef = useRef<T | undefined>(undefined);
   const latestRevisionRef = useRef(0);
   const confirmedRevisionRef = useRef(0);
   const inFlightRef = useRef(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const mountedRef = useRef(true);
   const waitersRef = useRef<Array<(result: SaveResult) => void>>([]);
 

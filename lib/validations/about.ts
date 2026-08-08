@@ -1,10 +1,11 @@
 import { z } from "zod";
+import { profileImageBlobUrlSchema } from "@/lib/validations/url";
 
 const trimmed = (label: string, max: number) =>
   z.string().trim().min(1, `${label} is required`).max(max, `${label} is too long`);
 
 export const aboutPageSchema = z.object({
-  profileImageUrl: z.string().url().nullable(),
+  profileImageUrl: profileImageBlobUrlSchema.nullable(),
   quote: trimmed("Opening quote", 500),
   background: trimmed("Background", 4000),
   currentFocus: trimmed("Current focus", 3000),

@@ -10,14 +10,27 @@ const errorMessages: Record<string, string> = {
   Configuration: "Auth isn't configured correctly — check the production authentication settings.",
 };
 
-export default async function AdminLoginPage({ searchParams }: { searchParams: { error?: string } }) {
+type AdminLoginSearchParams = Promise<{ error?: string | string[] }>;
+
+export default async function AdminLoginPage({
+  searchParams,
+}: {
+  searchParams: AdminLoginSearchParams;
+}) {
   const session = await auth();
   if (session?.user?.isAdmin) redirect("/admin");
-  const errorMessage = searchParams.error ? errorMessages[searchParams.error] ?? "Something went wrong signing in. Try again." : null;
+
+  const { error } = await searchParams;
+  const errorCode = Array.isArray(error) ? error[0] : error;
+  const errorMessage = errorCode
+    ? errorMessages[errorCode] ?? "Something went wrong signing in. Try again."
+    : null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">
-      <div className="absolute right-4 top-4"><ThemeToggle compact /></div>
+      <div className="absolute right-4 top-4">
+        <ThemeToggle compact />
+      </div>
       <div className="w-full max-w-sm border border-border-strong bg-surface-2 p-8">
         <div className="mb-8 flex flex-col items-center gap-3 text-center">
           <Mark size={36} />
@@ -35,11 +48,16 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: {
         )}
 
         <form action={signInWithGitHub}>
-          <button type="submit" className="flex w-full items-center justify-center gap-2 border border-border-strong bg-text px-4 py-3 text-sm font-medium text-surface transition-opacity hover:opacity-85">
+          <button
+            type="submit"
+            className="flex w-full items-center justify-center gap-2 border border-border-strong bg-text px-4 py-3 text-sm font-medium text-surface transition-opacity hover:opacity-85"
+          >
             <Github className="h-4 w-4" /> Sign in with GitHub
           </button>
         </form>
-        <p className="mt-6 text-center text-[11px] text-muted">Authentication remains powered by the production Auth.js configuration.</p>
+        <p className="mt-6 text-center text-[11px] text-muted">
+          Authentication remains powered by the production Auth.js configuration.
+        </p>
       </div>
     </div>
   );

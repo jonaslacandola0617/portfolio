@@ -3,8 +3,11 @@ import { CertificateForm } from "@/components/admin/certificate-form";
 import { getCertificateForEdit } from "@/lib/services/certificate-admin-service";
 import { getAllMedia } from "@/lib/services/media-admin-service";
 
-export default async function EditCertificatePage({ params }: { params: { id: string } }) {
-  const [certificate, media] = await Promise.all([getCertificateForEdit(params.id), getAllMedia()]);
+type CertificateEditParams = Promise<{ id: string }>;
+
+export default async function EditCertificatePage({ params }: { params: CertificateEditParams }) {
+  const { id } = await params;
+  const [certificate, media] = await Promise.all([getCertificateForEdit(id), getAllMedia()]);
   if (!certificate) notFound();
   return (
     <CertificateForm

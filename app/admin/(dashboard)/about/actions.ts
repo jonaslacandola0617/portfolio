@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/services/auth-service";
 import { classifyServiceError } from "@/lib/services/action-errors";
 import { replaceAboutProfileImage, upsertAboutPage } from "@/lib/services/about-admin-service";
 import { aboutPageSchema, parseNonEmptyLines } from "@/lib/validations/about";
+import { profileImageBlobUrlSchema } from "@/lib/validations/url";
 import type { ActionResult } from "@/types/admin";
 
 export async function updateAboutAction(
@@ -59,11 +60,15 @@ export async function updateAboutProfileImageAction(
   }
 
   if (profileImageUrl !== null) {
-    try {
-      new URL(profileImageUrl);
-    } catch {
-      return { success: false, code: "VALIDATION_ERROR", message: "The uploaded profile image URL is invalid." };
+    const parsed = profileImageBlobUrlSchema.safeParse(profileImageUrl);
+    if (!parsed.success) {
+      return {
+        success: false,
+        code: "VALIDATION_ERROR",
+        message: "The uploaded profile image must come from the dedicated profile Blob upload.",
+      };
     }
+    profileImageUrl = parsed.data;
   }
 
   try {

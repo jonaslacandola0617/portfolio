@@ -5,17 +5,21 @@ import { ArrowLeft } from "lucide-react";
 import { PageHeader, PageShell, SectionLabel } from "@/components/shared/page-header";
 import { getAllPublishedTags, getPublishedContentByTagSlug } from "@/lib/db/queries/tags";
 
+type TagParams = Promise<{ tag: string }>;
+
 export async function generateStaticParams() {
   const tags = await getAllPublishedTags();
   return tags.map(({ slug }) => ({ tag: slug }));
 }
 
-export function generateMetadata({ params }: { params: { tag: string } }): Metadata {
-  return { title: `#${params.tag}` };
+export async function generateMetadata({ params }: { params: TagParams }): Promise<Metadata> {
+  const { tag } = await params;
+  return { title: `#${tag}` };
 }
 
-export default async function TagPage({ params }: { params: { tag: string } }) {
-  const tagged = await getPublishedContentByTagSlug(params.tag);
+export default async function TagPage({ params }: { params: TagParams }) {
+  const { tag } = await params;
+  const tagged = await getPublishedContentByTagSlug(tag);
   if (!tagged) notFound();
   const { projects, labs, articles } = tagged;
   const total = projects.length + labs.length + articles.length;

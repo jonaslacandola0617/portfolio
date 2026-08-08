@@ -11,7 +11,10 @@ import {
   extractContentHeadings,
   type ContentHeading,
 } from "@/lib/content-headings";
+import { buildContentMetadata, getFirstContentImage } from "@/lib/metadata";
 import { formatDate } from "@/lib/utils";
+
+type LabParams = Promise<{ slug: string }>;
 
 export async function generateStaticParams() {
   const slugs = await getAllLabSlugs();
@@ -21,16 +24,27 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: LabParams;
 }): Promise<Metadata> {
-  const lab = await getLabBySlug(params.slug);
-  return lab
-    ? { title: lab.frontmatter.title, description: lab.frontmatter.purpose }
-    : {};
+  const { slug } = await params;
+  const lab = await getLabBySlug(slug);
+  if (!lab) return {};
+
+  const { frontmatter, content } = lab;
+  return buildContentMetadata({
+    title: frontmatter.title,
+    description: frontmatter.purpose,
+    path: `/labs/${frontmatter.slug}`,
+    typeLabel: "Lab",
+    image: getFirstContentImage(content),
+    publishedTime: frontmatter.date,
+    tags: [frontmatter.category, ...frontmatter.tags],
+  });
 }
 
-export default async function LabPage({ params }: { params: { slug: string } }) {
-  const lab = await getLabBySlug(params.slug);
+export default async function LabPage({ params }: { params: LabParams }) {
+  const { slug } = await params;
+  const lab = await getLabBySlug(slug);
   if (!lab) notFound();
 
   const { frontmatter, content } = lab;

@@ -1,3 +1,4 @@
+import type { ElementType } from "react";
 import { Callout } from "@/components/shared/callout";
 import { CommandBlock } from "@/components/shared/command-block";
 import { MermaidDiagram } from "@/components/shared/mermaid-diagram";
@@ -61,7 +62,7 @@ function renderBlock(
 ): React.ReactNode {
   switch (node.type) {
     case "heading": {
-      const Tag = `h${node.attrs.level}` as keyof JSX.IntrinsicElements;
+      const Tag = `h${node.attrs.level}` as ElementType;
       const id = nextHeadingAnchor(getHeadingText(node.content), headingCounts);
       return (
         <Tag key={key} id={id} className="scroll-mt-8">

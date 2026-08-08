@@ -16,14 +16,29 @@ const ibmPlexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
+  const title = `${settings.name} — ${settings.role}`;
+
   return {
     metadataBase: new URL(siteConfig.siteUrl),
-    title: { default: `${settings.name} — ${settings.role}`, template: `%s — ${settings.name}` },
+    title: { default: title, template: `%s — ${settings.name}` },
     description: siteConfig.description,
+    alternates: { canonical: "/" },
     keywords: ["cybersecurity portfolio", "SOC analyst", "network engineer", "CCNA", "Google Cybersecurity", "packet tracer", "wireshark"],
     authors: [{ name: settings.name }],
-    openGraph: { type: "website", title: `${settings.name} — ${settings.role}`, description: siteConfig.description, siteName: settings.name },
-    twitter: { card: "summary_large_image", title: `${settings.name} — ${settings.role}`, description: siteConfig.description },
+    creator: settings.name,
+    openGraph: {
+      type: "website",
+      title,
+      description: siteConfig.description,
+      url: siteConfig.siteUrl,
+      siteName: settings.name,
+      locale: "en_US",
+    },
+    twitter: {
+      card: "summary",
+      title,
+      description: siteConfig.description,
+    },
   };
 }
 
