@@ -7,6 +7,7 @@ import { TableOfContents } from "@/components/shared/table-of-contents";
 import { Tag } from "@/components/shared/tag";
 import { getAllArticles, getAllArticleSlugs, getArticleBySlug } from "@/lib/content";
 import { extractContentHeadings } from "@/lib/content-headings";
+import { buildContentMetadata, getFirstContentImage } from "@/lib/metadata";
 import { formatDate } from "@/lib/utils";
 
 type ArticleParams = Promise<{ slug: string }>;
@@ -23,9 +24,18 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
-  return article
-    ? { title: article.frontmatter.title, description: article.frontmatter.summary }
-    : {};
+  if (!article) return {};
+
+  const { frontmatter, content } = article;
+  return buildContentMetadata({
+    title: frontmatter.title,
+    description: frontmatter.summary,
+    path: `/journal/${frontmatter.slug}`,
+    typeLabel: "Journal",
+    image: getFirstContentImage(content),
+    publishedTime: frontmatter.date,
+    tags: [frontmatter.category, ...frontmatter.tags],
+  });
 }
 
 export default async function ArticlePage({ params }: { params: ArticleParams }) {
