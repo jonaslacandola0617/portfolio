@@ -35,15 +35,6 @@ jobs:
       - name: Refresh dependency lockfile
         run: npm install --package-lock-only --ignore-scripts
 
-      - name: Install locked dependencies
-        run: npm ci
-
-      - name: Type-check application
-        run: npx tsc --noEmit
-
-      - name: Audit production dependencies
-        run: npm audit --omit=dev --audit-level=high
-
       - name: Commit refreshed lockfile
         if: github.event_name == 'push'
         run: |
@@ -54,3 +45,12 @@ jobs:
             git commit -m "chore: refresh lockfile for security upgrade"
             git push
           fi
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Type-check application
+        run: npx tsc --noEmit
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
