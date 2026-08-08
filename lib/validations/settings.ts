@@ -1,15 +1,26 @@
 import { z } from "zod";
+import {
+  httpsUrlSchema,
+  publicDocumentUrlSchema,
+  safeHrefSchema,
+} from "@/lib/validations/url";
 
 export const settingsFormSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  role: z.string().min(1, "Role is required"),
-  tagline: z.string().min(1, "Tagline is required"),
-  email: z.string().email("Must be a valid email"),
-  githubUrl: z.string().url("Must be a valid URL"),
-  linkedinUrl: z.string().url("Must be a valid URL"),
-  resumeUrl: z.string().min(1, "Resume path is required"),
+  name: z.string().trim().min(1, "Name is required").max(120),
+  role: z.string().trim().min(1, "Role is required").max(160),
+  tagline: z.string().trim().min(1, "Tagline is required").max(500),
+  email: z.string().trim().email("Must be a valid email").max(254),
+  githubUrl: httpsUrlSchema,
+  linkedinUrl: httpsUrlSchema,
+  resumeUrl: publicDocumentUrlSchema,
   currentlyLearning: z
-    .array(z.object({ label: z.string().min(1), href: z.string().min(1) }))
+    .array(
+      z.object({
+        label: z.string().trim().min(1).max(160),
+        href: safeHrefSchema,
+      }),
+    )
+    .max(50)
     .default([]),
 });
 
