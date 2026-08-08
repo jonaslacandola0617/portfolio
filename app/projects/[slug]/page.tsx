@@ -7,6 +7,7 @@ import { Tag } from "@/components/shared/tag";
 import { StatusBadge, DifficultyBadge } from "@/components/shared/status-badges";
 import { getAllProjectSlugs, getAllProjects, getProjectBySlug } from "@/lib/content";
 import { getAllCertificates } from "@/lib/db/queries/certificates";
+import { getFirstContentImage, buildContentMetadata } from "@/lib/metadata";
 import { formatDate } from "@/lib/utils";
 
 type ProjectParams = Promise<{ slug: string }>;
@@ -19,9 +20,18 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: { params: ProjectParams }): Promise<Metadata> {
   const { slug } = await params;
   const project = await getProjectBySlug(slug);
-  return project
-    ? { title: project.frontmatter.title, description: project.frontmatter.summary }
-    : {};
+  if (!project) return {};
+
+  const { frontmatter, content } = project;
+  return buildContentMetadata({
+    title: frontmatter.title,
+    description: frontmatter.summary,
+    path: `/projects/${frontmatter.slug}`,
+    typeLabel: "Project",
+    image: frontmatter.thumbnail ?? getFirstContentImage(content),
+    publishedTime: frontmatter.completionDate,
+    tags: [frontmatter.category, ...frontmatter.tags, ...frontmatter.technologies],
+  });
 }
 
 export default async function ProjectPage({ params }: { params: ProjectParams }) {
