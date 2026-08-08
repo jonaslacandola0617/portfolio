@@ -13,6 +13,8 @@ import {
 } from "@/lib/content-headings";
 import { formatDate } from "@/lib/utils";
 
+type LabParams = Promise<{ slug: string }>;
+
 export async function generateStaticParams() {
   const slugs = await getAllLabSlugs();
   return slugs.map((slug) => ({ slug }));
@@ -21,16 +23,18 @@ export async function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: LabParams;
 }): Promise<Metadata> {
-  const lab = await getLabBySlug(params.slug);
+  const { slug } = await params;
+  const lab = await getLabBySlug(slug);
   return lab
     ? { title: lab.frontmatter.title, description: lab.frontmatter.purpose }
     : {};
 }
 
-export default async function LabPage({ params }: { params: { slug: string } }) {
-  const lab = await getLabBySlug(params.slug);
+export default async function LabPage({ params }: { params: LabParams }) {
+  const { slug } = await params;
+  const lab = await getLabBySlug(slug);
   if (!lab) notFound();
 
   const { frontmatter, content } = lab;
