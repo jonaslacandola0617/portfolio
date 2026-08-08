@@ -3,8 +3,11 @@ import { ArticleForm } from "@/components/admin/article-form";
 import { getArticleForEdit } from "@/lib/services/article-admin-service";
 import { getAllMedia } from "@/lib/services/media-admin-service";
 
-export default async function EditArticlePage({ params }: { params: { id: string } }) {
-  const [article, media] = await Promise.all([getArticleForEdit(params.id), getAllMedia()]);
+type ArticleEditParams = Promise<{ id: string }>;
+
+export default async function EditArticlePage({ params }: { params: ArticleEditParams }) {
+  const { id } = await params;
+  const [article, media] = await Promise.all([getArticleForEdit(id), getAllMedia()]);
   if (!article) notFound();
   return (
     <ArticleForm
