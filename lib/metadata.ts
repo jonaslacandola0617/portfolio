@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site-config";
-import type { TipTapDoc } from "@/types/tiptap";
 
 function cleanDescription(value: string) {
   return value.replace(/\s+/g, " ").trim();
@@ -30,7 +29,7 @@ function findImage(value: unknown): string | undefined {
   return undefined;
 }
 
-export function getFirstContentImage(content: TipTapDoc): string | undefined {
+export function getFirstContentImage(content: unknown): string | undefined {
   return findImage(content);
 }
 
@@ -55,6 +54,7 @@ export function buildContentMetadata({
 }): Metadata {
   const socialDescription = cleanDescription(description);
   const canonicalUrl = new URL(path, siteConfig.siteUrl).toString();
+  const socialTags = Array.from(new Set(tags.filter(Boolean)));
   const images = image
     ? [
         {
@@ -70,7 +70,7 @@ export function buildContentMetadata({
     alternates: {
       canonical: path,
     },
-    keywords: tags.length ? tags : undefined,
+    keywords: socialTags.length ? socialTags : undefined,
     openGraph: {
       type: "article",
       title,
@@ -82,7 +82,7 @@ export function buildContentMetadata({
       publishedTime,
       modifiedTime,
       section: typeLabel,
-      tags,
+      tags: socialTags,
     },
     twitter: {
       card: image ? "summary_large_image" : "summary",
