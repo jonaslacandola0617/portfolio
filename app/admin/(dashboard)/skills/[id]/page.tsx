@@ -7,13 +7,16 @@ import {
   getSkillForEdit,
 } from "@/lib/services/skill-admin-service";
 
+type SkillEditParams = Promise<{ id: string }>;
+
 export default async function EditSkillPage({
   params,
 }: {
-  params: { id: string };
+  params: SkillEditParams;
 }) {
+  const { id } = await params;
   const [skill, groups] = await Promise.all([
-    getSkillForEdit(params.id),
+    getSkillForEdit(id),
     getExistingSkillGroups(),
   ]);
   if (!skill) notFound();
