@@ -3,8 +3,11 @@ import { LabForm } from "@/components/admin/lab-form";
 import { getLabForEdit } from "@/lib/services/lab-admin-service";
 import { getAllMedia } from "@/lib/services/media-admin-service";
 
-export default async function EditLabPage({ params }: { params: { id: string } }) {
-  const [lab, media] = await Promise.all([getLabForEdit(params.id), getAllMedia()]);
+type LabEditParams = Promise<{ id: string }>;
+
+export default async function EditLabPage({ params }: { params: LabEditParams }) {
+  const { id } = await params;
+  const [lab, media] = await Promise.all([getLabForEdit(id), getAllMedia()]);
   if (!lab) notFound();
   return (
     <LabForm
