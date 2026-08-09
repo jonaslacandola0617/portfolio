@@ -7,6 +7,17 @@ function cleanDescription(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
 
+function normalizeDateTime(value?: string) {
+  if (!value) return undefined;
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return `${trimmed}T00:00:00Z`;
+  }
+
+  const parsed = new Date(trimmed);
+  return Number.isNaN(parsed.getTime()) ? trimmed : parsed.toISOString();
+}
+
 function findImage(value: unknown): string | undefined {
   if (!value || typeof value !== "object") return undefined;
 
@@ -125,8 +136,8 @@ export function buildContentMetadata({
       siteName: siteConfig.name,
       locale: "en_US",
       images,
-      publishedTime,
-      modifiedTime,
+      publishedTime: normalizeDateTime(publishedTime),
+      modifiedTime: normalizeDateTime(modifiedTime),
       section: typeLabel,
       tags: socialTags,
     },
