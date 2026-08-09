@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import {
   Download,
   ExternalLink,
@@ -9,8 +8,21 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { getSiteSettings } from "@/lib/db/queries/settings";
+import { buildStaticPageMetadata } from "@/lib/metadata";
 
-export const metadata: Metadata = { title: "Resume" };
+export const metadata = buildStaticPageMetadata({
+  title: "Cybersecurity & Networking Resume",
+  description:
+    "Review Jonas Lacandola's current resume, technical experience, certifications, networking background, cybersecurity training, and hands-on portfolio work.",
+  path: "/resume",
+  keywords: [
+    "cybersecurity analyst resume",
+    "network administrator resume",
+    "IT support resume",
+    "networking resume",
+    "Jonas Lacandola resume",
+  ],
+});
 
 export default async function ResumePage() {
   const settings = await getSiteSettings();
