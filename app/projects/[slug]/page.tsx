@@ -3,11 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, Github, Download, FileText } from "lucide-react";
 import { ContentRenderer } from "@/components/shared/content-renderer";
+import { JsonLd } from "@/components/shared/json-ld";
+import { RelatedContentLinks } from "@/components/shared/related-content-links";
 import { Tag } from "@/components/shared/tag";
 import { StatusBadge, DifficultyBadge } from "@/components/shared/status-badges";
 import { getAllProjectSlugs, getAllProjects, getProjectBySlug } from "@/lib/content";
 import { getAllCertificates } from "@/lib/db/queries/certificates";
 import { getFirstContentImage, buildContentMetadata } from "@/lib/metadata";
+import { getRelatedContent } from "@/lib/related-content";
+import { buildArticleJsonLd } from "@/lib/structured-data";
 import { formatDate } from "@/lib/utils";
 
 type ProjectParams = Promise<{ slug: string }>;
@@ -30,6 +34,7 @@ export async function generateMetadata({ params }: { params: ProjectParams }): P
     typeLabel: "Project",
     image: frontmatter.thumbnail ?? getFirstContentImage(content),
     publishedTime: frontmatter.completionDate,
+    modifiedTime: frontmatter.lastUpdated,
     tags: [frontmatter.category, ...frontmatter.tags, ...frontmatter.technologies],
   });
 }
@@ -40,17 +45,36 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
   if (!project) notFound();
 
   const { frontmatter, content } = project;
-  const [certifications, allProjects] = await Promise.all([
+  const currentPath = `/projects/${frontmatter.slug}`;
+  const [certifications, allProjects, related] = await Promise.all([
     getAllCertificates(),
     getAllProjects(),
+    getRelatedContent({
+      currentPath,
+      tags: frontmatter.tags,
+      category: frontmatter.category,
+    }),
   ]);
   const cert = certifications.find((certificate) => certificate.id === frontmatter.relatedCertification);
   const idx = allProjects.findIndex((entry) => entry.frontmatter.slug === frontmatter.slug);
   const prev = idx > 0 ? allProjects[idx - 1] : undefined;
   const next = idx >= 0 ? allProjects[idx + 1] : undefined;
+  const projectImage = frontmatter.thumbnail ?? getFirstContentImage(content);
+  const projectJsonLd = buildArticleJsonLd({
+    type: "TechArticle",
+    title: frontmatter.title,
+    description: frontmatter.summary,
+    path: currentPath,
+    image: projectImage,
+    publishedTime: frontmatter.completionDate,
+    modifiedTime: frontmatter.lastUpdated,
+    category: frontmatter.category,
+    tags: [...frontmatter.tags, ...frontmatter.technologies],
+  });
 
   return (
     <div>
+      <JsonLd data={projectJsonLd} />
       <header className="border-b border-border px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
         <div className="mx-auto max-w-3xl">
           <Link
@@ -90,6 +114,9 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
               ))}
             </div>
           </div>
+
+          <RelatedContentLinks items={related} />
+
           <div className="mt-10 flex flex-col gap-3 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between">
             {prev ? (
               <Link
