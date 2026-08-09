@@ -30,7 +30,7 @@ export default async function ContactPage() {
       />
       <PageShell>
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
-          <ContactForm email={settings.email} />
+          <ContactForm />
           <aside className="space-y-3">
             <a
               href={`mailto:${settings.email}`}
