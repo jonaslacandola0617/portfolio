@@ -5,6 +5,7 @@ const contentSecurityPolicy = [
   "base-uri 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
+  "frame-src 'self' https://*.public.blob.vercel-storage.com",
   "object-src 'self' https://*.public.blob.vercel-storage.com",
   `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
   "style-src 'self' 'unsafe-inline'",
