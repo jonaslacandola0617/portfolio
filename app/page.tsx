@@ -24,7 +24,7 @@ import { buildWebsiteJsonLd } from "@/lib/structured-data";
 import { formatDate } from "@/lib/utils";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Cybersecurity & Networking Portfolio",
+  title: "Jonas Lacandola — Aspiring Cybersecurity Analyst",
   description: siteConfig.description,
   path: "/",
   keywords: [
