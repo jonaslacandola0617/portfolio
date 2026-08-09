@@ -55,14 +55,13 @@ export function buildContentMetadata({
   const socialDescription = cleanDescription(description);
   const canonicalUrl = new URL(path, siteConfig.siteUrl).toString();
   const socialTags = Array.from(new Set(tags.filter(Boolean)));
-  const images = image
-    ? [
-        {
-          url: image,
-          alt: `${title} — ${typeLabel}`,
-        },
-      ]
-    : undefined;
+  const socialImage = image ?? new URL("/api/og", siteConfig.siteUrl).toString();
+  const images = [
+    {
+      url: socialImage,
+      alt: image ? `${title} — ${typeLabel}` : `${siteConfig.name} portfolio mark`,
+    },
+  ];
 
   return {
     title,
@@ -85,10 +84,10 @@ export function buildContentMetadata({
       tags: socialTags,
     },
     twitter: {
-      card: image ? "summary_large_image" : "summary",
+      card: "summary_large_image",
       title,
       description: socialDescription,
-      images: image ? [image] : undefined,
+      images: [socialImage],
     },
   };
 }
