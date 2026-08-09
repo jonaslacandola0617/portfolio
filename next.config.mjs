@@ -11,7 +11,7 @@ const contentSecurityPolicy = [
   "img-src 'self' data: blob: https://*.public.blob.vercel-storage.com",
   "font-src 'self' data:",
   "media-src 'self' https://*.public.blob.vercel-storage.com",
-  "connect-src 'self' https://blob.vercel-storage.com https://*.blob.vercel-storage.com",
+  "connect-src 'self' https://vercel.com https://blob.vercel-storage.com https://*.blob.vercel-storage.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
   ...(isProduction ? ["upgrade-insecure-requests"] : []),
