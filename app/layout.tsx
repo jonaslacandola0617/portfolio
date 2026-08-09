@@ -26,6 +26,10 @@ export async function generateMetadata(): Promise<Metadata> {
     keywords: ["cybersecurity portfolio", "SOC analyst", "network engineer", "CCNA", "Google Cybersecurity", "packet tracer", "wireshark"],
     authors: [{ name: settings.name }],
     creator: settings.name,
+    icons: {
+      icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
+      shortcut: ["/icon.svg"],
+    },
     openGraph: {
       type: "website",
       title,
@@ -33,11 +37,20 @@ export async function generateMetadata(): Promise<Metadata> {
       url: siteConfig.siteUrl,
       siteName: settings.name,
       locale: "en_US",
+      images: [
+        {
+          url: "/api/og",
+          width: 1200,
+          height: 630,
+          alt: `${settings.name} — ${settings.role}`,
+        },
+      ],
     },
     twitter: {
-      card: "summary",
+      card: "summary_large_image",
       title,
       description: siteConfig.description,
+      images: ["/api/og"],
     },
   };
 }
