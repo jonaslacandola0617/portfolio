@@ -1,14 +1,11 @@
+"use client";
+
 import { LogOut } from "lucide-react";
-import { signOut } from "@/auth";
+import { signOutAdmin } from "@/app/admin/login/actions";
 
 export function SignOutButton() {
   return (
-    <form
-      action={async () => {
-        "use server";
-        await signOut({ redirectTo: "/" });
-      }}
-    >
+    <form action={signOutAdmin}>
       <button
         type="submit"
         className="label flex w-full items-center justify-center gap-2 border border-border px-3 py-2 text-text-dim transition-colors hover:border-border-strong hover:text-text"
