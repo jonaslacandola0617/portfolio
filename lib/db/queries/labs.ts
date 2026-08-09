@@ -17,6 +17,7 @@ interface LabWithRelations {
   category: { name: string } | null;
   tags: { name: string }[];
   labDate: Date;
+  updatedAt: Date;
   downloads: { label: string; url: string; type: string; description: string | null; media: { size: number } | null }[];
 }
 
@@ -33,6 +34,7 @@ function mapLab(lab: LabWithRelations): DbContentItem<LabFrontmatter> {
       slug: lab.slug,
       purpose: lab.purpose,
       date: toISODate(lab.labDate),
+      lastUpdated: lab.updatedAt.toISOString(),
       status: lab.progressStatus.toLowerCase().replace("_", "-") as LabFrontmatter["status"],
       difficulty: lab.difficulty.toLowerCase() as LabFrontmatter["difficulty"],
       tags: lab.tags.map((tag) => tag.name),
