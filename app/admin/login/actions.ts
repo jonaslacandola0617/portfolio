@@ -1,7 +1,11 @@
 "use server";
 
-import { signIn } from "@/auth";
+import { signIn, signOut } from "@/auth";
 
 export async function signInWithGitHub() {
   await signIn("github", { redirectTo: "/admin" });
+}
+
+export async function signOutAdmin() {
+  await signOut({ redirectTo: "/" });
 }
