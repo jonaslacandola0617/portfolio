@@ -34,6 +34,7 @@ export interface LabFrontmatter {
   slug: string;
   purpose: string;
   date: string;
+  lastUpdated: string;
   status: ContentStatus;
   difficulty: Difficulty;
   tags: string[];
@@ -46,6 +47,7 @@ export interface ArticleFrontmatter {
   slug: string;
   summary: string;
   date: string;
+  lastUpdated: string;
   tags: string[];
   category: string;
   featured?: boolean;
