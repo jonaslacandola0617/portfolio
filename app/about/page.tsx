@@ -1,12 +1,26 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { Download } from "lucide-react";
+import { JsonLd } from "@/components/shared/json-ld";
 import { PageHeader, PageShell } from "@/components/shared/page-header";
 import { Tag } from "@/components/shared/tag";
 import { getAboutPage } from "@/lib/db/queries/about";
 import { getSiteSettings } from "@/lib/db/queries/settings";
+import { buildStaticPageMetadata } from "@/lib/metadata";
+import { buildProfilePageJsonLd } from "@/lib/structured-data";
 
-export const metadata: Metadata = { title: "About" };
+export const metadata = buildStaticPageMetadata({
+  title: "About | Cybersecurity & Networking Portfolio",
+  description:
+    "Learn about Jonas Lacandola, an aspiring cybersecurity analyst building hands-on experience in networking, security operations, CCNA labs, Linux, and technical problem solving.",
+  path: "/about",
+  keywords: [
+    "Jonas Lacandola",
+    "cybersecurity analyst portfolio",
+    "networking student",
+    "CCNA learner",
+    "security operations",
+  ],
+});
 
 export default async function AboutPage() {
   const [about, settings] = await Promise.all([
@@ -18,9 +32,20 @@ export default async function AboutPage() {
     .map((word) => word[0])
     .join("")
     .toUpperCase();
+  const profileJsonLd = buildProfilePageJsonLd({
+    name: settings.name,
+    role: settings.role,
+    tagline: settings.tagline,
+    email: settings.email,
+    githubUrl: settings.githubUrl,
+    linkedinUrl: settings.linkedinUrl,
+    profileImageUrl: about.profileImageUrl,
+    knowsAbout: about.focusTags,
+  });
 
   return (
     <div>
+      <JsonLd data={profileJsonLd} />
       <PageHeader index="01" eyebrow="Profile" title="About" />
       <PageShell>
         <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_1fr]">
