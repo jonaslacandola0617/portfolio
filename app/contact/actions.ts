@@ -121,10 +121,10 @@ export async function sendContactMessageAction(
       "Idempotency-Key": `portfolio-contact-${submissionId}`,
     },
     body: JSON.stringify({
-      from: "Jonas Lacandola Portfolio <hello@mail.jonasl.online>",
+      from: "jonasl.online <hello@mail.jonasl.online>",
       to: [recipient.data],
       reply_to: email,
-      subject: `Portfolio contact from ${name}`,
+      subject: `New message from ${name}`,
       text: [
         "New message from jonasl.online/contact",
         "",
@@ -139,7 +139,7 @@ export async function sendContactMessageAction(
       html: `
         <div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;margin:0 auto;color:#171717;line-height:1.6">
           <p style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#666;margin:0 0 8px">jonasl.online / contact</p>
-          <h1 style="font-size:24px;line-height:1.25;margin:0 0 24px">New portfolio message</h1>
+          <h1 style="font-size:24px;line-height:1.25;margin:0 0 24px">New Message</h1>
           <table role="presentation" style="width:100%;border-collapse:collapse;margin-bottom:24px">
             <tr><td style="padding:8px 0;color:#666;width:88px">Name</td><td style="padding:8px 0"><strong>${escapeHtml(name)}</strong></td></tr>
             <tr><td style="padding:8px 0;color:#666">Email</td><td style="padding:8px 0"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr>
