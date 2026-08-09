@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site-config";
 
+export const DEFAULT_SOCIAL_IMAGE = new URL("/api/og", siteConfig.siteUrl).toString();
+
 function cleanDescription(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
@@ -33,6 +35,51 @@ export function getFirstContentImage(content: unknown): string | undefined {
   return findImage(content);
 }
 
+export function buildStaticPageMetadata({
+  title,
+  description,
+  path,
+  keywords = [],
+}: {
+  title: string;
+  description: string;
+  path: string;
+  keywords?: string[];
+}): Metadata {
+  const socialDescription = cleanDescription(description);
+  const canonicalUrl = new URL(path, siteConfig.siteUrl).toString();
+  const pageKeywords = Array.from(new Set(keywords.filter(Boolean)));
+
+  return {
+    title,
+    description: socialDescription,
+    alternates: { canonical: path },
+    keywords: pageKeywords.length ? pageKeywords : undefined,
+    openGraph: {
+      type: "website",
+      title,
+      description: socialDescription,
+      url: canonicalUrl,
+      siteName: siteConfig.name,
+      locale: "en_US",
+      images: [
+        {
+          url: DEFAULT_SOCIAL_IMAGE,
+          width: 1200,
+          height: 630,
+          alt: `${title} — ${siteConfig.name}`,
+        },
+      ],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description: socialDescription,
+      images: [DEFAULT_SOCIAL_IMAGE],
+    },
+  };
+}
+
 export function buildContentMetadata({
   title,
   description,
@@ -55,7 +102,7 @@ export function buildContentMetadata({
   const socialDescription = cleanDescription(description);
   const canonicalUrl = new URL(path, siteConfig.siteUrl).toString();
   const socialTags = Array.from(new Set(tags.filter(Boolean)));
-  const socialImage = image ?? new URL("/api/og", siteConfig.siteUrl).toString();
+  const socialImage = image ?? DEFAULT_SOCIAL_IMAGE;
   const images = [
     {
       url: socialImage,
