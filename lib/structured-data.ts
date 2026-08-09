@@ -20,7 +20,6 @@ function personEntity() {
     "@id": personId,
     name: siteConfig.name,
     url: siteConfig.siteUrl,
-    sameAs: [siteConfig.social.github, siteConfig.social.linkedin].filter(Boolean),
   };
 }
 
