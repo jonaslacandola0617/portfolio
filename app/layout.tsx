@@ -22,10 +22,11 @@ export async function generateMetadata(): Promise<Metadata> {
     metadataBase: new URL(siteConfig.siteUrl),
     title: { default: title, template: `%s — ${settings.name}` },
     description: siteConfig.description,
-    alternates: { canonical: "/" },
     keywords: ["cybersecurity portfolio", "SOC analyst", "network engineer", "CCNA", "Google Cybersecurity", "packet tracer", "wireshark"],
     authors: [{ name: settings.name }],
     creator: settings.name,
+    category: "technology",
+    robots: { index: true, follow: true },
     icons: {
       icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
       shortcut: ["/icon.svg"],
