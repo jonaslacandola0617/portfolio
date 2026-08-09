@@ -1,32 +1,36 @@
 "use client";
 
 import * as React from "react";
-import { upload } from "@vercel/blob/client";
 import { useRouter } from "next/navigation";
 import { UploadCloud, Loader2 } from "lucide-react";
 import { createMediaRecordAction } from "@/lib/services/media-admin-service";
 import { guessMediaType } from "@/lib/validations/media";
+import { uploadMediaFile } from "@/lib/media-client-upload";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 
 const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000;
 const SAVE_TIMEOUT_MS = 30 * 1000;
 
-type UploadStage = "idle" | "uploading" | "saving";
+type UploadStage = "idle" | "authorizing" | "uploading" | "saving";
 
-function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_, reject) => {
-      window.setTimeout(() => reject(new Error(message)), timeoutMs);
-    }),
-  ]);
+async function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  let timeoutId: number | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        timeoutId = window.setTimeout(() => reject(new Error(message)), timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutId !== undefined) window.clearTimeout(timeoutId);
+  }
 }
 
 export function MediaUpload() {
   const [uploading, setUploading] = React.useState(false);
   const [stage, setStage] = React.useState<UploadStage>("idle");
-  const [progress, setProgress] = React.useState(0);
   const [currentFile, setCurrentFile] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [dragging, setDragging] = React.useState(false);
@@ -44,8 +48,7 @@ export function MediaUpload() {
     try {
       for (const file of Array.from(files)) {
         setCurrentFile(file.name);
-        setStage("uploading");
-        setProgress(0);
+        setStage("authorizing");
 
         try {
           const abortController = new AbortController();
@@ -54,22 +57,14 @@ export function MediaUpload() {
             UPLOAD_TIMEOUT_MS,
           );
 
-          let blob: Awaited<ReturnType<typeof upload>>;
+          let blob: Awaited<ReturnType<typeof uploadMediaFile>>;
           try {
-            blob = await upload(file.name, file, {
-              access: "public",
-              handleUploadUrl: "/api/admin/media/upload",
-              abortSignal: abortController.signal,
-              onUploadProgress: ({ percentage }) => {
-                setProgress(Math.max(0, Math.min(100, Math.round(percentage))));
-              },
-            });
+            blob = await uploadMediaFile(file, abortController.signal, setStage);
           } finally {
             window.clearTimeout(uploadTimeout);
           }
 
           setStage("saving");
-          setProgress(100);
 
           await withTimeout(
             createMediaRecordAction({
@@ -96,7 +91,6 @@ export function MediaUpload() {
     } finally {
       setUploading(false);
       setStage("idle");
-      setProgress(0);
       setCurrentFile(null);
       if (inputRef.current) inputRef.current.value = "";
 
@@ -116,9 +110,11 @@ export function MediaUpload() {
   const statusText =
     stage === "saving"
       ? "Saving to Media Library…"
-      : stage === "uploading"
-        ? `Uploading… ${progress}%`
-        : "Drag files here, or ";
+      : stage === "authorizing"
+        ? "Preparing secure upload…"
+        : stage === "uploading"
+          ? "Uploading…"
+          : "Drag files here, or ";
 
   return (
     <div
@@ -169,14 +165,6 @@ export function MediaUpload() {
         </p>
         {uploading && currentFile && (
           <p className="mt-1 truncate font-mono text-[11px] text-muted">{currentFile}</p>
-        )}
-        {stage === "uploading" && (
-          <div className="mt-3 h-1 w-full bg-surface-3" aria-label={`Upload progress ${progress}%`}>
-            <div
-              className="h-full bg-cobalt transition-[width] duration-150"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
         )}
         <p className="mt-1 font-mono text-xs text-muted">
           Images, PDF, ZIP, PCAP, Packet Tracer (.pkt), video

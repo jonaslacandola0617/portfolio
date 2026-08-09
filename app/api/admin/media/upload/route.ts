@@ -18,13 +18,11 @@ import { getMediaUploadPolicy } from "@/lib/validations/media";
  * prevents oversized/unsupported orphan Blobs if a caller obtains a token
  * but never completes the database-record step.
  *
- * `onUploadCompleted` below is Vercel's server-to-server webhook — it
- * does NOT fire against `localhost` in local dev (Vercel's servers can't
- * reach your machine), so it's a best-effort log here, not the primary
- * way Media rows get created. components/admin/media-upload.tsx calls a
- * dedicated Server Action (createMediaRecordAction) immediately after
- * `upload()` resolves in the browser instead — reliable in every
- * environment, not just a production deploy behind a public URL.
+ * Media rows are created by createMediaRecordAction after the browser's
+ * direct Blob transfer resolves. This route intentionally does not register
+ * an onUploadCompleted webhook: it was only logging a storage-side event,
+ * which could be mistaken for confirmation that the browser promise or the
+ * subsequent database mutation had completed.
  */
 export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
@@ -36,13 +34,14 @@ export async function POST(request: Request): Promise<NextResponse> {
       onBeforeGenerateToken: async (pathname) => {
         await requireAdmin();
         const policy = getMediaUploadPolicy(pathname);
+        console.info("[media-upload] token issued", {
+          operation: "authorize",
+          filename: pathname,
+        });
         return {
           ...policy,
           addRandomSuffix: true,
         };
-      },
-      onUploadCompleted: async ({ blob }) => {
-        console.log("[blob webhook] upload completed (best-effort log):", blob.url);
       },
     });
 

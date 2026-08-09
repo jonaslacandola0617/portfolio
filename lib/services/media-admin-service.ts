@@ -42,16 +42,61 @@ export async function getAllMedia(): Promise<AdminMediaItem[]> {
 
 export async function createMediaRecordAction(values: CreateMediaValues) {
   await requireAdmin();
+  console.info("[media-upload] media record requested", {
+    operation: "create",
+    contentType: "media",
+    filename: values.filename,
+  });
   const parsed = createMediaSchema.safeParse(values);
-  if (!parsed.success) throw new Error(`Invalid media record: ${parsed.error.message}`);
+  if (!parsed.success) {
+    console.warn("[media-upload] media record validation failed", {
+      operation: "create",
+      contentType: "media",
+      filename: values.filename,
+      issues: parsed.error.issues.map((issue) => ({
+        path: issue.path.join("."),
+        code: issue.code,
+      })),
+    });
+    throw new Error("The uploaded file metadata was not valid.");
+  }
 
   // Client uploads can be retried after a slow network/server response. Returning
   // an existing row for the same immutable Blob URL keeps that retry safe without
   // requiring a schema migration just for upload recovery.
-  const existing = await prisma.media.findFirst({ where: { url: parsed.data.url } });
-  if (existing) return serializeMedia(existing);
+  let media;
+  try {
+    const existing = await prisma.media.findFirst({ where: { url: parsed.data.url } });
+    if (existing) {
+      console.info("[media-upload] existing media record returned", {
+        operation: "create",
+        contentType: "media",
+        recordId: existing.id,
+      });
+      return serializeMedia(existing);
+    }
 
-  const media = await prisma.media.create({ data: parsed.data });
+    media = await prisma.media.create({ data: parsed.data });
+    console.info("[media-upload] media record created", {
+      operation: "create",
+      contentType: "media",
+      recordId: media.id,
+    });
+  } catch (error) {
+    const prismaCode =
+      error && typeof error === "object" && "code" in error && typeof error.code === "string"
+        ? error.code
+        : undefined;
+    console.error("[media-upload] media record creation failed", {
+      operation: "create",
+      contentType: "media",
+      filename: parsed.data.filename,
+      prismaCode,
+    });
+    throw new Error(
+      "The file reached storage, but the Media Library record could not be saved. Refresh before retrying.",
+    );
+  }
 
   // Do not revalidate /admin/media here. The upload client already refreshes the
   // route after this action returns. Keeping revalidation out of this latency-
