@@ -3,6 +3,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Download } from "lucide-react";
 import { ContentRenderer } from "@/components/shared/content-renderer";
+import { JsonLd } from "@/components/shared/json-ld";
+import { RelatedContentLinks } from "@/components/shared/related-content-links";
 import { TableOfContents } from "@/components/shared/table-of-contents";
 import { Tag } from "@/components/shared/tag";
 import { StatusBadge } from "@/components/shared/status-badges";
@@ -12,6 +14,8 @@ import {
   type ContentHeading,
 } from "@/lib/content-headings";
 import { buildContentMetadata, getFirstContentImage } from "@/lib/metadata";
+import { getRelatedContent } from "@/lib/related-content";
+import { buildArticleJsonLd } from "@/lib/structured-data";
 import { formatDate } from "@/lib/utils";
 
 type LabParams = Promise<{ slug: string }>;
@@ -38,6 +42,7 @@ export async function generateMetadata({
     typeLabel: "Lab",
     image: getFirstContentImage(content),
     publishedTime: frontmatter.date,
+    modifiedTime: frontmatter.lastUpdated,
     tags: [frontmatter.category, ...frontmatter.tags],
   });
 }
@@ -48,6 +53,14 @@ export default async function LabPage({ params }: { params: LabParams }) {
   if (!lab) notFound();
 
   const { frontmatter, content } = lab;
+  const currentPath = `/labs/${frontmatter.slug}`;
+  const [related] = await Promise.all([
+    getRelatedContent({
+      currentPath,
+      tags: frontmatter.tags,
+      category: frontmatter.category,
+    }),
+  ]);
   const contentHeadings = extractContentHeadings(content);
   const tocItems: ContentHeading[] = [
     { id: "lab-objective", text: "Objective", level: 2 },
@@ -57,9 +70,22 @@ export default async function LabPage({ params }: { params: LabParams }) {
       ? ([{ id: "lab-resources", text: "Resources", level: 2 }] satisfies ContentHeading[])
       : []),
   ];
+  const labImage = getFirstContentImage(content);
+  const labJsonLd = buildArticleJsonLd({
+    type: "TechArticle",
+    title: frontmatter.title,
+    description: frontmatter.purpose,
+    path: currentPath,
+    image: labImage,
+    publishedTime: frontmatter.date,
+    modifiedTime: frontmatter.lastUpdated,
+    category: frontmatter.category,
+    tags: frontmatter.tags,
+  });
 
   return (
     <div>
+      <JsonLd data={labJsonLd} />
       <header className="border-b border-border px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-3xl">
@@ -128,6 +154,8 @@ export default async function LabPage({ params }: { params: LabParams }) {
               <Tag key={tag}>{tag}</Tag>
             ))}
           </div>
+
+          <RelatedContentLinks items={related} />
         </main>
 
         <TableOfContents items={tocItems} />
