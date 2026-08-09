@@ -1,17 +1,27 @@
 "use client";
 
 import * as React from "react";
+import { upload } from "@vercel/blob/client";
 import { useRouter } from "next/navigation";
 import { UploadCloud, Loader2 } from "lucide-react";
-import { getMediaUploadStatusAction } from "@/lib/services/media-admin-service";
-import { startMediaUpload } from "@/lib/media-client-upload";
+import { createMediaRecordAction } from "@/lib/services/media-admin-service";
+import { guessMediaType } from "@/lib/validations/media";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 
 const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000;
-const CONFIRMATION_TIMEOUT_MS = 5 * 60 * 1000;
+const SAVE_TIMEOUT_MS = 30 * 1000;
 
-type UploadStage = "idle" | "authorizing" | "uploading" | "saving";
+type UploadStage = "idle" | "uploading" | "saving";
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) => {
+      window.setTimeout(() => reject(new Error(message)), timeoutMs);
+    }),
+  ]);
+}
 
 export function MediaUpload() {
   const [uploading, setUploading] = React.useState(false);
@@ -24,38 +34,6 @@ export function MediaUpload() {
   const router = useRouter();
   const { success } = useToast();
 
-  async function waitForMediaRecord(
-    uploadId: string,
-    transfer: Promise<unknown>,
-    signal: AbortSignal,
-  ) {
-    let transferError: unknown;
-    void transfer.catch((error) => {
-      transferError = error;
-    });
-
-    const startedAt = Date.now();
-    let delayMs = 750;
-    let consecutiveStatusFailures = 0;
-    while (Date.now() - startedAt < CONFIRMATION_TIMEOUT_MS) {
-      if (signal.aborted) throw new DOMException("The upload was cancelled.", "AbortError");
-      if (transferError) throw transferError;
-
-      const result = await getMediaUploadStatusAction(uploadId);
-      if (result.success) {
-        consecutiveStatusFailures = 0;
-        if (result.media) return result.media;
-      } else {
-        consecutiveStatusFailures += 1;
-        if (consecutiveStatusFailures >= 3) throw new Error(result.message);
-      }
-
-      await new Promise<void>((resolve) => window.setTimeout(resolve, delayMs));
-      delayMs = Math.min(Math.round(delayMs * 1.5), 5000);
-    }
-    throw new Error("The file reached storage, but Media Library confirmation timed out.");
-  }
-
   async function handleFiles(files: FileList) {
     if (uploading || files.length === 0) return;
 
@@ -66,7 +44,7 @@ export function MediaUpload() {
     try {
       for (const file of Array.from(files)) {
         setCurrentFile(file.name);
-        setStage("authorizing");
+        setStage("uploading");
         setProgress(0);
 
         try {
@@ -76,21 +54,33 @@ export function MediaUpload() {
             UPLOAD_TIMEOUT_MS,
           );
 
+          let blob: Awaited<ReturnType<typeof upload>>;
           try {
-            const started = await startMediaUpload(
-              file,
-              abortController.signal,
-              setStage,
-              setProgress,
-            );
-            await waitForMediaRecord(started.uploadId, started.transfer, abortController.signal);
-            abortController.abort();
+            blob = await upload(file.name, file, {
+              access: "public",
+              handleUploadUrl: "/api/admin/media/upload",
+              abortSignal: abortController.signal,
+              onUploadProgress: ({ percentage }) => {
+                setProgress(Math.max(0, Math.min(100, Math.round(percentage))));
+              },
+            });
           } finally {
             window.clearTimeout(uploadTimeout);
           }
 
           setStage("saving");
           setProgress(100);
+
+          await withTimeout(
+            createMediaRecordAction({
+              url: blob.url,
+              filename: file.name,
+              type: guessMediaType(file.name),
+              size: file.size,
+            }),
+            SAVE_TIMEOUT_MS,
+            `${file.name} reached storage, but saving it to the Media Library timed out. Refresh the page before retrying.`,
+          );
 
           uploadedCount += 1;
         } catch (err) {
@@ -126,11 +116,9 @@ export function MediaUpload() {
   const statusText =
     stage === "saving"
       ? "Saving to Media Library…"
-      : stage === "authorizing"
-        ? "Preparing secure upload…"
-        : stage === "uploading"
-          ? `Uploading… ${progress}%`
-          : "Drag files here, or ";
+      : stage === "uploading"
+        ? `Uploading… ${progress}%`
+        : "Drag files here, or ";
 
   return (
     <div
@@ -182,7 +170,7 @@ export function MediaUpload() {
         {uploading && currentFile && (
           <p className="mt-1 truncate font-mono text-[11px] text-muted">{currentFile}</p>
         )}
-        {(stage === "uploading" || stage === "saving") && (
+        {stage === "uploading" && (
           <div className="mt-3 h-1 w-full bg-surface-3" aria-label={`Upload progress ${progress}%`}>
             <div
               className="h-full bg-cobalt transition-[width] duration-150"
