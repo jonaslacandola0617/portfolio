@@ -4,6 +4,26 @@ import { siteConfig } from "@/lib/site-config";
 const personId = `${siteConfig.siteUrl}/#person`;
 const websiteId = `${siteConfig.siteUrl}/#website`;
 
+function normalizeDateTime(value: string) {
+  const trimmed = value.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return `${trimmed}T00:00:00Z`;
+  }
+
+  const parsed = new Date(trimmed);
+  return Number.isNaN(parsed.getTime()) ? trimmed : parsed.toISOString();
+}
+
+function personEntity() {
+  return {
+    "@type": "Person",
+    "@id": personId,
+    name: siteConfig.name,
+    url: siteConfig.siteUrl,
+    sameAs: [siteConfig.social.github, siteConfig.social.linkedin].filter(Boolean),
+  };
+}
+
 export function buildWebsiteJsonLd({
   name,
   description,
@@ -18,7 +38,7 @@ export function buildWebsiteJsonLd({
     url: siteConfig.siteUrl,
     name,
     description,
-    publisher: { "@id": personId },
+    publisher: personEntity(),
   };
 }
 
@@ -86,6 +106,8 @@ export function buildArticleJsonLd({
   tags?: string[];
 }) {
   const url = new URL(path, siteConfig.siteUrl).toString();
+  const person = personEntity();
+
   return {
     "@context": "https://schema.org",
     "@type": type,
@@ -96,11 +118,11 @@ export function buildArticleJsonLd({
     mainEntityOfPage: { "@type": "WebPage", "@id": url },
     isPartOf: { "@id": websiteId },
     image: [image ?? DEFAULT_SOCIAL_IMAGE],
-    datePublished: publishedTime,
-    ...(modifiedTime ? { dateModified: modifiedTime } : {}),
+    datePublished: normalizeDateTime(publishedTime),
+    ...(modifiedTime ? { dateModified: normalizeDateTime(modifiedTime) } : {}),
     ...(category ? { articleSection: category } : {}),
     ...(tags?.length ? { keywords: Array.from(new Set(tags)).join(", ") } : {}),
-    author: { "@id": personId },
-    publisher: { "@id": personId },
+    author: person,
+    publisher: person,
   };
 }
