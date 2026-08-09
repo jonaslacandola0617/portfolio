@@ -39,7 +39,7 @@ export default async function AboutPage() {
     email: settings.email,
     githubUrl: settings.githubUrl,
     linkedinUrl: settings.linkedinUrl,
-    profileImageUrl: about.profileImageUrl,
+    profileImageUrl: about.profileImageUrl ?? undefined,
     knowsAbout: about.focusTags,
   });
 
