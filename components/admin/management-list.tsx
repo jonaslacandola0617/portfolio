@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { GripVertical, Inbox, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Inbox, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import type { ActionResult, DeleteResult } from "@/types/admin";
 import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 import { PageHeader, PageShell } from "@/components/shared/page-header";
@@ -85,6 +85,25 @@ export function ManagementList({
     });
   }
 
+  async function saveOrder(next: ManagementListRow[], previous: ManagementListRow[]) {
+    if (!reorderAction) return;
+
+    setOrderedRows(next);
+    setSavingOrder(true);
+    setOrderMessage("Saving order…");
+
+    const result = await reorderAction(next.map((row) => row.id));
+    setSavingOrder(false);
+    if (!result.success) {
+      setOrderedRows(previous);
+      setOrderMessage(result.message ?? "Could not save the new order.");
+      return;
+    }
+
+    setOrderMessage("Order saved");
+    router.refresh();
+  }
+
   async function moveRow(targetId: string) {
     if (!reorderAction || !draggedId || draggedId === targetId || !canReorder) {
       setDraggedId(null);
@@ -100,22 +119,23 @@ export function ManagementList({
     const next = [...previous];
     const [moved] = next.splice(fromIndex, 1);
     next.splice(toIndex, 0, moved);
-    setOrderedRows(next);
     setDraggedId(null);
     setDropId(null);
-    setSavingOrder(true);
-    setOrderMessage("Saving order…");
+    await saveOrder(next, previous);
+  }
 
-    const result = await reorderAction(next.map((row) => row.id));
-    setSavingOrder(false);
-    if (!result.success) {
-      setOrderedRows(previous);
-      setOrderMessage(result.message ?? "Could not save the new order.");
-      return;
-    }
+  async function moveRowBy(id: string, offset: -1 | 1) {
+    if (!reorderAction || !canReorder) return;
 
-    setOrderMessage("Order saved");
-    router.refresh();
+    const previous = orderedRows;
+    const fromIndex = previous.findIndex((row) => row.id === id);
+    const toIndex = fromIndex + offset;
+    if (fromIndex < 0 || toIndex < 0 || toIndex >= previous.length) return;
+
+    const next = [...previous];
+    const [moved] = next.splice(fromIndex, 1);
+    next.splice(toIndex, 0, moved);
+    await saveOrder(next, previous);
   }
 
   const gridClass = reorderAction
@@ -144,7 +164,7 @@ export function ManagementList({
           </div>
           <div className="flex items-center gap-3">
             {reorderAction && (
-              <span className="font-mono text-[10px] uppercase tracking-wider text-muted" aria-live="polite">
+              <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted sm:inline" aria-live="polite">
                 {query.trim() ? "Clear search to reorder" : orderMessage ?? "Drag to reorder"}
               </span>
             )}
@@ -156,6 +176,20 @@ export function ManagementList({
             </Link>
           </div>
         </div>
+
+        {filtered.length > 0 && (
+          <div className="mb-4 flex items-center justify-between gap-3 sm:hidden">
+            <label className="flex items-center gap-2 text-xs text-text-dim">
+              <input type="checkbox" checked={allFilteredSelected} onChange={toggleAll} aria-label="Select all" />
+              <span className="label">Select all</span>
+            </label>
+            {reorderAction && (
+              <span className="font-mono text-[9px] uppercase tracking-wider text-muted" aria-live="polite">
+                {query.trim() ? "Clear search to reorder" : orderMessage ?? "Use arrows to reorder"}
+              </span>
+            )}
+          </div>
+        )}
 
         {selected.size > 0 && (
           <div className="mb-4">
@@ -230,7 +264,7 @@ export function ManagementList({
                             setDraggedId(null);
                             setDropId(null);
                           }}
-                          className={`flex h-7 w-5 items-center justify-center text-muted ${canReorder ? "cursor-grab active:cursor-grabbing hover:text-text" : "cursor-not-allowed opacity-50"}`}
+                          className={`hidden h-7 w-5 items-center justify-center text-muted sm:flex ${canReorder ? "cursor-grab active:cursor-grabbing hover:text-text" : "cursor-not-allowed opacity-50"}`}
                           title={query.trim() ? "Clear search to reorder" : "Drag to change public position"}
                           aria-label={`Drag ${row.title} to reorder`}
                         >
@@ -248,6 +282,28 @@ export function ManagementList({
                     </span>
                     <span className="hidden font-mono text-xs text-muted sm:block">{row.updated}</span>
                     <div className={`${reorderAction ? "col-span-4" : "col-span-3"} flex items-center justify-end gap-1 sm:col-span-1`}>
+                      {reorderAction && (
+                        <div className="mr-auto flex items-center gap-1 sm:hidden">
+                          <button
+                            type="button"
+                            onClick={() => void moveRowBy(row.id, -1)}
+                            disabled={!canReorder || position <= 1}
+                            className="flex h-8 w-8 items-center justify-center border border-border text-text-dim disabled:opacity-30"
+                            aria-label={`Move ${row.title} up`}
+                          >
+                            <ChevronUp className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void moveRowBy(row.id, 1)}
+                            disabled={!canReorder || position >= orderedRows.length}
+                            className="flex h-8 w-8 items-center justify-center border border-border text-text-dim disabled:opacity-30"
+                            aria-label={`Move ${row.title} down`}
+                          >
+                            <ChevronDown className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      )}
                       <Link href={`${basePath}/${row.id}`} className="flex h-8 w-8 items-center justify-center border border-border text-text-dim hover:text-text" aria-label={`Edit ${row.title}`}>
                         <Pencil className="h-[13px] w-[13px]" />
                       </Link>
