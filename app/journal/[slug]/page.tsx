@@ -3,11 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ContentRenderer } from "@/components/shared/content-renderer";
+import { JsonLd } from "@/components/shared/json-ld";
+import { RelatedContentLinks } from "@/components/shared/related-content-links";
 import { TableOfContents } from "@/components/shared/table-of-contents";
 import { Tag } from "@/components/shared/tag";
-import { getAllArticles, getAllArticleSlugs, getArticleBySlug } from "@/lib/content";
+import { getAllArticleSlugs, getArticleBySlug } from "@/lib/content";
 import { extractContentHeadings } from "@/lib/content-headings";
 import { buildContentMetadata, getFirstContentImage } from "@/lib/metadata";
+import { getRelatedContent } from "@/lib/related-content";
+import { buildArticleJsonLd } from "@/lib/structured-data";
 import { formatDate } from "@/lib/utils";
 
 type ArticleParams = Promise<{ slug: string }>;
@@ -34,6 +38,7 @@ export async function generateMetadata({
     typeLabel: "Journal",
     image: getFirstContentImage(content),
     publishedTime: frontmatter.date,
+    modifiedTime: frontmatter.lastUpdated,
     tags: [frontmatter.category, ...frontmatter.tags],
   });
 }
@@ -44,15 +49,29 @@ export default async function ArticlePage({ params }: { params: ArticleParams })
   if (!article) notFound();
 
   const { frontmatter, content, readingTime } = article;
+  const currentPath = `/journal/${frontmatter.slug}`;
   const tocItems = extractContentHeadings(content);
-  const all = await getAllArticles();
-  const related = all
-    .filter((entry) => entry.frontmatter.slug !== frontmatter.slug)
-    .filter((entry) => entry.frontmatter.tags.some((tag) => frontmatter.tags.includes(tag)))
-    .slice(0, 2);
+  const related = await getRelatedContent({
+    currentPath,
+    tags: frontmatter.tags,
+    category: frontmatter.category,
+  });
+  const articleImage = getFirstContentImage(content);
+  const articleJsonLd = buildArticleJsonLd({
+    type: "BlogPosting",
+    title: frontmatter.title,
+    description: frontmatter.summary,
+    path: currentPath,
+    image: articleImage,
+    publishedTime: frontmatter.date,
+    modifiedTime: frontmatter.lastUpdated,
+    category: frontmatter.category,
+    tags: frontmatter.tags,
+  });
 
   return (
     <div>
+      <JsonLd data={articleJsonLd} />
       <header className="border-b border-border px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
         <div className="mx-auto max-w-6xl">
           <div className="max-w-2xl">
@@ -97,25 +116,7 @@ export default async function ArticlePage({ params }: { params: ArticleParams })
             ))}
           </div>
 
-          {related.length > 0 && (
-            <div className="mt-12">
-              <p className="idx mb-4">Related Journal Entries</p>
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {related.map((entry) => (
-                  <Link
-                    key={entry.frontmatter.slug}
-                    href={`/journal/${entry.frontmatter.slug}`}
-                    className="border border-border bg-surface-2 p-4 transition-colors hover:border-border-strong"
-                  >
-                    <p className="label mb-1.5">{entry.frontmatter.category}</p>
-                    <p className="font-display text-sm font-semibold text-text">
-                      {entry.frontmatter.title}
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
+          <RelatedContentLinks items={related} />
         </main>
 
         <TableOfContents items={tocItems} />
