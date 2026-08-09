@@ -138,13 +138,30 @@ export async function sendContactMessageAction(
       ].join("\n"),
       html: `
         <div style="font-family:Arial,Helvetica,sans-serif;max-width:640px;margin:0 auto;color:#171717;line-height:1.6">
-          <p style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#666;margin:0 0 8px">jonasl.online / contact</p>
+          <table role="presentation" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin:0 0 20px">
+            <tr>
+              <td style="width:44px;vertical-align:middle">
+                <div style="width:32px;height:32px;background:#0a0b0d;border:1px solid #e8e6de;box-sizing:border-box;overflow:hidden">
+                  <div style="width:11px;height:11px;margin:6px auto 3px;border-radius:50%;background:#5c7cfa"></div>
+                  <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="width:20px;height:6px;border-collapse:collapse">
+                    <tr>
+                      <td style="width:6px;height:6px;background:#ef5b41;font-size:0;line-height:0">&nbsp;</td>
+                      <td style="width:14px;height:6px;background:#f2f0e8;font-size:0;line-height:0">&nbsp;</td>
+                    </tr>
+                  </table>
+                </div>
+              </td>
+              <td style="vertical-align:middle;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#666">
+                jonasl.online / contact
+              </td>
+            </tr>
+          </table>
           <h1 style="font-size:24px;line-height:1.25;margin:0 0 24px">New Message</h1>
           <table role="presentation" style="width:100%;border-collapse:collapse;margin-bottom:24px">
             <tr><td style="padding:8px 0;color:#666;width:88px">Name</td><td style="padding:8px 0"><strong>${escapeHtml(name)}</strong></td></tr>
             <tr><td style="padding:8px 0;color:#666">Email</td><td style="padding:8px 0"><a href="mailto:${escapeHtml(email)}">${escapeHtml(email)}</a></td></tr>
           </table>
-          <div style="border-left:3px solid #315efb;padding:4px 0 4px 16px;white-space:pre-wrap">${escapeHtml(message)}</div>
+          <div style="border-left:3px solid #5c7cfa;padding:4px 0 4px 16px;white-space:pre-wrap">${escapeHtml(message)}</div>
           <p style="font-size:12px;color:#777;margin-top:28px">Reply to this email to respond directly to ${escapeHtml(name)}.</p>
         </div>
       `,
