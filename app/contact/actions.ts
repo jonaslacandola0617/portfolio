@@ -35,12 +35,17 @@ function escapeHtml(value: string): string {
 }
 
 function validationErrors(error: z.ZodError): ContactFormState["fieldErrors"] {
-  const flattened = error.flatten().fieldErrors;
-  return {
-    name: flattened.name?.[0],
-    email: flattened.email?.[0],
-    message: flattened.message?.[0],
-  };
+  const errors: NonNullable<ContactFormState["fieldErrors"]> = {};
+  for (const issue of error.issues) {
+    const field = issue.path[0];
+    if (
+      (field === "name" || field === "email" || field === "message") &&
+      !errors[field]
+    ) {
+      errors[field] = issue.message;
+    }
+  }
+  return errors;
 }
 
 export async function sendContactMessageAction(
