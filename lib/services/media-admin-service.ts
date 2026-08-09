@@ -26,10 +26,18 @@ function referencesMedia(value: unknown, mediaId: string): boolean {
   return Object.values(record).some((item) => referencesMedia(item, mediaId));
 }
 
+function serializeMedia<T extends { uploadedAt: Date; type: unknown }>(media: T) {
+  return {
+    ...media,
+    type: String(media.type),
+    uploadedAt: media.uploadedAt.toISOString(),
+  };
+}
+
 export async function getAllMedia(): Promise<AdminMediaItem[]> {
   await requireAdmin();
   const media = await prisma.media.findMany({ orderBy: { uploadedAt: "desc" } });
-  return media.map((item) => ({ ...item, type: item.type, uploadedAt: item.uploadedAt.toISOString() }));
+  return media.map((item) => serializeMedia(item));
 }
 
 export async function createMediaRecordAction(values: CreateMediaValues) {
@@ -37,9 +45,18 @@ export async function createMediaRecordAction(values: CreateMediaValues) {
   const parsed = createMediaSchema.safeParse(values);
   if (!parsed.success) throw new Error(`Invalid media record: ${parsed.error.message}`);
 
+  // Client uploads can be retried after a slow network/server response. Returning
+  // an existing row for the same immutable Blob URL keeps that retry safe without
+  // requiring a schema migration just for upload recovery.
+  const existing = await prisma.media.findFirst({ where: { url: parsed.data.url } });
+  if (existing) return serializeMedia(existing);
+
   const media = await prisma.media.create({ data: parsed.data });
-  revalidateContent("media");
-  return { ...media, type: media.type, uploadedAt: media.uploadedAt.toISOString() };
+
+  // Do not revalidate /admin/media here. The upload client already refreshes the
+  // route after this action returns. Keeping revalidation out of this latency-
+  // sensitive action avoids making a successful DB write wait on route invalidation.
+  return serializeMedia(media);
 }
 
 export async function deleteMediaAction(id: string): Promise<DeleteResult> {
