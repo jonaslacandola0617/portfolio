@@ -1,7 +1,12 @@
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/services/auth-service";
-import { getMediaUploadPolicy } from "@/lib/validations/media";
+import { createMediaRecord } from "@/lib/services/media-record-service";
+import {
+  createMediaUploadPath,
+  getMediaUploadPolicy,
+  mediaUploadPayloadSchema,
+} from "@/lib/validations/media";
 
 /**
  * The one legitimate exception to "Server Actions over API routes"
@@ -18,11 +23,10 @@ import { getMediaUploadPolicy } from "@/lib/validations/media";
  * prevents oversized/unsupported orphan Blobs if a caller obtains a token
  * but never completes the database-record step.
  *
- * Media rows are created by createMediaRecordAction after the browser's
- * direct Blob transfer resolves. This route intentionally does not register
- * an onUploadCompleted webhook: it was only logging a storage-side event,
- * which could be mistaken for confirmation that the browser promise or the
- * subsequent database mutation had completed.
+ * Media Library uploads include validated metadata in the short-lived token.
+ * Vercel's signed completion callback persists that metadata after storage
+ * confirms the Blob, so database completion does not depend on the browser's
+ * direct PUT response settling.
  */
 export async function POST(request: Request): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
@@ -31,17 +35,46 @@ export async function POST(request: Request): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname) => {
+      onBeforeGenerateToken: async (pathname, clientPayload) => {
         await requireAdmin();
         const policy = getMediaUploadPolicy(pathname);
+
+        let tokenPayload: string | undefined;
+        if (clientPayload) {
+          const payload = mediaUploadPayloadSchema.safeParse(JSON.parse(clientPayload));
+          if (!payload.success) throw new Error("Invalid Media Library upload metadata.");
+          if (pathname !== createMediaUploadPath(payload.data.uploadId, payload.data.filename)) {
+            throw new Error("Media upload pathname does not match its metadata.");
+          }
+          tokenPayload = JSON.stringify(payload.data);
+        }
+
         console.info("[media-upload] token issued", {
           operation: "authorize",
-          filename: pathname,
+          pathname,
         });
         return {
           ...policy,
           addRandomSuffix: true,
+          tokenPayload,
         };
+      },
+      onUploadCompleted: async ({ blob, tokenPayload }) => {
+        if (!tokenPayload) return;
+        const payload = mediaUploadPayloadSchema.safeParse(JSON.parse(tokenPayload));
+        if (!payload.success) throw new Error("Invalid Media Library completion metadata.");
+
+        console.info("[media-upload] storage completion received", {
+          operation: "complete",
+          contentType: "media",
+          uploadId: payload.data.uploadId,
+        });
+        await createMediaRecord({
+          url: blob.url,
+          filename: payload.data.filename,
+          type: payload.data.type,
+          size: payload.data.size,
+        });
       },
     });
 

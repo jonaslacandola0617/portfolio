@@ -41,6 +41,10 @@ function extensionOf(value: string): string {
   return value.split(".").pop()?.toLowerCase() ?? "";
 }
 
+export function createMediaUploadPath(uploadId: string, filename: string): string {
+  return `media-${uploadId}.${extensionOf(filename)}`;
+}
+
 export function getMediaUploadPolicy(pathname: string) {
   const filename = pathname.trim();
   if (
@@ -92,6 +96,25 @@ export const createMediaSchema = z.object({
 });
 
 export type CreateMediaValues = z.infer<typeof createMediaSchema>;
+
+export const mediaUploadPayloadSchema = z.object({
+  uploadId: z.string().uuid(),
+  filename: z.string().trim().min(1).max(200).refine(
+    (value) => !/[\\/\0]/.test(value) && allowedExtensions.has(extensionOf(value)),
+    "Unsupported or unsafe filename"
+  ),
+  type: mediaTypeSchema,
+  size: z.number().int().positive().max(MEDIA_MAX_BYTES),
+}).superRefine((value, context) => {
+  if (guessMediaType(value.filename) !== value.type) {
+    context.addIssue({ code: "custom", path: ["type"], message: "Media type does not match filename" });
+  }
+  if (value.type === "IMAGE" && value.size > IMAGE_MAX_BYTES) {
+    context.addIssue({ code: "custom", path: ["size"], message: "Images must be 10 MB or smaller" });
+  }
+});
+
+export type MediaUploadPayload = z.infer<typeof mediaUploadPayloadSchema>;
 
 export function guessMediaType(filename: string): z.infer<typeof mediaTypeSchema> {
   const ext = extensionOf(filename);

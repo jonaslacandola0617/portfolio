@@ -1,6 +1,11 @@
 "use client";
 
 import { put, type HandleUploadBody } from "@vercel/blob/client";
+import {
+  createMediaUploadPath,
+  guessMediaType,
+  type MediaUploadPayload,
+} from "@/lib/validations/media";
 
 interface ClientTokenResponse {
   type: "blob.generate-client-token";
@@ -38,17 +43,32 @@ async function readUploadError(response: Response): Promise<string> {
  * completion log appeared. A normal Blob-body PUT avoids that streaming branch
  * while preserving Vercel's direct-to-Blob architecture and security policy.
  */
-export async function uploadMediaFile(
+export interface StartedMediaUpload {
+  uploadId: string;
+  transfer: ReturnType<typeof put>;
+}
+
+export async function startMediaUpload(
   file: File,
   signal: AbortSignal,
   onStage: (stage: "authorizing" | "uploading") => void,
-) {
+  onProgress: (percentage: number) => void,
+): Promise<StartedMediaUpload> {
+  const uploadId = crypto.randomUUID();
+  const pathname = createMediaUploadPath(uploadId, file.name);
+  const metadata: MediaUploadPayload = {
+    uploadId,
+    filename: file.name,
+    type: guessMediaType(file.name),
+    size: file.size,
+  };
+
   onStage("authorizing");
   const event: HandleUploadBody = {
     type: "blob.generate-client-token",
     payload: {
-      pathname: file.name,
-      clientPayload: null,
+      pathname,
+      clientPayload: JSON.stringify(metadata),
       multipart: false,
     },
   };
@@ -71,10 +91,16 @@ export async function uploadMediaFile(
   }
 
   onStage("uploading");
-  return put(file.name, file, {
-    access: "public",
-    token: tokenPayload.clientToken,
-    contentType: file.type || undefined,
-    abortSignal: signal,
-  });
+  return {
+    uploadId,
+    transfer: put(pathname, file, {
+      access: "public",
+      token: tokenPayload.clientToken,
+      contentType: file.type || undefined,
+      abortSignal: signal,
+      onUploadProgress: ({ percentage }) => {
+        onProgress(Math.max(0, Math.min(100, Math.round(percentage))));
+      },
+    }),
+  };
 }

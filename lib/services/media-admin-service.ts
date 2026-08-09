@@ -3,11 +3,13 @@
 import { del } from "@vercel/blob";
 import { requireAdmin } from "@/lib/services/auth-service";
 import { prisma } from "@/lib/db";
-import { createMediaSchema, type CreateMediaValues } from "@/lib/validations/media";
+import { type CreateMediaValues } from "@/lib/validations/media";
 import { deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError } from "@/lib/services/action-errors";
 import type { DeleteResult } from "@/types/admin";
 import { revalidateContent } from "@/lib/services/content-revalidation";
+import { createMediaRecord } from "@/lib/services/media-record-service";
+import { z } from "zod";
 
 export interface AdminMediaItem {
   id: string;
@@ -47,61 +49,40 @@ export async function createMediaRecordAction(values: CreateMediaValues) {
     contentType: "media",
     filename: values.filename,
   });
-  const parsed = createMediaSchema.safeParse(values);
-  if (!parsed.success) {
-    console.warn("[media-upload] media record validation failed", {
-      operation: "create",
-      contentType: "media",
-      filename: values.filename,
-      issues: parsed.error.issues.map((issue) => ({
-        path: issue.path.join("."),
-        code: issue.code,
-      })),
-    });
-    throw new Error("The uploaded file metadata was not valid.");
-  }
+  return serializeMedia(await createMediaRecord(values));
+}
 
-  // Client uploads can be retried after a slow network/server response. Returning
-  // an existing row for the same immutable Blob URL keeps that retry safe without
-  // requiring a schema migration just for upload recovery.
-  let media;
+const mediaUploadIdSchema = z.string().uuid();
+
+export type MediaUploadStatusResult =
+  | { success: true; media: AdminMediaItem | null }
+  | { success: false; message: string };
+
+export async function getMediaUploadStatusAction(
+  uploadId: string,
+): Promise<MediaUploadStatusResult> {
+  await requireAdmin();
+  const parsed = mediaUploadIdSchema.safeParse(uploadId);
+  if (!parsed.success) return { success: false, message: "Invalid upload identifier." };
+
   try {
-    const existing = await prisma.media.findFirst({ where: { url: parsed.data.url } });
-    if (existing) {
-      console.info("[media-upload] existing media record returned", {
-        operation: "create",
-        contentType: "media",
-        recordId: existing.id,
-      });
-      return serializeMedia(existing);
-    }
-
-    media = await prisma.media.create({ data: parsed.data });
-    console.info("[media-upload] media record created", {
-      operation: "create",
-      contentType: "media",
-      recordId: media.id,
+    const media = await prisma.media.findFirst({
+      where: { url: { contains: `media-${parsed.data}` } },
     });
+    return { success: true, media: media ? serializeMedia(media) : null };
   } catch (error) {
     const prismaCode =
       error && typeof error === "object" && "code" in error && typeof error.code === "string"
         ? error.code
         : undefined;
-    console.error("[media-upload] media record creation failed", {
-      operation: "create",
+    console.error("[media-upload] completion check failed", {
+      operation: "read-completion",
       contentType: "media",
-      filename: parsed.data.filename,
+      uploadId: parsed.data,
       prismaCode,
     });
-    throw new Error(
-      "The file reached storage, but the Media Library record could not be saved. Refresh before retrying.",
-    );
+    return { success: false, message: "Media Library confirmation is temporarily unavailable." };
   }
-
-  // Do not revalidate /admin/media here. The upload client already refreshes the
-  // route after this action returns. Keeping revalidation out of this latency-
-  // sensitive action avoids making a successful DB write wait on route invalidation.
-  return serializeMedia(media);
 }
 
 export async function deleteMediaAction(id: string): Promise<DeleteResult> {
