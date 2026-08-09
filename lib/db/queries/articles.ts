@@ -15,6 +15,7 @@ interface ArticleWithRelations {
   category: { name: string } | null;
   tags: { name: string }[];
   date: Date;
+  updatedAt: Date;
 }
 
 function toISODate(date: Date): string {
@@ -30,6 +31,7 @@ function mapArticle(article: ArticleWithRelations): DbContentItem<ArticleFrontma
       slug: article.slug,
       summary: article.summary,
       date: toISODate(article.date),
+      lastUpdated: article.updatedAt.toISOString(),
       tags: article.tags.map((tag) => tag.name),
       category: article.category?.name ?? "Uncategorized",
     },
