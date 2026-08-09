@@ -7,6 +7,7 @@ import {
   NotebookPen,
   BadgeCheck,
 } from "lucide-react";
+import { JsonLd } from "@/components/shared/json-ld";
 import { LearningProgress } from "@/components/shared/learning-progress";
 import { RecentActivityCard } from "@/components/shared/recent-activity-card";
 import { ProjectCard } from "@/components/shared/project-card";
@@ -18,7 +19,23 @@ import { siteConfig } from "@/lib/site-config";
 import { getAllProjects, getAllArticles, getAllLabs } from "@/lib/content";
 import { getHomepageOverview } from "@/lib/db/queries/homepage";
 import { getSiteSettings } from "@/lib/db/queries/settings";
+import { buildStaticPageMetadata } from "@/lib/metadata";
+import { buildWebsiteJsonLd } from "@/lib/structured-data";
 import { formatDate } from "@/lib/utils";
+
+export const metadata = buildStaticPageMetadata({
+  title: "Cybersecurity & Networking Portfolio",
+  description: siteConfig.description,
+  path: "/",
+  keywords: [
+    "cybersecurity portfolio",
+    "networking portfolio",
+    "SOC analyst portfolio",
+    "CCNA portfolio",
+    "Packet Tracer labs",
+    "network administration",
+  ],
+});
 
 export default async function HomePage() {
   const [projects, allArticles, allLabs, settings, homepage] =
@@ -34,9 +51,14 @@ export default async function HomePage() {
   const latestLab = allLabs[0];
   const statLinks = ["/projects", "/labs", "/journal", "/certifications"];
   const statIcons = [FolderGit2, FlaskConical, NotebookPen, BadgeCheck];
+  const websiteJsonLd = buildWebsiteJsonLd({
+    name: settings.name,
+    description: siteConfig.description,
+  });
 
   return (
     <div>
+      <JsonLd data={websiteJsonLd} />
       <section className="relative overflow-hidden border-b border-border">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-16 sm:px-10 sm:py-20 lg:grid-cols-[1.3fr_1fr] lg:px-14 lg:py-24">
           <div>
@@ -100,8 +122,8 @@ export default async function HomePage() {
               className="mt-10 flex flex-wrap gap-1.5 animate-rise-in"
               style={{ animationDelay: "400ms" }}
             >
-              {siteConfig.currentFocusStack.map((s) => (
-                <Tag key={s}>{s}</Tag>
+              {siteConfig.currentFocusStack.map((stackItem) => (
+                <Tag key={stackItem}>{stackItem}</Tag>
               ))}
             </div>
           </div>
@@ -121,20 +143,20 @@ export default async function HomePage() {
       </section>
 
       <section className="grid grid-cols-2 divide-x divide-y divide-border border-b border-border sm:grid-cols-4 sm:divide-y-0">
-        {homepage.stats.map((s, i) => {
-          const Icon = statIcons[i] ?? FolderGit2;
+        {homepage.stats.map((stat, index) => {
+          const Icon = statIcons[index] ?? FolderGit2;
           return (
             <Link
-              key={s.label}
-              href={statLinks[i] ?? "/"}
+              key={stat.label}
+              href={statLinks[index] ?? "/"}
               className="group flex flex-col gap-2 px-6 py-8 transition-colors hover:bg-surface-2 sm:px-8"
             >
               <Icon size={16} className="text-cobalt" />
               <span className="font-display text-3xl font-semibold text-text sm:text-4xl">
-                {s.value}
+                {stat.value}
               </span>
               <span className="label flex items-center gap-1">
-                {s.label}
+                {stat.label}
                 <ArrowUpRight
                   size={11}
                   className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
@@ -159,11 +181,11 @@ export default async function HomePage() {
         <div className="mb-20">
           <SectionLabel index="03" title="Featured Projects" />
           <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-            {featuredProjects.map((p, i) => (
+            {featuredProjects.map((project, index) => (
               <ProjectCard
-                key={p.frontmatter.slug}
-                project={p.frontmatter}
-                index={i + 1}
+                key={project.frontmatter.slug}
+                project={project.frontmatter}
+                index={index + 1}
                 size="featured"
               />
             ))}
@@ -184,22 +206,22 @@ export default async function HomePage() {
         <div className="mb-20">
           <SectionLabel index="05" title="Journal" />
           <div className="divide-y divide-border border-y border-border">
-            {articles.map((a, i) => (
+            {articles.map((article, index) => (
               <Link
-                key={a.frontmatter.slug}
-                href={`/journal/${a.frontmatter.slug}`}
+                key={article.frontmatter.slug}
+                href={`/journal/${article.frontmatter.slug}`}
                 className="group flex flex-col gap-2 px-1 py-5 sm:flex-row sm:items-center sm:gap-6"
               >
                 <span className="idx w-6 shrink-0">
-                  {String(i + 1).padStart(2, "0")}
+                  {String(index + 1).padStart(2, "0")}
                 </span>
                 <span className="w-24 shrink-0 font-mono text-xs text-muted-foreground">
-                  {formatDate(a.frontmatter.date)}
+                  {formatDate(article.frontmatter.date)}
                 </span>
                 <h3 className="flex-1 font-display text-base font-medium text-text group-hover:text-cobalt sm:text-lg">
-                  {a.frontmatter.title}
+                  {article.frontmatter.title}
                 </h3>
-                <span className="label shrink-0">{a.readingTime}</span>
+                <span className="label shrink-0">{article.readingTime}</span>
               </Link>
             ))}
           </div>
