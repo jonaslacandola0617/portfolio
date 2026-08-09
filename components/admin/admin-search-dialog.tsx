@@ -21,7 +21,7 @@ const statusVariant = {
   SCHEDULED: "warning",
 } as const;
 
-export function AdminSearchDialog() {
+export function AdminSearchDialog({ enableShortcuts = true }: { enableShortcuts?: boolean }) {
   const [open, setOpen] = React.useState(false);
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<AdminSearchResult[]>([]);
@@ -29,6 +29,8 @@ export function AdminSearchDialog() {
   const router = useRouter();
 
   React.useEffect(() => {
+    if (!enableShortcuts) return;
+
     function onKeyDown(e: KeyboardEvent) {
       if ((e.key === "k" && (e.metaKey || e.ctrlKey)) || (e.key === "/" && !e.metaKey && !e.ctrlKey)) {
         const target = e.target as HTMLElement | null;
@@ -41,7 +43,7 @@ export function AdminSearchDialog() {
     }
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
-  }, []);
+  }, [enableShortcuts]);
 
   React.useEffect(() => {
     if (!query.trim()) {
@@ -67,7 +69,7 @@ export function AdminSearchDialog() {
       >
         <Search className="h-[13px] w-[13px]" />
         <span className="flex-1">Search</span>
-        <kbd className="border border-border px-1 font-mono text-[10px]">/</kbd>
+        {enableShortcuts && <kbd className="border border-border px-1 font-mono text-[10px]">/</kbd>}
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
@@ -79,7 +81,7 @@ export function AdminSearchDialog() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search projects, labs, journal, certificates…"
-              className="flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted"
+              className="min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted"
             />
             <kbd className="hidden border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted sm:inline-block">ESC</kbd>
             <button
@@ -109,7 +111,7 @@ export function AdminSearchDialog() {
                   className="flex w-full items-center gap-3 border border-transparent px-3 py-2.5 text-left text-sm transition-colors hover:border-border hover:bg-surface-3"
                 >
                   <Icon className="h-4 w-4 shrink-0 text-cobalt" />
-                  <span className="flex-1 truncate text-text">{item.title}</span>
+                  <span className="min-w-0 flex-1 truncate text-text">{item.title}</span>
                   <Badge variant={statusVariant[item.publishStatus as keyof typeof statusVariant]}>
                     {item.publishStatus}
                   </Badge>
