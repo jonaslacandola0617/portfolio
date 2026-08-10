@@ -31,7 +31,7 @@ export function CertificateCard({
       <p className="mt-1.5 label">{cert.issuer}</p>
 
       <div className="mt-4 flex flex-wrap gap-1.5">
-        {cert.skills.slice(0, 3).map((skill) => (
+        {cert.skills.map((skill) => (
           <span
             key={skill}
             className="border border-border px-1.5 py-0.5 text-[11px] text-text-dim"
