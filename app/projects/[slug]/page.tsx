@@ -165,6 +165,13 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
           </div>
 
           <div className="border border-border bg-surface-2 p-5">
+            <p className="label mb-3">Tags</p>
+            <div className="flex flex-wrap gap-1.5">
+              {frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}
+            </div>
+          </div>
+
+          <div className="border border-border bg-surface-2 p-5">
             <p className="label mb-3">Skills Practiced</p>
             <div className="flex flex-wrap gap-1.5">
               {frontmatter.skills.map((skill) => <Tag key={skill}>{skill}</Tag>)}
