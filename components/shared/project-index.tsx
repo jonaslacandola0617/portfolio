@@ -62,7 +62,7 @@ export function ProjectIndex({ projects }: { projects: ProjectFrontmatter[] }) {
             key={project.slug}
             project={project}
             index={index + 1}
-            size={index < 2 ? "featured" : "regular"}
+            size="regular"
           />
         ))}
       </div>
