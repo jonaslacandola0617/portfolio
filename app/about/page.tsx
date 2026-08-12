@@ -9,16 +9,20 @@ import { buildStaticPageMetadata } from "@/lib/metadata";
 import { buildProfilePageJsonLd } from "@/lib/structured-data";
 
 export const metadata = buildStaticPageMetadata({
-  title: "About | Cybersecurity & Networking Portfolio",
+  title: "About | Web Development, IT & Networking",
   description:
-    "Learn about Jonas Lacandola, an aspiring cybersecurity analyst building hands-on experience in networking, security operations, CCNA labs, Linux, and technical problem solving.",
+    "Learn about Jonas Lacandola's work across web development, IT support, networking, and cybersecurity, including full-stack applications, APIs, technical projects, and hands-on labs.",
   path: "/about",
   keywords: [
     "Jonas Lacandola",
-    "cybersecurity analyst portfolio",
-    "networking student",
-    "CCNA learner",
-    "security operations",
+    "web developer portfolio",
+    "Laravel developer",
+    "PHP developer",
+    "React developer",
+    "Next.js developer",
+    "IT support",
+    "networking portfolio",
+    "cybersecurity portfolio",
   ],
 });
 
