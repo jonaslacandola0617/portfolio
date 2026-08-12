@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, ArrowRight, Github, Download, FileText } from "lucide-react";
+import { ArrowLeft, ArrowRight, Github, Download, FileText, ExternalLink } from "lucide-react";
 import { ContentRenderer } from "@/components/shared/content-renderer";
 import { JsonLd } from "@/components/shared/json-ld";
 import { RelatedContentLinks } from "@/components/shared/related-content-links";
@@ -60,6 +60,7 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
   const prev = idx > 0 ? allProjects[idx - 1] : undefined;
   const next = idx >= 0 ? allProjects[idx + 1] : undefined;
   const projectImage = frontmatter.thumbnail ?? getFirstContentImage(content);
+  const isWebDevelopment = frontmatter.category.trim().replace(/\s+/g, " ").toLocaleLowerCase() === "web development";
   const projectJsonLd = buildArticleJsonLd({
     type: "TechArticle",
     title: frontmatter.title,
@@ -163,6 +164,36 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
               </div>
             </dl>
           </div>
+
+          {isWebDevelopment && (frontmatter.liveSiteUrl || frontmatter.demoUrl) && (
+            <div className="border border-cobalt/40 bg-surface-2 p-5">
+              <p className="label mb-3 text-cobalt">Web Project</p>
+              <div className="space-y-2">
+                {frontmatter.liveSiteUrl && (
+                  <a
+                    href={frontmatter.liveSiteUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center justify-between border border-cobalt bg-cobalt px-3 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                  >
+                    <span>Open Live Site</span>
+                    <ExternalLink size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </a>
+                )}
+                {frontmatter.demoUrl && (
+                  <a
+                    href={frontmatter.demoUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center justify-between border border-border-strong px-3 py-2.5 text-sm font-medium text-text transition-colors hover:border-cobalt hover:text-cobalt"
+                  >
+                    <span>View Demo</span>
+                    <ExternalLink size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  </a>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="border border-border bg-surface-2 p-5">
             <p className="label mb-3">Tags</p>
