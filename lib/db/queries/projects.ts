@@ -22,6 +22,8 @@ interface ProjectWithRelations {
   downloads: { label: string; url: string; type: string }[];
   thumbnail: { url: string } | null;
   githubUrl: string | null;
+  liveSiteUrl: string | null;
+  demoUrl: string | null;
   estimatedTime: string | null;
   completionDate: Date;
   updatedAt: Date;
@@ -60,6 +62,8 @@ function mapProject(project: ProjectWithRelations): DbContentItem<ProjectFrontma
       lastUpdated: toISODate(project.updatedAt),
       thumbnail: project.thumbnail?.url,
       githubUrl: project.githubUrl ?? undefined,
+      liveSiteUrl: project.liveSiteUrl ?? undefined,
+      demoUrl: project.demoUrl ?? undefined,
       downloads: project.downloads.map(
         (download): DownloadLink => ({
           label: download.label,
