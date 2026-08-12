@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/run-strict-build.mjs",
+    "build": "prisma migrate deploy && node scripts/run-strict-build.mjs",
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate",
