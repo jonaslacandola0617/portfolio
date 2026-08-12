@@ -3,15 +3,23 @@
 import * as React from "react";
 import { useTheme } from "next-themes";
 
+let renderQueue: Promise<void> = Promise.resolve();
+
+function enqueueMermaidRender<T>(task: () => Promise<T>): Promise<T> {
+  const run = renderQueue.then(task, task);
+  renderQueue = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
 function normalizeMermaidSource(source: string) {
   let normalized = source.trim();
 
-  // Be forgiving when source is pasted with a Markdown fence.
   const fenced = normalized.match(/^```(?:mermaid)?\s*\n?([\s\S]*?)\n?```$/i);
   if (fenced?.[1]) normalized = fenced[1].trim();
 
-  // Mermaid 11 uses the stable `block` diagram name. Keep older content that
-  // used the beta alias working instead of leaving the renderer in an error state.
   normalized = normalized.replace(/^block-beta(?=\s|$)/i, "block");
 
   return normalized;
@@ -21,6 +29,21 @@ function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) return error.message;
   if (typeof error === "string") return error;
   return "Mermaid could not render this diagram.";
+}
+
+function createRenderHost(source: string) {
+  const host = document.createElement("div");
+  host.className = "mermaid";
+  host.textContent = source;
+  host.style.position = "fixed";
+  host.style.left = "-100000px";
+  host.style.top = "0";
+  host.style.visibility = "hidden";
+  host.style.pointerEvents = "none";
+  host.style.width = "max-content";
+  host.style.maxWidth = "none";
+  document.body.appendChild(host);
+  return host;
 }
 
 export function MermaidDiagram({ chart }: { chart: string }) {
@@ -48,7 +71,9 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
     setRendering(true);
 
-    async function render() {
+    void enqueueMermaidRender(async () => {
+      let host: HTMLDivElement | null = null;
+
       try {
         const mermaid = (await import("mermaid")).default;
         if (cancelled || generation !== renderGeneration.current) return;
@@ -78,33 +103,48 @@ export function MermaidDiagram({ chart }: { chart: string }) {
           },
         });
 
-        // A fresh id per render is important in React Strict Mode. Mermaid uses
-        // the id for temporary DOM nodes while rendering; reusing one can make
-        // overlapping effect runs collide and silently fail.
-        const renderId = `mermaid-${generation}-${Date.now()}-${Math.random()
-          .toString(36)
-          .slice(2, 9)}`;
-        const result = await mermaid.render(renderId, source);
+        await mermaid.parse(source);
 
         if (cancelled || generation !== renderGeneration.current) return;
-        setSvg(result.svg);
+
+        // Mermaid owns this temporary element completely. Keeping it outside
+        // React's rendered tree prevents Mermaid from traversing/cloning a DOM
+        // node decorated with React fiber references (which caused the circular
+        // JSON error in block diagrams).
+        host = createRenderHost(source);
+        host.id = `mermaid-host-${generation}-${Math.random()
+          .toString(36)
+          .slice(2, 9)}`;
+
+        // `run({ nodes })` is Mermaid's recommended integration path for
+        // dynamically created diagrams. Rendering is serialized because Mermaid
+        // keeps global parser/config state and concurrent React effects can race.
+        await mermaid.run({
+          nodes: [host],
+          suppressErrors: false,
+        });
+
+        if (cancelled || generation !== renderGeneration.current) return;
+
+        const rendered = host.innerHTML.trim();
+        if (!rendered.includes("<svg")) {
+          throw new Error("Mermaid finished without producing an SVG diagram.");
+        }
+
+        setSvg(rendered);
         setError(null);
       } catch (renderError) {
-        // Do not turn a parser/render failure into an infinite-looking
-        // "Rendering diagram..." state. Expose the actual Mermaid error so the
-        // source can be corrected immediately.
         console.error("Mermaid diagram render failed", renderError);
         if (cancelled || generation !== renderGeneration.current) return;
         setSvg("");
         setError(getErrorMessage(renderError));
       } finally {
+        host?.remove();
         if (!cancelled && generation === renderGeneration.current) {
           setRendering(false);
         }
       }
-    }
-
-    void render();
+    });
 
     return () => {
       cancelled = true;
