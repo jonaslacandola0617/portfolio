@@ -101,7 +101,7 @@ export async function GET() {
                 color: colors.cobalt,
               }}
             >
-              Portfolio · Cybersecurity · Networking
+              Portfolio · Web Development · IT · Networking
             </div>
             <div
               style={{
