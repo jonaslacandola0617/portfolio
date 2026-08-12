@@ -25,6 +25,8 @@ export const projectFormSchema = z.object({
   estimatedTime: z.string().max(100).optional().default(""),
   completionDate: z.string().min(1, "Completion date is required"),
   githubUrl: httpsUrlSchema.optional().or(z.literal("")),
+  liveSiteUrl: httpsUrlSchema.optional().or(z.literal("")),
+  demoUrl: httpsUrlSchema.optional().or(z.literal("")),
   scheduledFor: z.string().optional().or(z.literal("")),
   templateId: z.enum(["project-blank", "project-web", "project-software", "project-networking", "project-cybersecurity", "project-migration"]).default("project-blank"),
 });
