@@ -7,22 +7,24 @@ import type { AboutPageValues } from "@/lib/validations/about";
 export const defaultAboutPage: AboutPageValues = {
   profileImageUrl: null,
   quote:
-    "I got into this field by taking things apart — first literally, then packet by packet.",
+    "I learn best by building things, breaking things, and figuring out why they work.",
   background:
-    "I'm building toward a career in cybersecurity and network administration, coming at it from the hands-on side first: Packet Tracer topologies, Wireshark captures, and small scripts that automate the boring parts of watching a system. Everything on this site is real work I've done, documented the way I'd want a future teammate to find it.",
+    "I work across web development, IT support, networking, and cybersecurity. I enjoy building practical applications as much as understanding the systems underneath them. My work includes full-stack web applications, APIs, e-commerce projects, networking labs, and technical documentation — each one built around solving a real problem and learning by doing.",
   currentFocus:
-    "Right now that means working through the CCNA curriculum and the Google Cybersecurity Professional Certificate in parallel — networking fundamentals on one track, security operations on the other — because most real incidents sit at the intersection of both.",
+    "I'm currently sharpening my PHP and Laravel skills while continuing to build with React, Next.js, TypeScript, and SQL. Alongside development, I'm strengthening my networking and cybersecurity foundation through Cisco labs, Linux, troubleshooting, and structured security training.",
   focusTags: [
-    "Google Cybersecurity",
-    "Cisco CCNA",
+    "Laravel",
+    "PHP",
+    "React",
+    "Next.js",
+    "TypeScript",
+    "SQL",
     "Linux",
     "Networking",
-    "Python",
-    "Packet Tracer",
-    "Wireshark",
+    "Cybersecurity",
   ],
   learningPhilosophy:
-    "I don't consider something learned until I've done it hands-on and written it down. That's the whole premise of this site: every lab has commands and verification steps, every project has objectives and outcomes, and every journal entry is dated the day the idea actually clicked.",
+    "I don't consider something learned just because I've read the documentation or completed a course. I want to build with it, troubleshoot it, understand what went wrong, and be able to explain it afterward. That's why this portfolio includes both finished work and the process behind what I've learned.",
   whatsNext:
-    "Finishing the CCNA and Google Cybersecurity tracks, then applying that foundation toward entry-level SOC or network administration roles — ideally somewhere I can keep learning in public the way I have here.",
+    "I'm focused on shipping stronger web applications, refining the projects in this portfolio, and pursuing opportunities where I can contribute across web development, IT support, and technical problem solving while continuing to deepen my networking and cybersecurity skills.",
 };
