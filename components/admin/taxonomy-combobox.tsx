@@ -59,7 +59,8 @@ export function TaxonomyCombobox({
   defaultValue = "",
   allowCreate = true,
   required,
-}: CommonProps & { defaultValue?: string; required?: boolean }) {
+  onValueChange,
+}: CommonProps & { defaultValue?: string; required?: boolean; onValueChange?: (value: string) => void }) {
   const [value, setValue] = useState(defaultValue);
   const [query, setQuery] = useState(defaultValue);
   const [open, setOpen] = useState(false);
@@ -93,6 +94,7 @@ export function TaxonomyCombobox({
     const clean = next.trim().replace(/\s+/g, " ");
     setValue(clean);
     setQuery(clean);
+    onValueChange?.(clean);
     setOpen(false);
   };
 
@@ -110,8 +112,10 @@ export function TaxonomyCombobox({
         value={query}
         onFocus={() => setOpen(true)}
         onChange={(event) => {
-          setQuery(event.target.value);
-          setValue(event.target.value);
+          const next = event.target.value;
+          setQuery(next);
+          setValue(next);
+          onValueChange?.(next);
           setOpen(true);
         }}
         onKeyDown={(event) => {
