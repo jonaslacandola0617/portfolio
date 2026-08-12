@@ -44,6 +44,8 @@ function parseFormData(formData: FormData) {
     estimatedTime: formData.get("estimatedTime") ?? "",
     completionDate: formData.get("completionDate"),
     githubUrl: formData.get("githubUrl") ?? "",
+    liveSiteUrl: formData.get("liveSiteUrl") ?? "",
+    demoUrl: formData.get("demoUrl") ?? "",
     scheduledFor: formData.get("scheduledFor") ?? "",
     templateId: formData.get("templateId") ?? "project-blank",
   };
