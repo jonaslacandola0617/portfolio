@@ -50,6 +50,8 @@ interface ProjectFormProps {
     estimatedTime: string;
     completionDate: string;
     githubUrl: string;
+    liveSiteUrl: string;
+    demoUrl: string;
     scheduledFor: string;
     content: JSONContent;
   };
@@ -70,6 +72,10 @@ const publishStatusOptions = [
 function FieldError({ errors }: { errors?: string[] }) {
   if (!errors?.length) return null;
   return <p className="mt-1 text-xs text-destructive">{errors[0]}</p>;
+}
+
+function isWebDevelopmentCategory(value: string) {
+  return value.trim().replace(/\s+/g, " ").toLocaleLowerCase() === "web development";
 }
 
 export function ProjectForm({
@@ -93,10 +99,12 @@ export function ProjectForm({
   const [title, setTitle] = useState(project?.title ?? "");
   const [slug, setSlug] = useState(project?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(false);
+  const [category, setCategory] = useState(project?.category ?? "");
   const [publishStatus, setPublishStatus] = useState(
     project?.publishStatus ?? "DRAFT",
   );
   const editorForm = useEditorFormCoordination(mode === "edit", formAction);
+  const isWebDevelopment = isWebDevelopmentCategory(category);
 
   return (
     <AuthoringWorkspace
@@ -199,6 +207,7 @@ export function ProjectForm({
                     kind="category"
                     label="Category"
                     defaultValue={project?.category}
+                    onValueChange={setCategory}
                     required
                   />
                   <FieldError errors={state.errors?.category} />
@@ -291,6 +300,41 @@ export function ProjectForm({
                   <FieldError errors={state.errors?.githubUrl} />
                 </div>
               </div>
+
+              {isWebDevelopment && (
+                <div className="border border-cobalt/30 bg-cobalt/5 p-4">
+                  <div className="mb-4">
+                    <p className="label text-cobalt">Web Project Links</p>
+                    <p className="mt-1 text-xs leading-5 text-text-dim">
+                      These links appear prominently in the public project sidebar for employers.
+                    </p>
+                  </div>
+                  <div className={mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"}>
+                    <div>
+                      <Label htmlFor="liveSiteUrl">Live Site URL</Label>
+                      <Input
+                        id="liveSiteUrl"
+                        name="liveSiteUrl"
+                        type="url"
+                        placeholder="https://example.com"
+                        defaultValue={project?.liveSiteUrl}
+                      />
+                      <FieldError errors={state.errors?.liveSiteUrl} />
+                    </div>
+                    <div>
+                      <Label htmlFor="demoUrl">Demo URL</Label>
+                      <Input
+                        id="demoUrl"
+                        name="demoUrl"
+                        type="url"
+                        placeholder="https://..."
+                        defaultValue={project?.demoUrl}
+                      />
+                      <FieldError errors={state.errors?.demoUrl} />
+                    </div>
+                  </div>
+                </div>
+              )}
 
               <SegmentedStatusField
                 name="publishStatus"
