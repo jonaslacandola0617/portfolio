@@ -11,16 +11,20 @@ import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Cybersecurity & Networking Resume",
+  title: "Jonas Lacandola Resume | Web Development, IT & Networking",
   description:
-    "Review Jonas Lacandola's current resume, technical experience, certifications, networking background, cybersecurity training, and hands-on portfolio work.",
+    "Review Jonas Lacandola's resume covering web development, IT support, technical support, networking, cybersecurity training, certifications, and hands-on software projects.",
   path: "/resume",
   keywords: [
-    "cybersecurity analyst resume",
-    "network administrator resume",
-    "IT support resume",
-    "networking resume",
     "Jonas Lacandola resume",
+    "web developer resume",
+    "Laravel developer resume",
+    "PHP developer resume",
+    "React developer resume",
+    "IT support resume",
+    "technical support resume",
+    "networking resume",
+    "cybersecurity resume",
   ],
 });
 
