@@ -20,6 +20,7 @@ export default async function EditProjectPage({ params }: { params: ProjectEditP
         tags: project.tags.map((t) => t.name), skills: project.skills.map((s) => s.name),
         technologies: project.technologies, estimatedTime: project.estimatedTime ?? "",
         completionDate: project.completionDate.toISOString().slice(0, 10), githubUrl: project.githubUrl ?? "",
+        liveSiteUrl: project.liveSiteUrl ?? "", demoUrl: project.demoUrl ?? "",
         scheduledFor: project.scheduledFor ? project.scheduledFor.toISOString().slice(0, 16) : "",
         content: project.content as never,
       }}
