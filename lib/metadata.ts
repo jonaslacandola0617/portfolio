@@ -3,6 +3,24 @@ import { siteConfig } from "@/lib/site-config";
 
 export const DEFAULT_SOCIAL_IMAGE = new URL("/api/og", siteConfig.siteUrl).toString();
 
+const BASE_PORTFOLIO_KEYWORDS = [
+  "Jonas Lacandola",
+  "web developer portfolio",
+  "Laravel developer",
+  "PHP developer",
+  "React developer",
+  "Next.js developer",
+  "TypeScript developer",
+  "full stack web development",
+  "web application development",
+  "API development",
+  "SQL",
+  "IT support",
+  "technical support",
+  "networking portfolio",
+  "cybersecurity portfolio",
+] as const;
+
 function cleanDescription(value: string) {
   return value.replace(/\s+/g, " ").trim();
 }
@@ -59,13 +77,15 @@ export function buildStaticPageMetadata({
 }): Metadata {
   const socialDescription = cleanDescription(description);
   const canonicalUrl = new URL(path, siteConfig.siteUrl).toString();
-  const pageKeywords = Array.from(new Set(keywords.filter(Boolean)));
+  const pageKeywords = Array.from(
+    new Set([...BASE_PORTFOLIO_KEYWORDS, ...keywords].filter(Boolean)),
+  );
 
   return {
     title,
     description: socialDescription,
     alternates: { canonical: path },
-    keywords: pageKeywords.length ? pageKeywords : undefined,
+    keywords: pageKeywords,
     openGraph: {
       type: "website",
       title,
@@ -112,7 +132,9 @@ export function buildContentMetadata({
 }): Metadata {
   const socialDescription = cleanDescription(description);
   const canonicalUrl = new URL(path, siteConfig.siteUrl).toString();
-  const socialTags = Array.from(new Set(tags.filter(Boolean)));
+  const socialTags = Array.from(
+    new Set([...BASE_PORTFOLIO_KEYWORDS, ...tags].filter(Boolean)),
+  );
   const socialImage = image ?? DEFAULT_SOCIAL_IMAGE;
   const images = [
     {
@@ -127,7 +149,7 @@ export function buildContentMetadata({
     alternates: {
       canonical: path,
     },
-    keywords: socialTags.length ? socialTags : undefined,
+    keywords: socialTags,
     openGraph: {
       type: "article",
       title,
