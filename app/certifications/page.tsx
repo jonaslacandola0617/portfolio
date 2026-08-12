@@ -4,16 +4,19 @@ import { getAllCertificates } from "@/lib/db/queries/certificates";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Cybersecurity & Networking Certifications",
+  title: "IT, Web Development, Networking & Cybersecurity Certifications",
   description:
-    "Professional certifications and technical coursework completed by Jonas Lacandola across cybersecurity, networking, CCNA, IT support, and software development.",
+    "Professional certifications and technical coursework completed by Jonas Lacandola across IT support, web development, networking, cybersecurity, Linux, and software development.",
   path: "/certifications",
   keywords: [
-    "cybersecurity certifications",
-    "CCNA certifications",
-    "Google Cybersecurity certificate",
-    "networking certifications",
     "IT certifications",
+    "web development certifications",
+    "software development coursework",
+    "Google IT Support certificate",
+    "Google Cybersecurity certificate",
+    "Cisco networking certifications",
+    "CCNA coursework",
+    "networking certifications",
   ],
 });
 
