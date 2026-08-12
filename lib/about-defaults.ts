@@ -7,11 +7,11 @@ import type { AboutPageValues } from "@/lib/validations/about";
 export const defaultAboutPage: AboutPageValues = {
   profileImageUrl: null,
   quote:
-    "I learn best by building things, breaking things, and figuring out why they work.",
+    "I'm Jonas Lacandola, a web developer and technical problem solver who builds practical applications, troubleshoots systems, and continues to deepen my skills in networking and cybersecurity.",
   background:
-    "I work across web development, IT support, networking, and cybersecurity. I enjoy building practical applications as much as understanding the systems underneath them. My work includes full-stack web applications, APIs, e-commerce projects, networking labs, and technical documentation — each one built around solving a real problem and learning by doing.",
+    "My work spans software development and IT. I've built full-stack web applications, APIs, e-commerce projects, and technical tools, while also gaining professional experience in client support, data management, documentation, and handling sensitive information. That combination has shaped how I approach technology: understand the problem, build or troubleshoot the right solution, and communicate it clearly.",
   currentFocus:
-    "I'm currently sharpening my PHP and Laravel skills while continuing to build with React, Next.js, TypeScript, and SQL. Alongside development, I'm strengthening my networking and cybersecurity foundation through Cisco labs, Linux, troubleshooting, and structured security training.",
+    "My current focus is web development, particularly PHP and Laravel alongside React, Next.js, TypeScript, and SQL. In parallel, I continue building my networking and security foundation through Cisco labs, Linux, troubleshooting, and cybersecurity training.",
   focusTags: [
     "Laravel",
     "PHP",
@@ -24,7 +24,7 @@ export const defaultAboutPage: AboutPageValues = {
     "Cybersecurity",
   ],
   learningPhilosophy:
-    "I don't consider something learned just because I've read the documentation or completed a course. I want to build with it, troubleshoot it, understand what went wrong, and be able to explain it afterward. That's why this portfolio includes both finished work and the process behind what I've learned.",
+    "I learn fastest by building. When I pick up a technology, I want to use it in a real project, run into the problems that come with it, troubleshoot them, and understand the decisions behind the solution. This portfolio documents both what I've built and what I learned while building it.",
   whatsNext:
-    "I'm focused on shipping stronger web applications, refining the projects in this portfolio, and pursuing opportunities where I can contribute across web development, IT support, and technical problem solving while continuing to deepen my networking and cybersecurity skills.",
+    "I'm looking for opportunities where I can contribute in web development, IT support, or broader technical roles while continuing to build stronger applications and deepen my networking and cybersecurity skills.",
 };
