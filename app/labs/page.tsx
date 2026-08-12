@@ -4,15 +4,18 @@ import { getAllLabs } from "@/lib/content";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Networking & Cybersecurity Labs",
+  title: "Technical Labs | Networking, Cybersecurity & IT",
   description:
-    "Hands-on CCNA, Packet Tracer, networking, Linux, and cybersecurity labs by Jonas Lacandola, including configurations, troubleshooting, mistakes, and lessons learned.",
+    "Hands-on networking, CCNA, Packet Tracer, Linux, cybersecurity, and systems troubleshooting labs by Jonas Lacandola, including configurations, mistakes, fixes, and lessons learned.",
   path: "/labs",
   keywords: [
+    "technical labs",
     "CCNA labs",
     "Packet Tracer labs",
     "networking labs",
     "cybersecurity labs",
+    "Linux labs",
+    "IT troubleshooting labs",
     "VLAN lab",
     "routing lab",
   ],
