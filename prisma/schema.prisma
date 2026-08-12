@@ -120,6 +120,8 @@ model Project {
   thumbnail      Media?         @relation("ProjectThumbnail", fields: [thumbnailId], references: [id])
   thumbnailId    String?
   githubUrl      String?
+  liveSiteUrl    String?
+  demoUrl        String?
   estimatedTime  String?
   completionDate DateTime
   publishedAt    DateTime?
