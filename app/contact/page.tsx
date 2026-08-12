@@ -5,15 +5,20 @@ import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Contact | Cybersecurity & Networking Opportunities",
+  title: "Contact Jonas Lacandola | Web Development, IT & Technical Roles",
   description:
-    "Contact Jonas Lacandola about entry-level cybersecurity, SOC, network administration, IT support, and technical opportunities in the Philippines or remote.",
+    "Contact Jonas Lacandola about web development, PHP and Laravel, React and Next.js, IT support, technical support, networking, cybersecurity, and other technical opportunities in the Philippines or remote.",
   path: "/contact",
   keywords: [
-    "cybersecurity analyst Philippines",
-    "SOC analyst Philippines",
-    "network administrator Philippines",
+    "web developer Philippines",
+    "Laravel developer Philippines",
+    "PHP developer Philippines",
+    "React developer Philippines",
+    "Next.js developer Philippines",
     "IT support Philippines",
+    "technical support Philippines",
+    "networking Philippines",
+    "cybersecurity Philippines",
     "Jonas Lacandola contact",
   ],
 });
@@ -26,7 +31,7 @@ export default async function ContactPage() {
         index="07"
         eyebrow="Reach Out"
         title="Contact"
-        description="Open to entry-level SOC, network administration, and IT support roles — remote or on-site."
+        description="Open to web development, IT support, technical support, networking, and broader technical opportunities — remote or on-site."
       />
       <PageShell>
         <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
