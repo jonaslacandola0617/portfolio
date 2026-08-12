@@ -7,17 +7,20 @@ import { buildStaticPageMetadata } from "@/lib/metadata";
 import { formatDate } from "@/lib/utils";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Cybersecurity & Networking Learning Journal",
+  title: "Web Development, IT & Networking Learning Journal",
   description:
-    "A practical learning journal covering CCNA, networking, VLANs, routing, cybersecurity, Linux, and hands-on technical problem solving.",
+    "A practical technical learning journal covering web development, PHP, Laravel, React, Next.js, networking, CCNA, cybersecurity, Linux, and hands-on problem solving.",
   path: "/journal",
   keywords: [
-    "cybersecurity learning journal",
+    "web development learning journal",
+    "PHP learning notes",
+    "Laravel learning notes",
+    "React learning notes",
+    "Next.js learning notes",
     "CCNA notes",
     "networking notes",
-    "VLAN learning",
-    "routing notes",
-    "cybersecurity portfolio journal",
+    "cybersecurity learning journal",
+    "technical learning journal",
   ],
 });
 
@@ -29,7 +32,7 @@ export default async function JournalPage() {
         index="04"
         eyebrow="Learning Journal"
         title="Journal"
-        description="Notes on networking and security concepts, written as I learn them — dated, practical, and tied back to hands-on work."
+        description="Notes from web development, networking, security, and broader technical learning — practical, dated, and tied back to hands-on work."
       />
       <PageShell>
         <div className="divide-y divide-border border-y border-border">
