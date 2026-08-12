@@ -10,13 +10,6 @@ import { toPrismaJson } from "@/lib/prisma-json";
 import { revalidateContent } from "@/lib/services/content-revalidation";
 import { skillRelationInput } from "@/lib/services/skill-relations";
 
-/**
- * Hand-written, same reasoning as lib/db/queries/projects.ts's
- * `ProjectWithRelations` — `@prisma/client`'s generated types don't
- * exist until `prisma generate` runs somewhere with network access to
- * `binaries.prisma.sh`. Swap for `Prisma.ProjectGetPayload<...>` once
- * that's run for real; nothing below needs to change structurally.
- */
 interface AdminProjectListItem {
   id: string;
   title: string;
@@ -42,16 +35,25 @@ interface AdminProjectDetail {
   estimatedTime: string | null;
   completionDate: Date;
   githubUrl: string | null;
+  liveSiteUrl: string | null;
+  demoUrl: string | null;
   scheduledFor: Date | null;
 }
 
-/**
- * Admin-side Project operations. Deliberately separate from
- * lib/db/queries/projects.ts, which is public/read-only and only ever
- * returns PUBLISHED rows — admin screens need every status (to list
- * drafts, edit archived items, etc.), and every function here mutates,
- * which the query layer's contract explicitly doesn't.
- */
+function isWebDevelopmentCategory(category: string) {
+  return category.trim().replace(/\s+/g, " ").toLocaleLowerCase() === "web development";
+}
+
+function webProjectLinks(fm: ProjectFormValues) {
+  if (!isWebDevelopmentCategory(fm.category)) {
+    return { liveSiteUrl: null, demoUrl: null };
+  }
+
+  return {
+    liveSiteUrl: fm.liveSiteUrl || null,
+    demoUrl: fm.demoUrl || null,
+  };
+}
 
 async function relationInput(fm: ProjectFormValues) {
   return {
@@ -99,6 +101,7 @@ export async function createProject(fm: ProjectFormValues) {
       estimatedTime: fm.estimatedTime || null,
       completionDate: new Date(fm.completionDate),
       githubUrl: fm.githubUrl || null,
+      ...webProjectLinks(fm),
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
       publishedAt: fm.publishStatus === "PUBLISHED" ? new Date() : null,
       content: toPrismaJson(getTemplateDocument(fm.templateId, "project")),
@@ -127,11 +130,8 @@ export async function updateProjectMetadata(id: string, fm: ProjectFormValues) {
       estimatedTime: fm.estimatedTime || null,
       completionDate: new Date(fm.completionDate),
       githubUrl: fm.githubUrl || null,
+      ...webProjectLinks(fm),
       scheduledFor: fm.scheduledFor ? new Date(fm.scheduledFor) : null,
-      // Only stamp publishedAt the moment status *becomes* PUBLISHED —
-      // don't touch it on every subsequent edit of an already-published
-      // project, or "originally published" becomes "last edited," which
-      // is what updatedAt is already for.
       ...(fm.publishStatus === "PUBLISHED" && existing?.publishStatus !== "PUBLISHED"
         ? { publishedAt: new Date() }
         : {}),
@@ -145,9 +145,6 @@ export async function updateProjectMetadata(id: string, fm: ProjectFormValues) {
   return project;
 }
 
-/** The autosave path — only touches `content`, called far more often
- *  than the metadata form is submitted, so it's a separate, smaller
- *  write rather than reusing updateProjectMetadata for this. */
 export async function updateProjectContent(id: string, content: TipTapDoc) {
   const project = await prisma.project.update({
     where: { id },
@@ -164,15 +161,6 @@ export async function deleteProject(id: string) {
   revalidateContent("project", [project.slug]);
 }
 
-/** Bulk delete for the management page's checkbox selection (added
- *  during the pre-Phase-6 stabilization pass, Workstream D). Wrapped in
- *  a transaction: the slugs are read and the rows deleted as one atomic
- *  unit, so a delete can't run against a set of ids that's already
- *  drifted from what was read (and so revalidation always matches what
- *  was actually removed). `deleteMany` itself is also a single SQL
- *  statement, so this is atomic even without the explicit transaction —
- *  the transaction's real purpose is keeping the find+delete pair
- *  consistent. */
 export async function deleteProjects(ids: string[]): Promise<number> {
   const slugs = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const records = await tx.project.findMany({ where: { id: { in: ids } }, select: { slug: true } });
@@ -181,6 +169,5 @@ export async function deleteProjects(ids: string[]): Promise<number> {
   });
 
   revalidateContent("project", slugs);
-
   return slugs.length;
 }
