@@ -7,11 +7,11 @@
 export const siteConfig = {
   name: "Jonas Lacandola",
   initials: "JL",
-  role: "Aspiring Cybersecurity Analyst",
+  role: "Web Developer · IT Support · Networking & Cybersecurity",
   tagline:
-    "Focused on networking, security operations, and continuous, documented learning.",
+    "I build practical web applications, troubleshoot systems, and document what I learn across software, networking, and security.",
   location:
-    "Based in the Philippines \u00b7 open to remote & on-site SOC/NetAdmin roles",
+    "Based in the Philippines · open to remote & on-site web development, IT support, and technical roles",
   email: "jonas.lacandola.sec@protonmail.com",
   social: {
     github: "https://github.com/jonaslacandola-sec",
@@ -21,7 +21,7 @@ export const siteConfig = {
   resumeUrl: "/resume.pdf",
   siteUrl: "https://www.jonasl.online",
   description:
-    "Cybersecurity & networking portfolio — labs, projects, and a running learning journal covering CCNA, Google Cybersecurity, Linux, and packet analysis.",
+    "Web development, IT support, networking, and cybersecurity portfolio by Jonas Lacandola — full-stack applications, APIs, technical projects, labs, and documented learning.",
 
   currentlyLearning: [
     { label: "CCNA — Module 8: Subnetting", href: "/certifications" },
@@ -38,13 +38,14 @@ export const siteConfig = {
   ],
 
   currentFocusStack: [
-    "Google Cybersecurity",
-    "Cisco CCNA",
-    "Linux",
+    "Laravel",
+    "PHP",
+    "React",
+    "Next.js",
+    "TypeScript",
+    "SQL",
     "Networking",
-    "Python",
-    "Packet Tracer",
-    "Wireshark",
+    "Cybersecurity",
   ],
 } as const;
 
