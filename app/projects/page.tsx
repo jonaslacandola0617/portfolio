@@ -4,16 +4,21 @@ import { getAllProjects } from "@/lib/content";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Cybersecurity & Networking Projects",
+  title: "Web Development, IT & Networking Projects",
   description:
-    "Explore hands-on networking, cybersecurity, and software projects by Jonas Lacandola, documented with objectives, implementation details, evidence, and lessons learned.",
+    "Explore web applications, APIs, software projects, networking labs, and cybersecurity work by Jonas Lacandola, documented with objectives, implementation details, evidence, and lessons learned.",
   path: "/projects",
   keywords: [
-    "cybersecurity projects",
-    "networking projects",
-    "CCNA portfolio",
-    "Packet Tracer projects",
+    "web development projects",
+    "Laravel projects",
+    "PHP projects",
+    "React projects",
+    "Next.js projects",
+    "full stack projects",
+    "API projects",
     "IT portfolio projects",
+    "networking projects",
+    "cybersecurity projects",
   ],
 });
 
@@ -25,7 +30,7 @@ export default async function ProjectsPage() {
         index="02"
         eyebrow="Index"
         title="Projects"
-        description="Applied work across networking, security, and software — each entry documented as a self-contained case study: objective, process, and evidence."
+        description="Applied work across web development, IT, networking, and security — each entry documented as a self-contained case study: objective, process, and evidence."
       />
       <PageShell>
         {projects.length ? (
