@@ -28,6 +28,19 @@ function normalizeMermaidSource(source: string) {
 function getErrorMessage(error: unknown) {
   if (error instanceof Error && error.message) return error.message;
   if (typeof error === "string") return error;
+
+  if (error && typeof error === "object") {
+    const candidate = error as {
+      message?: unknown;
+      str?: unknown;
+      description?: unknown;
+    };
+
+    for (const value of [candidate.message, candidate.str, candidate.description]) {
+      if (typeof value === "string" && value.trim()) return value;
+    }
+  }
+
   return "Mermaid could not render this diagram.";
 }
 
@@ -46,6 +59,46 @@ function createRenderHost(source: string) {
   return host;
 }
 
+/**
+ * Mermaid's block-diagram renderer currently JSON.stringify()s its internal
+ * block tree for a debug statement. That tree can contain live HTMLElements.
+ * React adds enumerable __reactFiber / __reactProps fields to those elements,
+ * which makes JSON.stringify walk into React's circular Fiber graph and throw.
+ *
+ * A toJSON hook on HTMLElement prevents that traversal. Keep the workaround
+ * scoped to the serialized Mermaid block render and restore the prototype
+ * immediately afterwards so normal application behavior is unchanged.
+ *
+ * Upstream Mermaid bugs:
+ * - mermaid-js/mermaid#5530
+ * - mermaid-js/mermaid#7907
+ */
+async function withBlockDiagramReactSerializationGuard<T>(
+  task: () => Promise<T>,
+): Promise<T> {
+  const prototype = HTMLElement.prototype;
+  const previousDescriptor = Object.getOwnPropertyDescriptor(prototype, "toJSON");
+
+  Object.defineProperty(prototype, "toJSON", {
+    configurable: true,
+    enumerable: false,
+    writable: true,
+    value: function mermaidHTMLElementToJSON() {
+      return "[HTMLElement]";
+    },
+  });
+
+  try {
+    return await task();
+  } finally {
+    if (previousDescriptor) {
+      Object.defineProperty(prototype, "toJSON", previousDescriptor);
+    } else {
+      delete (prototype as typeof prototype & { toJSON?: () => unknown }).toJSON;
+    }
+  }
+}
+
 export function MermaidDiagram({ chart }: { chart: string }) {
   const [svg, setSvg] = React.useState("");
   const [error, setError] = React.useState<string | null>(null);
@@ -56,6 +109,7 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
   React.useEffect(() => {
     const source = normalizeMermaidSource(chart);
+    const isBlockDiagram = /^block(?=\s|$)/i.test(source);
     const generation = ++renderGeneration.current;
     let cancelled = false;
 
@@ -107,22 +161,22 @@ export function MermaidDiagram({ chart }: { chart: string }) {
 
         if (cancelled || generation !== renderGeneration.current) return;
 
-        // Mermaid owns this temporary element completely. Keeping it outside
-        // React's rendered tree prevents Mermaid from traversing/cloning a DOM
-        // node decorated with React fiber references (which caused the circular
-        // JSON error in block diagrams).
         host = createRenderHost(source);
         host.id = `mermaid-host-${generation}-${Math.random()
           .toString(36)
           .slice(2, 9)}`;
 
-        // `run({ nodes })` is Mermaid's recommended integration path for
-        // dynamically created diagrams. Rendering is serialized because Mermaid
-        // keeps global parser/config state and concurrent React effects can race.
-        await mermaid.run({
-          nodes: [host],
-          suppressErrors: false,
-        });
+        const runMermaid = () =>
+          mermaid.run({
+            nodes: [host!],
+            suppressErrors: false,
+          });
+
+        if (isBlockDiagram) {
+          await withBlockDiagramReactSerializationGuard(runMermaid);
+        } else {
+          await runMermaid();
+        }
 
         if (cancelled || generation !== renderGeneration.current) return;
 
