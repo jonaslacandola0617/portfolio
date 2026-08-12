@@ -26,6 +26,8 @@ export interface ProjectFrontmatter {
   lastUpdated: string;
   thumbnail?: string;
   githubUrl?: string;
+  liveSiteUrl?: string;
+  demoUrl?: string;
   downloads?: DownloadLink[];
 }
 
