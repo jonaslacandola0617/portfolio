@@ -98,7 +98,10 @@
 
 /* Long-form content follows the same publication system as the prototype. */
 .prose-docs {
-  color: var(--text);
+  /* Keep ordinary content copy at roughly 78% visual strength. This is scoped
+     to long-form content only; headings, emphasis, links and special blocks
+     keep their own colors below. */
+  color: color-mix(in srgb, var(--text) 78%, var(--surface));
   font-size: .9375rem;
   line-height: 1.75;
   max-width: 68ch;
@@ -122,7 +125,7 @@
 .prose-docs img { margin: 1.5rem 0; border: 1px solid var(--border); }
 .prose-docs hr { margin: 2.5rem 0; border-color: var(--border); }
 .prose-docs table { width: 100%; margin: 1.5rem 0; border-collapse: collapse; font-size: .875rem; }
-.prose-docs th { border: 1px solid var(--border); background: var(--surface-3); padding: .5rem .75rem; text-align: left; font-family: var(--font-space-grotesk), sans-serif; font-weight: 500; }
+.prose-docs th { border: 1px solid var(--border); background: var(--surface-3); padding: .5rem .75rem; text-align: left; font-family: var(--font-space-grotesk), sans-serif; font-weight: 500; color: var(--text); }
 .prose-docs td { border: 1px solid var(--border); padding: .5rem .75rem; vertical-align: top; }
 .editor-workspace .prose-docs { max-width: none; }
 .editor-workspace .prose-docs > p,.editor-workspace .prose-docs > h1,.editor-workspace .prose-docs > h2,.editor-workspace .prose-docs > h3,.editor-workspace .prose-docs > h4,.editor-workspace .prose-docs > blockquote,.editor-workspace .prose-docs > ul,.editor-workspace .prose-docs > ol { max-width: 72ch; }
