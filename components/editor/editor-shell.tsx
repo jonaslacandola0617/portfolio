@@ -303,12 +303,18 @@ export function EditorShell({
         providerWarning={authenticity.providerWarning}
         notice={authenticity.notice}
         errorMessage={authenticity.errorMessage}
+        suggestions={authenticity.suggestions}
+        suggestionStatuses={authenticity.suggestionStatuses}
+        suggestionErrors={authenticity.suggestionErrors}
         onCheck={() => {
           proofreading.setPanelOpen(false);
           void authenticity.runCheck();
         }}
         onClosePanel={() => authenticity.setPanelOpen(false)}
         onSelectIssue={authenticity.selectIssue}
+        onRequestSuggestion={(issue) => {
+          void authenticity.requestSuggestion(issue);
+        }}
       />
     </div>
   );
