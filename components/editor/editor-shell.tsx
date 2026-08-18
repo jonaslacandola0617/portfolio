@@ -102,8 +102,8 @@ export function EditorShell({
     editorProps: {
       attributes: {
         class: "prose-docs min-h-[520px] focus:outline-none",
-        spellcheck: "true",
-        autocorrect: "on",
+        spellcheck: "false",
+        autocorrect: "off",
         autocapitalize: "sentences",
       },
     },
