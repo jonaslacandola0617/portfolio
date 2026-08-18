@@ -365,12 +365,10 @@ function geminiSchema() {
             "summary",
             "reasons",
           ],
-          additionalProperties: false,
         },
       },
     },
     required: ["overallSummary", "paragraphs"],
-    additionalProperties: false,
   };
 }
 
