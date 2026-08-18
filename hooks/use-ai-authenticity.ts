@@ -70,6 +70,26 @@ interface SuggestionResponse {
 
 const MAX_TEXT_BYTES = 24 * 1024;
 
+function shiftRemainingIssues(
+  issues: AIAuthenticityIssue[],
+  replacedIssue: AIAuthenticityIssue,
+  replacement: string,
+) {
+  const delta = replacement.length - (replacedIssue.to - replacedIssue.from);
+
+  return issues.flatMap((issue) => {
+    if (issue.id === replacedIssue.id) return [];
+    if (issue.to <= replacedIssue.from) return [issue];
+    if (issue.from >= replacedIssue.to) {
+      return [{ ...issue, from: issue.from + delta, to: issue.to + delta }];
+    }
+
+    // A flagged range should not normally overlap another flagged range. If it
+    // does, drop it rather than keep a position that may now point at the wrong text.
+    return [];
+  });
+}
+
 export function useAIAuthenticity(
   editor: Editor | null,
   options: {
@@ -96,6 +116,7 @@ export function useAIAuthenticity(
   const requestSequence = useRef(0);
   const suggestionSequence = useRef(0);
   const activeRequest = useRef<AbortController | null>(null);
+  const suppressNextContentUpdate = useRef(false);
 
   const applyIssueSet = useCallback(
     (nextIssues: AIAuthenticityIssue[]) => {
@@ -284,9 +305,65 @@ export function useAIAuthenticity(
     [editor, options.contentType, options.recordId],
   );
 
+  const replaceSuggestion = useCallback(
+    (issue: AIAuthenticityIssue, replacement: string) => {
+      if (!editor || !replacement.trim()) return;
+
+      const currentIndex = issues.findIndex((candidate) => candidate.id === issue.id);
+      suppressNextContentUpdate.current = true;
+      const applied = editor
+        .chain()
+        .focus()
+        .insertContentAt({ from: issue.from, to: issue.to }, replacement)
+        .run();
+
+      if (!applied) {
+        suppressNextContentUpdate.current = false;
+        return;
+      }
+
+      const nextIssues = shiftRemainingIssues(issues, issue, replacement);
+      applyIssueSet(nextIssues);
+
+      const nextSelected =
+        nextIssues[Math.min(Math.max(currentIndex, 0), Math.max(nextIssues.length - 1, 0))] ?? null;
+      setSelectedIssueId(nextSelected?.id ?? null);
+
+      setSuggestions((current) => {
+        const next = { ...current };
+        delete next[issue.id];
+        return next;
+      });
+      setSuggestionStatuses((current) => {
+        const next = { ...current };
+        delete next[issue.id];
+        return next;
+      });
+      setSuggestionErrors((current) => {
+        const next = { ...current };
+        delete next[issue.id];
+        return next;
+      });
+
+      setStatus("ready");
+      setPanelOpen(true);
+      setErrorMessage(null);
+      setNotice(
+        "Replacement applied without running another AI check. Remaining passage scores are retained from the existing scan; use Analyze again only when you want fresh overall scores.",
+      );
+    },
+    [applyIssueSet, editor, issues],
+  );
+
   useEffect(() => {
     if (!editor) return;
-    const onUpdate = () => invalidate();
+    const onUpdate = () => {
+      if (suppressNextContentUpdate.current) {
+        suppressNextContentUpdate.current = false;
+        return;
+      }
+      invalidate();
+    };
     editor.on("update", onUpdate);
     return () => {
       editor.off("update", onUpdate);
@@ -339,6 +416,7 @@ export function useAIAuthenticity(
     suggestionErrors,
     runCheck,
     requestSuggestion,
+    replaceSuggestion,
     selectIssue,
     handleEditorClick,
     setPanelOpen,
