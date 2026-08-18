@@ -13,8 +13,13 @@ import {
   ProofreadingOverlays,
   ProofreadingToolbarButton,
 } from "@/components/editor/proofreading-ui";
+import {
+  AIAuthenticityOverlays,
+  AIAuthenticityToolbarButton,
+} from "@/components/editor/ai-authenticity-ui";
 import { useAutosave } from "@/hooks/use-autosave";
 import { useProofreading } from "@/hooks/use-proofreading";
+import { useAIAuthenticity } from "@/hooks/use-ai-authenticity";
 import {
   serializeTipTapDocument,
   TipTapSerializationError,
@@ -106,6 +111,7 @@ export function EditorShell({
   });
 
   const proofreading = useProofreading(editor);
+  const authenticity = useAIAuthenticity(editor, { recordId, contentType });
 
   const flushCurrent = useCallback(async () => {
     if (!editor) {
@@ -209,9 +215,26 @@ export function EditorShell({
             issueCount={proofreading.issues.length}
             panelOpen={proofreading.panelOpen}
             onCheck={() => {
+              authenticity.setPanelOpen(false);
               void proofreading.runCheck();
             }}
-            onTogglePanel={() => proofreading.setPanelOpen(!proofreading.panelOpen)}
+            onTogglePanel={() => {
+              authenticity.setPanelOpen(false);
+              proofreading.setPanelOpen(!proofreading.panelOpen);
+            }}
+          />
+          <AIAuthenticityToolbarButton
+            status={authenticity.status}
+            issueCount={authenticity.issues.length}
+            panelOpen={authenticity.panelOpen}
+            onCheck={() => {
+              proofreading.setPanelOpen(false);
+              void authenticity.runCheck();
+            }}
+            onTogglePanel={() => {
+              proofreading.setPanelOpen(false);
+              authenticity.setPanelOpen(!authenticity.panelOpen);
+            }}
           />
         </div>
       </div>
@@ -230,7 +253,10 @@ export function EditorShell({
           <div
             className="mt-8"
             onContextMenu={openContextToolbar}
-            onClickCapture={proofreading.handleEditorClick}
+            onClickCapture={(event) => {
+              proofreading.handleEditorClick(event);
+              authenticity.handleEditorClick(event);
+            }}
           >
             <EditorContent editor={editor} />
           </div>
@@ -255,6 +281,7 @@ export function EditorShell({
         popoverPosition={proofreading.popoverPosition}
         canAddSelectedWord={proofreading.canAddSelectedWord}
         onCheck={() => {
+          authenticity.setPanelOpen(false);
           void proofreading.runCheck();
         }}
         onClosePanel={() => proofreading.setPanelOpen(false)}
@@ -263,6 +290,25 @@ export function EditorShell({
         onIgnoreIssue={proofreading.ignoreIssue}
         onAddToDictionary={proofreading.addToDictionary}
         onDismissPopover={proofreading.dismissPopover}
+      />
+
+      <AIAuthenticityOverlays
+        issues={authenticity.issues}
+        status={authenticity.status}
+        panelOpen={authenticity.panelOpen}
+        selectedIssue={authenticity.selectedIssue}
+        overall={authenticity.overall}
+        mode={authenticity.mode}
+        referenceSamples={authenticity.referenceSamples}
+        providerWarning={authenticity.providerWarning}
+        notice={authenticity.notice}
+        errorMessage={authenticity.errorMessage}
+        onCheck={() => {
+          proofreading.setPanelOpen(false);
+          void authenticity.runCheck();
+        }}
+        onClosePanel={() => authenticity.setPanelOpen(false)}
+        onSelectIssue={authenticity.selectIssue}
       />
     </div>
   );
