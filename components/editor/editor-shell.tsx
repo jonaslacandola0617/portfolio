@@ -9,7 +9,12 @@ import {
   EditorContextToolbar,
   type EditorContextPosition,
 } from "@/components/editor/editor-context-toolbar";
+import {
+  ProofreadingOverlays,
+  ProofreadingToolbarButton,
+} from "@/components/editor/proofreading-ui";
 import { useAutosave } from "@/hooks/use-autosave";
+import { useProofreading } from "@/hooks/use-proofreading";
 import {
   serializeTipTapDocument,
   TipTapSerializationError,
@@ -90,10 +95,17 @@ export function EditorShell({
     content: initialContent,
     immediatelyRender: false,
     editorProps: {
-      attributes: { class: "prose-docs min-h-[520px] focus:outline-none" },
+      attributes: {
+        class: "prose-docs min-h-[520px] focus:outline-none",
+        spellcheck: "true",
+        autocorrect: "on",
+        autocapitalize: "sentences",
+      },
     },
     onUpdate: ({ editor }) => notifyChange(editor.getJSON()),
   });
+
+  const proofreading = useProofreading(editor);
 
   const flushCurrent = useCallback(async () => {
     if (!editor) {
@@ -183,7 +195,7 @@ export function EditorShell({
     contentType === "certificate" ? undefined : applyTemplate;
 
   return (
-    <div className="editor-workspace flex h-full min-h-0 flex-col bg-surface">
+    <div className="editor-workspace relative flex h-full min-h-0 flex-col bg-surface">
       <div className="z-10 shrink-0 border-b border-border bg-surface/95 backdrop-blur">
         <div className="thin-scroll flex items-center gap-1 overflow-x-auto px-5 pb-2.5">
           <EditorToolbar
@@ -192,18 +204,34 @@ export function EditorShell({
             contentType={toolbarContentType}
             onApplyTemplate={toolbarApplyTemplate}
           />
+          <ProofreadingToolbarButton
+            status={proofreading.status}
+            issueCount={proofreading.issues.length}
+            panelOpen={proofreading.panelOpen}
+            onCheck={() => {
+              void proofreading.runCheck();
+            }}
+            onTogglePanel={() => proofreading.setPanelOpen(!proofreading.panelOpen)}
+          />
         </div>
       </div>
 
       <div
         className="thin-scroll min-h-0 flex-1 overflow-auto bg-surface px-5 py-8 sm:px-10 lg:px-0"
-        onScroll={dismissContextToolbar}
+        onScroll={() => {
+          dismissContextToolbar();
+          proofreading.dismissPopover();
+        }}
       >
         <div className="mx-auto max-w-3xl">
           <h1 className="font-display text-3xl font-semibold text-text sm:text-4xl">
             {documentTitle || "Untitled Draft"}
           </h1>
-          <div className="mt-8" onContextMenu={openContextToolbar}>
+          <div
+            className="mt-8"
+            onContextMenu={openContextToolbar}
+            onClickCapture={proofreading.handleEditorClick}
+          >
             <EditorContent editor={editor} />
           </div>
         </div>
@@ -216,6 +244,25 @@ export function EditorShell({
         contentType={toolbarContentType}
         onApplyTemplate={toolbarApplyTemplate}
         onDismiss={dismissContextToolbar}
+      />
+
+      <ProofreadingOverlays
+        issues={proofreading.issues}
+        status={proofreading.status}
+        errorMessage={proofreading.errorMessage}
+        panelOpen={proofreading.panelOpen}
+        selectedIssue={proofreading.selectedIssue}
+        popoverPosition={proofreading.popoverPosition}
+        canAddSelectedWord={proofreading.canAddSelectedWord}
+        onCheck={() => {
+          void proofreading.runCheck();
+        }}
+        onClosePanel={() => proofreading.setPanelOpen(false)}
+        onSelectIssue={proofreading.selectIssue}
+        onApplySuggestion={proofreading.applySuggestion}
+        onIgnoreIssue={proofreading.ignoreIssue}
+        onAddToDictionary={proofreading.addToDictionary}
+        onDismissPopover={proofreading.dismissPopover}
       />
     </div>
   );

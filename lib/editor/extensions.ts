@@ -11,6 +11,7 @@ import { CalloutExtension } from "./extensions/callout";
 import { CommandBlockExtension } from "./extensions/command-block";
 import { MermaidExtension } from "./extensions/mermaid";
 import { MediaAttachmentExtension, MediaImageExtension } from "./extensions/media";
+import { ProofreadingExtension } from "./proofreading";
 
 /**
  * The runtime counterpart to types/tiptap.ts + lib/validations/content.ts.
@@ -18,9 +19,10 @@ import { MediaAttachmentExtension, MediaImageExtension } from "./extensions/medi
  * StarterKit's paragraph/heading/blockquote/horizontalRule/bulletList/
  * orderedList/listItem/codeBlock already do by construction (TipTap's
  * default JSON node names), and Table, TaskList/TaskItem, and Link are
- * configured to match too. The 3 custom extensions (Callout,
- * CommandBlock, Mermaid, under lib/editor/extensions/) are hand-written
- * specifically to match the schema's attrs shape.
+ * configured to match too. The custom schema extensions under
+ * lib/editor/extensions/ are hand-written specifically to match the
+ * schema's attrs shape. ProofreadingExtension is editor-only behavior and
+ * deliberately adds no node or mark to saved content.
  *
  * `components/shared/content-renderer.tsx` does NOT import this file —
  * it's a plain recursive function reading the same JSON schema
@@ -81,5 +83,6 @@ export function getEditorExtensions() {
     MermaidExtension,
     MediaImageExtension,
     MediaAttachmentExtension,
+    ProofreadingExtension,
   ];
 }
