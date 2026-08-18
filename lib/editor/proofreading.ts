@@ -207,6 +207,18 @@ export function mapProofreadingRange(
   // separators, don't guess at a document position.
   if (plainFrom < first.plainFrom || plainTo > last.plainTo) return null;
 
+  // A match can start and end in valid prose while still crossing an omitted
+  // inline-code/link span in the middle. Require every character in the
+  // requested plain-text range to be covered by mapped prose segments. Any
+  // uncovered gap means the issue touches content that proofreading skips.
+  let coveredUntil = plainFrom;
+  for (const segment of overlapping) {
+    if (segment.plainFrom > coveredUntil) return null;
+    coveredUntil = Math.max(coveredUntil, Math.min(plainTo, segment.plainTo));
+    if (coveredUntil >= plainTo) break;
+  }
+  if (coveredUntil < plainTo) return null;
+
   const from = first.docFrom + (plainFrom - first.plainFrom);
   const to = last.docFrom + (plainTo - last.plainFrom);
   if (to <= from) return null;
