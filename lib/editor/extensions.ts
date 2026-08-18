@@ -57,8 +57,11 @@ import { AIAuthenticityExtension } from "./ai-authenticity";
 export function getEditorExtensions() {
   return [
     StarterKit.configure({
+      code: {
+        HTMLAttributes: { spellcheck: "false" },
+      },
       codeBlock: {
-        HTMLAttributes: { class: "not-prose" },
+        HTMLAttributes: { class: "not-prose", spellcheck: "false" },
       },
       link: false,
       underline: false,
