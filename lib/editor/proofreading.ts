@@ -212,9 +212,25 @@ export function mapProofreadingRange(
   // requested plain-text range to be covered by mapped prose segments. Any
   // uncovered gap means the issue touches content that proofreading skips.
   let coveredUntil = plainFrom;
+  let previousSegment: ProofreadingSegment | null = null;
   for (const segment of overlapping) {
     if (segment.plainFrom > coveredUntil) return null;
+
+    // Omitted inline code/links can leave two mapped prose segments directly
+    // adjacent in the plain-text source even though their ProseMirror
+    // positions are separated by skipped document content. Reject any match
+    // that crosses that hidden document jump; otherwise LanguageTool can
+    // mistake the spaces around inline code for consecutive spaces.
+    if (previousSegment) {
+      const previousLength = previousSegment.plainTo - previousSegment.plainFrom;
+      const expectedDocFrom = previousSegment.docFrom + previousLength;
+      if (segment.plainFrom === previousSegment.plainTo && segment.docFrom !== expectedDocFrom) {
+        return null;
+      }
+    }
+
     coveredUntil = Math.max(coveredUntil, Math.min(plainTo, segment.plainTo));
+    previousSegment = segment;
     if (coveredUntil >= plainTo) break;
   }
   if (coveredUntil < plainTo) return null;
