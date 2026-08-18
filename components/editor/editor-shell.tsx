@@ -315,6 +315,14 @@ export function EditorShell({
         onRequestSuggestion={(issue) => {
           void authenticity.requestSuggestion(issue);
         }}
+        onReplaceSuggestion={(issue, replacement) => {
+          if (!editor) return;
+          editor
+            .chain()
+            .focus()
+            .insertContentAt({ from: issue.from, to: issue.to }, replacement)
+            .run();
+        }}
       />
     </div>
   );
