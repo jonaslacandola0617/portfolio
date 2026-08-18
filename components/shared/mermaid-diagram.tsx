@@ -1,7 +1,9 @@
 "use client";
 
 import * as React from "react";
+import { Maximize2 } from "lucide-react";
 import { useTheme } from "next-themes";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 
 let renderQueue: Promise<void> = Promise.resolve();
 
@@ -60,6 +62,31 @@ function createRenderHost(source: string) {
 }
 
 /**
+ * The regular diagram and the enlarged diagram briefly exist in the DOM at
+ * the same time while the lightbox is open. Mermaid SVGs can contain IDs for
+ * markers, clip paths, labels, and other internal references. Duplicate IDs
+ * can make one SVG accidentally resolve an arrow/clip path from the other.
+ * Scope every ID in the enlarged copy so each SVG remains self-contained.
+ */
+function scopeSvgIds(svg: string, prefix: string) {
+  const ids = Array.from(svg.matchAll(/\bid=(?:"([^"]+)"|'([^']+)')/g))
+    .map((match) => match[1] ?? match[2])
+    .filter((value): value is string => Boolean(value))
+    .sort((a, b) => b.length - a.length);
+
+  let scoped = svg;
+  for (const id of ids) {
+    const scopedId = `${prefix}-${id}`;
+    scoped = scoped
+      .replaceAll(`id="${id}"`, `id="${scopedId}"`)
+      .replaceAll(`id='${id}'`, `id='${scopedId}'`)
+      .replaceAll(`#${id}`, `#${scopedId}`);
+  }
+
+  return scoped;
+}
+
+/**
  * Mermaid's block-diagram renderer currently JSON.stringify()s its internal
  * block tree for a debug statement. That tree can contain live HTMLElements.
  * React adds enumerable __reactFiber / __reactProps fields to those elements,
@@ -105,7 +132,13 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   const [rendering, setRendering] = React.useState(false);
   const [retryKey, setRetryKey] = React.useState(0);
   const renderGeneration = React.useRef(0);
+  const instanceId = React.useId().replace(/[^a-zA-Z0-9_-]/g, "");
   const { resolvedTheme } = useTheme();
+
+  const expandedSvg = React.useMemo(
+    () => (svg ? scopeSvgIds(svg, `mermaid-expanded-${instanceId}`) : ""),
+    [instanceId, svg],
+  );
 
   React.useEffect(() => {
     const source = normalizeMermaidSource(chart);
@@ -206,14 +239,41 @@ export function MermaidDiagram({ chart }: { chart: string }) {
   }, [chart, resolvedTheme, retryKey]);
 
   return (
-    <div className="my-5 overflow-x-auto border border-border bg-surface-2 p-6">
+    <div className="my-5 overflow-x-auto border border-border bg-surface-2">
       {svg ? (
-        <div
-          className="min-w-max [&_svg]:h-auto [&_svg]:max-w-none"
-          dangerouslySetInnerHTML={{ __html: svg }}
-        />
+        <Dialog>
+          <DialogTrigger asChild>
+            <button
+              type="button"
+              className="group relative block min-w-full cursor-zoom-in p-6 text-left outline-none transition-colors hover:bg-surface-3/40 focus-visible:bg-surface-3/40 focus-visible:ring-1 focus-visible:ring-inset focus-visible:ring-cobalt"
+              aria-label="Open Mermaid diagram in larger view"
+            >
+              <div
+                className="min-w-max [&_svg]:h-auto [&_svg]:max-w-none"
+                dangerouslySetInnerHTML={{ __html: svg }}
+              />
+              <span className="sticky bottom-2 left-[calc(100%-2.5rem)] mt-[-2rem] flex h-8 w-8 items-center justify-center border border-border-strong bg-surface-2/95 text-text-dim opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100">
+                <Maximize2 className="h-3.5 w-3.5" />
+              </span>
+            </button>
+          </DialogTrigger>
+
+          <DialogContent className="w-[96vw] max-w-[1600px] border-border-strong bg-surface-2 p-3 sm:p-4 [&>button]:right-3 [&>button]:top-3 [&>button]:border [&>button]:border-border-strong [&>button]:bg-surface-2 [&>button]:p-2">
+            <div className="flex max-h-[90vh] min-h-0 flex-col pt-8">
+              <div className="thin-scroll min-h-0 flex-1 overflow-auto bg-ink/20 p-3 sm:p-6">
+                <div
+                  className="mx-auto min-w-max [&_svg]:h-auto [&_svg]:min-w-full [&_svg]:max-w-none"
+                  dangerouslySetInnerHTML={{ __html: expandedSvg }}
+                />
+              </div>
+              <p className="border-t border-border px-2 pt-3 text-center font-mono text-[0.68rem] text-text-dim">
+                Scroll horizontally or vertically to inspect large diagrams.
+              </p>
+            </div>
+          </DialogContent>
+        </Dialog>
       ) : error ? (
-        <div className="space-y-3" role="alert">
+        <div className="space-y-3 p-6" role="alert">
           <div>
             <p className="font-mono text-xs font-semibold text-vermilion">
               Diagram could not be rendered
@@ -231,9 +291,9 @@ export function MermaidDiagram({ chart }: { chart: string }) {
           </button>
         </div>
       ) : rendering ? (
-        <div className="font-mono text-xs text-text-dim">Rendering diagram...</div>
+        <div className="p-6 font-mono text-xs text-text-dim">Rendering diagram...</div>
       ) : (
-        <div className="font-mono text-xs text-text-dim">No diagram source.</div>
+        <div className="p-6 font-mono text-xs text-text-dim">No diagram source.</div>
       )}
     </div>
   );
