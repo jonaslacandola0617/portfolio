@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Check,
   ChevronRight,
   Fingerprint,
   Loader2,
@@ -118,14 +119,17 @@ function VoiceSuggestionPanel({
   status,
   error,
   onRequest,
+  onReplace,
 }: {
   issue: AIAuthenticityIssue;
   suggestion: AIAuthenticitySuggestion | undefined;
   status: AIAuthenticitySuggestionStatus;
   error: string | null;
   onRequest: (issue: AIAuthenticityIssue) => void;
+  onReplace: (issue: AIAuthenticityIssue, replacement: string) => void;
 }) {
   const loading = status === "loading";
+  const ready = Boolean(suggestion && status === "ready");
 
   return (
     <div className="border-t border-border bg-surface px-4 py-4">
@@ -181,21 +185,35 @@ function VoiceSuggestionPanel({
         <p className="mt-3 text-[11px] leading-5 text-vermilion">{error}</p>
       )}
 
-      <button
-        type="button"
-        onClick={() => onRequest(issue)}
-        disabled={loading}
-        className="mt-3 inline-flex items-center gap-2 border border-border-strong bg-surface-2 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.06em] text-text hover:border-cobalt hover:text-cobalt disabled:cursor-wait disabled:opacity-60"
-      >
-        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
-        {loading
-          ? "Writing suggestion"
-          : status === "ready"
-            ? "Try another version"
-            : status === "error"
-              ? "Try again"
-              : "Suggest closer-to-my-voice wording"}
-      </button>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {ready && suggestion && (
+          <button
+            type="button"
+            onClick={() => onReplace(issue, suggestion.text)}
+            className="inline-flex items-center gap-2 border border-cobalt bg-cobalt px-3 py-2 font-mono text-[10px] uppercase tracking-[0.06em] text-white hover:bg-cobalt/90"
+            title="Replace the highlighted passage with this suggestion"
+          >
+            <Check className="h-3.5 w-3.5" />
+            Replace highlighted
+          </button>
+        )}
+
+        <button
+          type="button"
+          onClick={() => onRequest(issue)}
+          disabled={loading}
+          className="inline-flex items-center gap-2 border border-border-strong bg-surface-2 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.06em] text-text hover:border-cobalt hover:text-cobalt disabled:cursor-wait disabled:opacity-60"
+        >
+          {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+          {loading
+            ? "Writing suggestion"
+            : status === "ready"
+              ? "Try another version"
+              : status === "error"
+                ? "Try again"
+                : "Suggest closer-to-my-voice wording"}
+        </button>
+      </div>
     </div>
   );
 }
@@ -218,6 +236,7 @@ interface OverlaysProps {
   onClosePanel: () => void;
   onSelectIssue: (issue: AIAuthenticityIssue) => void;
   onRequestSuggestion: (issue: AIAuthenticityIssue) => void;
+  onReplaceSuggestion: (issue: AIAuthenticityIssue, replacement: string) => void;
 }
 
 export function AIAuthenticityOverlays({
@@ -238,6 +257,7 @@ export function AIAuthenticityOverlays({
   onClosePanel,
   onSelectIssue,
   onRequestSuggestion,
+  onReplaceSuggestion,
 }: OverlaysProps) {
   if (!panelOpen) return null;
 
@@ -409,6 +429,7 @@ export function AIAuthenticityOverlays({
                 status={suggestionStatuses[selectedIssue.id] ?? "idle"}
                 error={suggestionErrors[selectedIssue.id] ?? null}
                 onRequest={onRequestSuggestion}
+                onReplace={onReplaceSuggestion}
               />
             )}
           </>
