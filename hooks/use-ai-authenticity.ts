@@ -21,6 +21,7 @@ import {
 
 export type AIAuthenticityStatus = "idle" | "checking" | "ready" | "stale" | "error";
 export type AIAuthenticityMode = "local" | "hybrid";
+export type AIAuthenticitySuggestionStatus = "idle" | "loading" | "ready" | "error";
 
 export interface AIAuthenticityOverall {
   voiceConsistency: number;
@@ -28,6 +29,12 @@ export interface AIAuthenticityOverall {
   overEditingScore: number;
   level: AuthenticityLevel;
   summary: string;
+}
+
+export interface AIAuthenticitySuggestion {
+  text: string;
+  explanation: string;
+  changes: string[];
 }
 
 interface ApiIssue {
@@ -54,6 +61,13 @@ interface ApiResponse {
   error?: string;
 }
 
+interface SuggestionResponse {
+  suggestion?: string;
+  explanation?: string;
+  changes?: string[];
+  error?: string;
+}
+
 const MAX_TEXT_BYTES = 24 * 1024;
 
 export function useAIAuthenticity(
@@ -73,8 +87,14 @@ export function useAIAuthenticity(
   const [providerWarning, setProviderWarning] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<Record<string, AIAuthenticitySuggestion>>({});
+  const [suggestionStatuses, setSuggestionStatuses] = useState<
+    Record<string, AIAuthenticitySuggestionStatus>
+  >({});
+  const [suggestionErrors, setSuggestionErrors] = useState<Record<string, string | null>>({});
   const hasChecked = useRef(false);
   const requestSequence = useRef(0);
+  const suggestionSequence = useRef(0);
   const activeRequest = useRef<AbortController | null>(null);
 
   const applyIssueSet = useCallback(
@@ -90,6 +110,7 @@ export function useAIAuthenticity(
 
   const invalidate = useCallback(() => {
     requestSequence.current += 1;
+    suggestionSequence.current += 1;
     activeRequest.current?.abort();
     activeRequest.current = null;
     setIssues([]);
@@ -98,6 +119,9 @@ export function useAIAuthenticity(
     setProviderWarning(null);
     setNotice(null);
     setErrorMessage(null);
+    setSuggestions({});
+    setSuggestionStatuses({});
+    setSuggestionErrors({});
     setStatus(hasChecked.current ? "stale" : "idle");
     if (editor) clearAuthenticityDecorations(editor);
   }, [editor]);
@@ -186,6 +210,9 @@ export function useAIAuthenticity(
       setReferenceSamples(payload.referenceSamples ?? 0);
       setProviderWarning(payload.providerWarning ?? null);
       setNotice(payload.notice ?? null);
+      setSuggestions({});
+      setSuggestionStatuses({});
+      setSuggestionErrors({});
       setStatus("ready");
     } catch (error) {
       if (controller.signal.aborted || requestId !== requestSequence.current) return;
@@ -196,6 +223,67 @@ export function useAIAuthenticity(
     }
   }, [applyIssueSet, editor, options.contentType, options.recordId]);
 
+  const requestSuggestion = useCallback(
+    async (issue: AIAuthenticityIssue) => {
+      if (!editor) return;
+
+      const passage = editor.state.doc.textBetween(issue.from, issue.to, "\n").trim();
+      if (!passage) {
+        setSuggestionStatuses((current) => ({ ...current, [issue.id]: "error" }));
+        setSuggestionErrors((current) => ({
+          ...current,
+          [issue.id]: "The highlighted passage no longer contains readable text.",
+        }));
+        return;
+      }
+
+      const requestId = ++suggestionSequence.current;
+      setSuggestionStatuses((current) => ({ ...current, [issue.id]: "loading" }));
+      setSuggestionErrors((current) => ({ ...current, [issue.id]: null }));
+
+      try {
+        const response = await fetch("/api/admin/ai-authenticity-suggest", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            excerpt: passage,
+            reasons: issue.reasons,
+            recordId: options.recordId,
+            paragraphIndex: issue.paragraphIndex,
+            contentType: options.contentType,
+          }),
+        });
+        const payload = (await response.json()) as SuggestionResponse;
+
+        if (!response.ok) {
+          throw new Error(payload.error || "Unable to create a voice-aligned suggestion.");
+        }
+        if (requestId !== suggestionSequence.current) return;
+        if (!payload.suggestion || !payload.explanation) {
+          throw new Error("The voice suggestion was incomplete. Try again.");
+        }
+
+        setSuggestions((current) => ({
+          ...current,
+          [issue.id]: {
+            text: payload.suggestion!,
+            explanation: payload.explanation!,
+            changes: payload.changes ?? [],
+          },
+        }));
+        setSuggestionStatuses((current) => ({ ...current, [issue.id]: "ready" }));
+      } catch (error) {
+        if (requestId !== suggestionSequence.current) return;
+        setSuggestionStatuses((current) => ({ ...current, [issue.id]: "error" }));
+        setSuggestionErrors((current) => ({
+          ...current,
+          [issue.id]: error instanceof Error ? error.message : "Unable to create a suggestion.",
+        }));
+      }
+    },
+    [editor, options.contentType, options.recordId],
+  );
+
   useEffect(() => {
     if (!editor) return;
     const onUpdate = () => invalidate();
@@ -204,6 +292,7 @@ export function useAIAuthenticity(
       editor.off("update", onUpdate);
       activeRequest.current?.abort();
       activeRequest.current = null;
+      suggestionSequence.current += 1;
     };
   }, [editor, invalidate]);
 
@@ -245,7 +334,11 @@ export function useAIAuthenticity(
     providerWarning,
     notice,
     errorMessage,
+    suggestions,
+    suggestionStatuses,
+    suggestionErrors,
     runCheck,
+    requestSuggestion,
     selectIssue,
     handleEditorClick,
     setPanelOpen,

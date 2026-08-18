@@ -6,6 +6,7 @@ import {
   Loader2,
   RefreshCw,
   ShieldQuestion,
+  Sparkles,
   X,
 } from "lucide-react";
 import type { AIAuthenticityIssue, AuthenticityLevel } from "@/lib/editor/ai-authenticity";
@@ -13,6 +14,8 @@ import type {
   AIAuthenticityMode,
   AIAuthenticityOverall,
   AIAuthenticityStatus,
+  AIAuthenticitySuggestion,
+  AIAuthenticitySuggestionStatus,
 } from "@/hooks/use-ai-authenticity";
 
 interface ToolbarButtonProps {
@@ -109,6 +112,94 @@ function ScoreCard({
   );
 }
 
+function VoiceSuggestionPanel({
+  issue,
+  suggestion,
+  status,
+  error,
+  onRequest,
+}: {
+  issue: AIAuthenticityIssue;
+  suggestion: AIAuthenticitySuggestion | undefined;
+  status: AIAuthenticitySuggestionStatus;
+  error: string | null;
+  onRequest: (issue: AIAuthenticityIssue) => void;
+}) {
+  const loading = status === "loading";
+
+  return (
+    <div className="border-t border-border bg-surface px-4 py-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-cobalt" />
+        <div className="font-mono text-[10px] uppercase tracking-[0.08em] text-text">
+          Voice-aligned suggestion
+        </div>
+      </div>
+      <p className="mt-2 text-[11px] leading-5 text-muted">
+        Uses your previous journal writing as a reference. It keeps the same idea, avoids invented experiences, and does not guarantee any AI-detector result.
+      </p>
+
+      {suggestion && status === "ready" && (
+        <div className="mt-3 space-y-3">
+          <div className="border border-cobalt/40 bg-cobalt-dim px-3 py-3">
+            <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-cobalt">
+              Suggested wording
+            </div>
+            <p className="mt-2 whitespace-pre-wrap text-xs leading-5 text-text">
+              {suggestion.text}
+            </p>
+          </div>
+
+          <div>
+            <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+              Why this fits better
+            </div>
+            <p className="mt-1 text-[11px] leading-5 text-text-dim">
+              {suggestion.explanation}
+            </p>
+          </div>
+
+          {suggestion.changes.length > 0 && (
+            <div>
+              <div className="font-mono text-[9px] uppercase tracking-[0.08em] text-muted">
+                What changed
+              </div>
+              <div className="mt-1.5 space-y-1.5">
+                {suggestion.changes.map((change, index) => (
+                  <div key={`${issue.id}:change:${index}`} className="flex gap-2 text-[11px] leading-5 text-text-dim">
+                    <span className="font-mono text-cobalt">{index + 1}.</span>
+                    <span>{change}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {status === "error" && error && (
+        <p className="mt-3 text-[11px] leading-5 text-vermilion">{error}</p>
+      )}
+
+      <button
+        type="button"
+        onClick={() => onRequest(issue)}
+        disabled={loading}
+        className="mt-3 inline-flex items-center gap-2 border border-border-strong bg-surface-2 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.06em] text-text hover:border-cobalt hover:text-cobalt disabled:cursor-wait disabled:opacity-60"
+      >
+        {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+        {loading
+          ? "Writing suggestion"
+          : status === "ready"
+            ? "Try another version"
+            : status === "error"
+              ? "Try again"
+              : "Suggest closer-to-my-voice wording"}
+      </button>
+    </div>
+  );
+}
+
 interface OverlaysProps {
   issues: AIAuthenticityIssue[];
   status: AIAuthenticityStatus;
@@ -120,9 +211,13 @@ interface OverlaysProps {
   providerWarning: string | null;
   notice: string | null;
   errorMessage: string | null;
+  suggestions: Record<string, AIAuthenticitySuggestion>;
+  suggestionStatuses: Record<string, AIAuthenticitySuggestionStatus>;
+  suggestionErrors: Record<string, string | null>;
   onCheck: () => void;
   onClosePanel: () => void;
   onSelectIssue: (issue: AIAuthenticityIssue) => void;
+  onRequestSuggestion: (issue: AIAuthenticityIssue) => void;
 }
 
 export function AIAuthenticityOverlays({
@@ -136,9 +231,13 @@ export function AIAuthenticityOverlays({
   providerWarning,
   notice,
   errorMessage,
+  suggestions,
+  suggestionStatuses,
+  suggestionErrors,
   onCheck,
   onClosePanel,
   onSelectIssue,
+  onRequestSuggestion,
 }: OverlaysProps) {
   if (!panelOpen) return null;
 
@@ -301,6 +400,16 @@ export function AIAuthenticityOverlays({
                   </div>
                 </button>
               ))
+            )}
+
+            {selectedIssue && (
+              <VoiceSuggestionPanel
+                issue={selectedIssue}
+                suggestion={suggestions[selectedIssue.id]}
+                status={suggestionStatuses[selectedIssue.id] ?? "idle"}
+                error={suggestionErrors[selectedIssue.id] ?? null}
+                onRequest={onRequestSuggestion}
+              />
             )}
           </>
         )}
