@@ -45,8 +45,13 @@ interface ProofreadingApiResponse {
   error?: string;
 }
 
+interface RunCheckOptions {
+  openPanel?: boolean;
+}
+
 const CUSTOM_DICTIONARY_KEY = "cms:proofreading:custom-dictionary";
 const MAX_PROOFREADING_BYTES = 18 * 1024;
+const AUTO_CHECK_DELAY_MS = 1_300;
 
 function normalizeDictionaryWord(value: string) {
   return value.trim().toLocaleLowerCase("en-US");
@@ -92,6 +97,9 @@ export function useProofreading(editor: Editor | null) {
 
   const suppressNextContentUpdate = useRef(false);
   const hasChecked = useRef(false);
+  const requestSequence = useRef(0);
+  const activeRequest = useRef<AbortController | null>(null);
+  const autoCheckTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     try {
@@ -125,6 +133,15 @@ export function useProofreading(editor: Editor | null) {
   );
 
   const invalidate = useCallback(() => {
+    requestSequence.current += 1;
+    activeRequest.current?.abort();
+    activeRequest.current = null;
+
+    if (autoCheckTimer.current) {
+      clearTimeout(autoCheckTimer.current);
+      autoCheckTimer.current = null;
+    }
+
     setIssues([]);
     setSelectedIssueId(null);
     setPopoverPosition(null);
@@ -132,6 +149,111 @@ export function useProofreading(editor: Editor | null) {
     setStatus(hasChecked.current ? "stale" : "idle");
     if (editor) clearProofreadingDecorations(editor);
   }, [editor]);
+
+  const runCheck = useCallback(
+    async ({ openPanel = true }: RunCheckOptions = {}) => {
+      if (!editor) return;
+
+      if (autoCheckTimer.current) {
+        clearTimeout(autoCheckTimer.current);
+        autoCheckTimer.current = null;
+      }
+
+      activeRequest.current?.abort();
+      const controller = new AbortController();
+      activeRequest.current = controller;
+      const requestId = ++requestSequence.current;
+
+      const source = buildProofreadingSource(editor.state.doc);
+      const text = source.text.trim() ? source.text : "";
+      if (!text) {
+        hasChecked.current = true;
+        applyIssueSet([]);
+        setStatus("ready");
+        setErrorMessage(null);
+        activeRequest.current = null;
+        if (openPanel) setPanelOpen(true);
+        return;
+      }
+
+      if (new TextEncoder().encode(text).byteLength > MAX_PROOFREADING_BYTES) {
+        setStatus("error");
+        setErrorMessage("This draft is too large for one writing check. Check a shorter draft.");
+        activeRequest.current = null;
+        if (openPanel) setPanelOpen(true);
+        return;
+      }
+
+      setStatus("checking");
+      setErrorMessage(null);
+      setPopoverPosition(null);
+
+      try {
+        const response = await fetch("/api/admin/proofread", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ text }),
+          signal: controller.signal,
+        });
+        const payload = (await response.json()) as ProofreadingApiResponse;
+
+        if (!response.ok) {
+          throw new Error(payload.error || "The writing checker could not complete the request.");
+        }
+
+        // The user may have typed again while this request was in flight. In
+        // that case the offsets belong to an older document and must never be
+        // painted onto the current TipTap state.
+        if (requestId !== requestSequence.current || controller.signal.aborted) {
+          return;
+        }
+
+        const mappedIssues = (payload.matches ?? []).flatMap((match, index) => {
+          const range = mapProofreadingRange(source, match.offset, match.length);
+          if (!range) return [];
+
+          const problemText = source.text.slice(match.offset, match.offset + match.length);
+          if (
+            isDictionaryWord(problemText) &&
+            customWords.has(normalizeDictionaryWord(problemText))
+          ) {
+            return [];
+          }
+
+          return [
+            {
+              id: `${match.ruleId}:${match.offset}:${match.length}:${index}`,
+              ...range,
+              message: match.message,
+              shortMessage: match.shortMessage || "Writing suggestion",
+              problemText,
+              replacements: match.replacements,
+              ruleId: match.ruleId,
+              category: match.category,
+              tone: issueTone(match.issueType, match.category),
+            } satisfies ProofreadingIssue,
+          ];
+        });
+
+        hasChecked.current = true;
+        applyIssueSet(mappedIssues);
+        setStatus("ready");
+        if (openPanel) setPanelOpen(true);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        if (requestId !== requestSequence.current) return;
+
+        setStatus("error");
+        setErrorMessage(error instanceof Error ? error.message : "Unable to check this draft.");
+        if (openPanel) setPanelOpen(true);
+      } finally {
+        if (requestId === requestSequence.current) {
+          activeRequest.current = null;
+        }
+      }
+    },
+    [applyIssueSet, customWords, editor],
+  );
 
   useEffect(() => {
     if (!editor) return;
@@ -141,89 +263,24 @@ export function useProofreading(editor: Editor | null) {
         suppressNextContentUpdate.current = false;
         return;
       }
+
       invalidate();
+      autoCheckTimer.current = setTimeout(() => {
+        void runCheck({ openPanel: false });
+      }, AUTO_CHECK_DELAY_MS);
     };
 
     editor.on("update", onUpdate);
     return () => {
       editor.off("update", onUpdate);
-    };
-  }, [editor, invalidate]);
-
-  const runCheck = useCallback(async () => {
-    if (!editor || status === "checking") return;
-
-    const source = buildProofreadingSource(editor.state.doc);
-    const text = source.text.trim() ? source.text : "";
-    if (!text) {
-      hasChecked.current = true;
-      applyIssueSet([]);
-      setStatus("ready");
-      setErrorMessage(null);
-      setPanelOpen(true);
-      return;
-    }
-
-    if (new TextEncoder().encode(text).byteLength > MAX_PROOFREADING_BYTES) {
-      setStatus("error");
-      setErrorMessage("This draft is too large for one writing check. Check a shorter draft.");
-      setPanelOpen(true);
-      return;
-    }
-
-    setStatus("checking");
-    setErrorMessage(null);
-    setPopoverPosition(null);
-
-    try {
-      const response = await fetch("/api/admin/proofread", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ text }),
-      });
-      const payload = (await response.json()) as ProofreadingApiResponse;
-
-      if (!response.ok) {
-        throw new Error(payload.error || "The writing checker could not complete the request.");
+      activeRequest.current?.abort();
+      activeRequest.current = null;
+      if (autoCheckTimer.current) {
+        clearTimeout(autoCheckTimer.current);
+        autoCheckTimer.current = null;
       }
-
-      const mappedIssues = (payload.matches ?? []).flatMap((match, index) => {
-        const range = mapProofreadingRange(source, match.offset, match.length);
-        if (!range) return [];
-
-        const problemText = source.text.slice(match.offset, match.offset + match.length);
-        if (
-          isDictionaryWord(problemText) &&
-          customWords.has(normalizeDictionaryWord(problemText))
-        ) {
-          return [];
-        }
-
-        return [
-          {
-            id: `${match.ruleId}:${match.offset}:${match.length}:${index}`,
-            ...range,
-            message: match.message,
-            shortMessage: match.shortMessage || "Writing suggestion",
-            problemText,
-            replacements: match.replacements,
-            ruleId: match.ruleId,
-            category: match.category,
-            tone: issueTone(match.issueType, match.category),
-          } satisfies ProofreadingIssue,
-        ];
-      });
-
-      hasChecked.current = true;
-      applyIssueSet(mappedIssues);
-      setStatus("ready");
-      setPanelOpen(true);
-    } catch (error) {
-      setStatus("error");
-      setErrorMessage(error instanceof Error ? error.message : "Unable to check this draft.");
-      setPanelOpen(true);
-    }
-  }, [applyIssueSet, customWords, editor, status]);
+    };
+  }, [editor, invalidate, runCheck]);
 
   const selectIssue = useCallback(
     (issue: ProofreadingIssue) => {
