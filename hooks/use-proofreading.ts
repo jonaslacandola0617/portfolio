@@ -145,7 +145,9 @@ export function useProofreading(editor: Editor | null) {
     };
 
     editor.on("update", onUpdate);
-    return () => editor.off("update", onUpdate);
+    return () => {
+      editor.off("update", onUpdate);
+    };
   }, [editor, invalidate]);
 
   const runCheck = useCallback(async () => {
