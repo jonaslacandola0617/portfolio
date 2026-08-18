@@ -12,6 +12,7 @@ import { CommandBlockExtension } from "./extensions/command-block";
 import { MermaidExtension } from "./extensions/mermaid";
 import { MediaAttachmentExtension, MediaImageExtension } from "./extensions/media";
 import { ProofreadingExtension } from "./proofreading";
+import { AIAuthenticityExtension } from "./ai-authenticity";
 
 /**
  * The runtime counterpart to types/tiptap.ts + lib/validations/content.ts.
@@ -21,8 +22,9 @@ import { ProofreadingExtension } from "./proofreading";
  * default JSON node names), and Table, TaskList/TaskItem, and Link are
  * configured to match too. The custom schema extensions under
  * lib/editor/extensions/ are hand-written specifically to match the
- * schema's attrs shape. ProofreadingExtension is editor-only behavior and
- * deliberately adds no node or mark to saved content.
+ * schema's attrs shape. ProofreadingExtension and AIAuthenticityExtension
+ * are editor-only behavior and deliberately add no node or mark to saved
+ * content.
  *
  * `components/shared/content-renderer.tsx` does NOT import this file —
  * it's a plain recursive function reading the same JSON schema
@@ -84,5 +86,6 @@ export function getEditorExtensions() {
     MediaImageExtension,
     MediaAttachmentExtension,
     ProofreadingExtension,
+    AIAuthenticityExtension,
   ];
 }
