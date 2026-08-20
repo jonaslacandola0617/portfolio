@@ -27,9 +27,8 @@ import { getMediaUploadPolicy } from "@/lib/validations/media";
  * environment, not just a production deploy behind a public URL.
  */
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody;
-
   try {
+    const body = (await request.json()) as HandleUploadBody;
     const jsonResponse = await handleUpload({
       body,
       request,
@@ -48,9 +47,12 @@ export async function POST(request: Request): Promise<NextResponse> {
 
     return NextResponse.json(jsonResponse);
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Upload failed";
+    console.error("[media-upload] Blob upload handler failed:", message);
+
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Upload failed" },
-      { status: 400 }
+      { error: message },
+      { status: 400 },
     );
   }
 }
