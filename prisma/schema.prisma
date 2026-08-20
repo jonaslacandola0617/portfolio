@@ -83,21 +83,24 @@ model Media {
 }
 
 model Download {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   label       String
   url         String
   type        String
   description String?
-  sortOrder   Int      @default(0)
-  project     Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sortOrder   Int       @default(0)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId   String?
-  lab         Lab?     @relation(fields: [labId], references: [id], onDelete: Cascade)
+  lab         Lab?      @relation(fields: [labId], references: [id], onDelete: Cascade)
   labId       String?
-  media       Media?   @relation(fields: [mediaId], references: [id], onDelete: Restrict)
+  article     Article?  @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  articleId   String?
+  media       Media?    @relation(fields: [mediaId], references: [id], onDelete: Restrict)
   mediaId     String?
 
   @@index([projectId, sortOrder])
   @@index([labId, sortOrder])
+  @@index([articleId, sortOrder])
   @@index([mediaId])
 }
 
@@ -165,6 +168,7 @@ model Article {
   category      Category?     @relation(fields: [categoryId], references: [id])
   categoryId    String?
   tags          Tag[]
+  downloads     Download[]
   publishedAt   DateTime?
   scheduledFor  DateTime?
   createdAt     DateTime      @default(now())
