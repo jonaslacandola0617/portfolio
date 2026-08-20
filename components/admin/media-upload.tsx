@@ -5,7 +5,7 @@ import { upload } from "@vercel/blob/client";
 import { useRouter } from "next/navigation";
 import { UploadCloud, Loader2 } from "lucide-react";
 import { createMediaRecordAction } from "@/lib/services/media-admin-service";
-import { guessMediaType } from "@/lib/validations/media";
+import { getMediaUploadPolicy, guessMediaType } from "@/lib/validations/media";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/components/ui/toast";
 
@@ -21,6 +21,21 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, message: string)
       window.setTimeout(() => reject(new Error(message)), timeoutMs);
     }),
   ]);
+}
+
+function uploadErrorMessage(file: File, error: unknown) {
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return `${file.name} took too long to upload and was cancelled. Please try again.`;
+  }
+
+  if (error instanceof Error) {
+    if (error.message.includes("Failed to retrieve the client token")) {
+      return `${file.name} could not get upload authorization from Vercel Blob. The file passed local validation, so please retry. If it keeps failing, check the Blob store connection.`;
+    }
+    return error.message;
+  }
+
+  return `Failed to upload ${file.name}.`;
 }
 
 export function MediaUpload() {
@@ -48,6 +63,12 @@ export function MediaUpload() {
         setProgress(0);
 
         try {
+          const policy = getMediaUploadPolicy(file.name);
+          if (file.size > policy.maximumSizeInBytes) {
+            const limitMb = Math.round(policy.maximumSizeInBytes / (1024 * 1024));
+            throw new Error(`${file.name} is too large. The maximum size for this file type is ${limitMb} MB.`);
+          }
+
           const abortController = new AbortController();
           const uploadTimeout = window.setTimeout(
             () => abortController.abort(),
@@ -84,13 +105,7 @@ export function MediaUpload() {
 
           uploadedCount += 1;
         } catch (err) {
-          const message =
-            err instanceof DOMException && err.name === "AbortError"
-              ? `${file.name} took too long to upload and was cancelled. Please try again.`
-              : err instanceof Error
-                ? err.message
-                : `Failed to upload ${file.name}.`;
-          setError(message);
+          setError(uploadErrorMessage(file, err));
         }
       }
     } finally {
@@ -179,7 +194,7 @@ export function MediaUpload() {
           </div>
         )}
         <p className="mt-1 font-mono text-xs text-muted">
-          Images, PDF, ZIP, PCAP, Packet Tracer (.pkt), video
+          Images, PDF, Word (.doc/.docx), ZIP, PCAP, Packet Tracer (.pkt), video
         </p>
       </div>
 
