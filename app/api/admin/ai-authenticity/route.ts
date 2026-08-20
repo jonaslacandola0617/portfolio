@@ -4,10 +4,14 @@ import { z } from "zod";
 import { prisma } from "@/lib/db";
 import { requireAdmin } from "@/lib/services/auth-service";
 
+export const maxDuration = 180;
+
 const MAX_TEXT_BYTES = 24 * 1024;
 const MAX_REFERENCE_CHARS = 7_000;
 const MAX_REFERENCE_ARTICLES = 5;
 const DEFAULT_MODEL = "gemini-3.1-flash-lite";
+const GEMINI_PRIMARY_TIMEOUT_MS = 75_000;
+const GEMINI_REPAIR_TIMEOUT_MS = 45_000;
 
 const requestSchema = z.object({
   text: z.string().min(1).max(24_000),
@@ -391,6 +395,7 @@ async function requestGeminiJson(
   systemInstruction: string,
   prompt: string,
   maxOutputTokens = 8_192,
+  timeoutMs = GEMINI_PRIMARY_TIMEOUT_MS,
 ) {
   const response = await fetch(
     `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
@@ -411,7 +416,7 @@ async function requestGeminiJson(
         },
       }),
       cache: "no-store",
-      signal: AbortSignal.timeout(35_000),
+      signal: AbortSignal.timeout(timeoutMs),
     },
   );
 
@@ -440,6 +445,7 @@ async function repairGeminiReview(apiKey: string, model: string, malformed: stri
     repairInstruction,
     repairPrompt,
     8_192,
+    GEMINI_REPAIR_TIMEOUT_MS,
   );
 
   if (repaired.finishReason === "MAX_TOKENS") {
@@ -565,7 +571,12 @@ export async function POST(request: Request) {
         overallSummary = aiResults.overallSummary;
       } catch (error) {
         console.error("[ai-authenticity] Gemini review failed; using local fallback", error);
-        providerWarning = "The AI review was unavailable, so this pass fell back to local style comparison.";
+        const errorName = error && typeof error === "object" && "name" in error
+          ? String((error as { name?: unknown }).name ?? "")
+          : "";
+        providerWarning = errorName === "TimeoutError"
+          ? "Gemini did not finish the review within the analysis window, so this pass fell back to local style comparison."
+          : "The AI review was unavailable, so this pass fell back to local style comparison.";
       }
     }
 
