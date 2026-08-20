@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Download } from "lucide-react";
 import { ContentRenderer } from "@/components/shared/content-renderer";
 import { JsonLd } from "@/components/shared/json-ld";
 import { RelatedContentLinks } from "@/components/shared/related-content-links";
 import { TableOfContents } from "@/components/shared/table-of-contents";
 import { Tag } from "@/components/shared/tag";
 import { getAllArticleSlugs, getArticleBySlug } from "@/lib/content";
-import { extractContentHeadings } from "@/lib/content-headings";
+import {
+  extractContentHeadings,
+  type ContentHeading,
+} from "@/lib/content-headings";
 import { buildContentMetadata, getFirstContentImage } from "@/lib/metadata";
 import { getRelatedContent } from "@/lib/related-content";
 import { buildArticleJsonLd } from "@/lib/structured-data";
@@ -50,7 +53,13 @@ export default async function ArticlePage({ params }: { params: ArticleParams })
 
   const { frontmatter, content, readingTime } = article;
   const currentPath = `/journal/${frontmatter.slug}`;
-  const tocItems = extractContentHeadings(content);
+  const contentHeadings = extractContentHeadings(content);
+  const tocItems: ContentHeading[] = [
+    ...contentHeadings,
+    ...(frontmatter.downloads?.length
+      ? ([{ id: "journal-resources", text: "Resources", level: 2 }] satisfies ContentHeading[])
+      : []),
+  ];
   const related = await getRelatedContent({
     currentPath,
     tags: frontmatter.tags,
@@ -109,6 +118,33 @@ export default async function ArticlePage({ params }: { params: ArticleParams })
               }}
             />
           </article>
+
+          {frontmatter.downloads?.length ? (
+            <section id="journal-resources" className="mt-10 scroll-mt-8">
+              <p className="idx mb-4">Resources</p>
+              <div className="divide-y divide-border border border-border bg-surface-2">
+                {frontmatter.downloads.map((download) => (
+                  <a
+                    key={`${download.href}-${download.label}`}
+                    href={download.href}
+                    download
+                    className="flex items-start gap-3 px-4 py-3 text-sm text-text-dim hover:text-text"
+                  >
+                    <Download size={14} className="mt-0.5 shrink-0 text-cobalt" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-text">{download.label}</span>
+                      {download.description ? (
+                        <span className="mt-1 block text-xs leading-5 text-muted-foreground">
+                          {download.description}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="label shrink-0">Download</span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          ) : null}
 
           <div className="mt-8 flex flex-wrap gap-1.5 border-t border-border pt-6">
             {frontmatter.tags.map((tag) => (
