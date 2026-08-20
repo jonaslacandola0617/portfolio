@@ -29,6 +29,14 @@ interface AdminArticleDetail {
   tags: { name: string }[];
   date: Date;
   scheduledFor: Date | null;
+  downloads: {
+    id: string;
+    label: string;
+    description: string | null;
+    sortOrder: number;
+    mediaId: string | null;
+    media: { id: string; url: string; filename: string; type: string; size: number } | null;
+  }[];
 }
 
 function relationInput(fm: ArticleFormValues) {
@@ -58,7 +66,14 @@ export async function getAllArticlesForAdmin(): Promise<AdminArticleListItem[]> 
 export async function getArticleForEdit(id: string): Promise<AdminArticleDetail | null> {
   return prisma.article.findUnique({
     where: { id },
-    include: { category: true, tags: true },
+    include: {
+      category: true,
+      tags: true,
+      downloads: {
+        include: { media: true },
+        orderBy: { sortOrder: "asc" },
+      },
+    },
   }) as Promise<AdminArticleDetail | null>;
 }
 
@@ -113,6 +128,50 @@ export async function updateArticleContent(id: string, content: TipTapDoc) {
   if (article.publishStatus === "PUBLISHED") revalidateContent("article", [article.slug]);
   const readBack = await prisma.article.findUnique({ where: { id }, select: { content: true } });
   return readBack?.content;
+}
+
+export async function updateArticleResources(
+  articleId: string,
+  resources: Array<{ mediaId: string; label: string; description: string; sortOrder: number }>
+) {
+  const article = await prisma.article.findUnique({ where: { id: articleId }, select: { slug: true } });
+  if (!article) throw new Error("Journal entry not found");
+
+  const ids = [...new Set(resources.map((resource) => resource.mediaId))];
+  const media = await prisma.media.findMany({
+    where: { id: { in: ids }, type: { not: "IMAGE" } },
+    select: { id: true, url: true, type: true },
+  });
+  if (media.length !== ids.length) throw new Error("One or more selected resources are invalid.");
+
+  const byId = new Map(media.map((item) => [item.id, item]));
+  await prisma.$transaction(async (tx) => {
+    await tx.download.deleteMany({ where: { articleId } });
+    if (resources.length) {
+      await tx.download.createMany({
+        data: resources.map((resource) => {
+          const item = byId.get(resource.mediaId)!;
+          const type =
+            item.type === "PACKET_TRACER" ? "packet-tracer" :
+            item.type === "PCAP" ? "pcap" :
+            item.type === "PDF" ? "pdf" :
+            item.type === "ZIP" ? "zip" :
+            item.type === "OTHER" ? "config" : "other";
+          return {
+            articleId,
+            mediaId: item.id,
+            label: resource.label,
+            description: resource.description || null,
+            sortOrder: resource.sortOrder,
+            url: item.url,
+            type,
+          };
+        }),
+      });
+    }
+  });
+
+  revalidateContent("article", [article.slug]);
 }
 
 export async function deleteArticle(id: string) {

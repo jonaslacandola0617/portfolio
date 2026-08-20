@@ -3,7 +3,7 @@ import { cache } from "react";
 import { prisma } from "@/lib/db";
 import { readWithPolicy } from "@/lib/db/read-policy";
 import { estimateReadingTime } from "@/lib/reading-time";
-import type { ArticleFrontmatter, DbContentItem } from "@/types";
+import type { ArticleFrontmatter, DbContentItem, DownloadLink } from "@/types";
 import type { TipTapDoc } from "@/types/tiptap";
 
 interface ArticleWithRelations {
@@ -16,6 +16,13 @@ interface ArticleWithRelations {
   tags: { name: string }[];
   date: Date;
   updatedAt: Date;
+  downloads: {
+    label: string;
+    url: string;
+    type: string;
+    description: string | null;
+    media: { size: number } | null;
+  }[];
 }
 
 function toISODate(date: Date): string {
@@ -34,6 +41,13 @@ function mapArticle(article: ArticleWithRelations): DbContentItem<ArticleFrontma
       lastUpdated: article.updatedAt.toISOString(),
       tags: article.tags.map((tag) => tag.name),
       category: article.category?.name ?? "Uncategorized",
+      downloads: article.downloads.map((download): DownloadLink => ({
+        label: download.label,
+        href: download.url,
+        type: download.type as DownloadLink["type"],
+        description: download.description ?? undefined,
+        size: download.media?.size,
+      })),
     },
     content: doc,
     readingTime: estimateReadingTime(doc),
@@ -48,7 +62,11 @@ export const getAllArticles = cache(async (): Promise<DbContentItem<ArticleFront
   readWithPolicy("articles.getAllArticles", [], async () => {
     const articles = (await prisma.article.findMany({
       where: { publishStatus: "PUBLISHED" },
-      include: { category: true, tags: true },
+      include: {
+        category: true,
+        tags: true,
+        downloads: { include: { media: true }, orderBy: { sortOrder: "asc" } },
+      },
       orderBy: { date: "desc" },
     })) as ArticleWithRelations[];
     return articles.map(mapArticle);
@@ -60,7 +78,11 @@ export const getArticleBySlug = cache(
     readWithPolicy(`articles.getArticleBySlug(${slug})`, undefined, async () => {
       const article = (await prisma.article.findFirst({
         where: { slug, publishStatus: "PUBLISHED" },
-        include: { category: true, tags: true },
+        include: {
+          category: true,
+          tags: true,
+          downloads: { include: { media: true }, orderBy: { sortOrder: "asc" } },
+        },
       })) as ArticleWithRelations | null;
       return article ? mapArticle(article) : undefined;
     })

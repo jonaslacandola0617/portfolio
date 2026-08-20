@@ -53,6 +53,7 @@ export interface ArticleFrontmatter {
   tags: string[];
   category: string;
   featured?: boolean;
+  downloads?: DownloadLink[];
 }
 
 /**

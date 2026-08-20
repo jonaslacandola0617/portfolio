@@ -23,6 +23,7 @@ import { TemplateSelector } from "@/components/admin/template-selector";
 import { articleTemplates } from "@/lib/editor/templates";
 import { AuthoringWorkspace } from "@/components/admin/authoring-workspace";
 import { QuerySuccessToast } from "@/components/admin/query-success-toast";
+import { ContentResourcesEditor } from "@/components/admin/content-resources-editor";
 import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import {
   createArticleAction,
@@ -46,6 +47,7 @@ interface ArticleFormProps {
     date: string;
     scheduledFor: string;
     content: JSONContent;
+    downloads: Array<{ mediaId: string; label: string; description: string }>;
   };
 }
 
@@ -224,6 +226,15 @@ export function ArticleForm({
           )}
           {mode === "create" && templateId && (
             <input type="hidden" name="templateId" value={templateId} />
+          )}
+
+          {mode === "edit" && article && (
+            <ContentResourcesEditor
+              contentType="article"
+              recordId={article.id}
+              media={media}
+              initialResources={article.downloads}
+            />
           )}
 
           {mode === "edit" && (

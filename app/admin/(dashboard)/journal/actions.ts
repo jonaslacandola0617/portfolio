@@ -6,10 +6,12 @@ import {
   createArticle,
   updateArticleMetadata,
   updateArticleContent,
+  updateArticleResources,
   deleteArticle,
   deleteArticles,
 } from "@/lib/services/article-admin-service";
 import { articleFormSchema } from "@/lib/validations/article";
+import { articleResourcesPayloadSchema, type ArticleResourcesPayload } from "@/lib/validations/article-resources";
 import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
 import { saveEditorContent } from "@/lib/services/content-save-service";
@@ -84,6 +86,30 @@ export async function updateArticleAction(
 
 export async function autosaveArticleContentAction(payload: SaveContentPayload): Promise<SaveResult> {
   return saveEditorContent("article", payload, updateArticleContent);
+}
+
+export async function updateArticleResourcesAction(payload: ArticleResourcesPayload): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+  } catch {
+    return { success: false, code: "AUTH_ERROR", message: "Your admin session has expired." };
+  }
+
+  const parsed = articleResourcesPayloadSchema.safeParse(payload);
+  if (!parsed.success) {
+    return { success: false, code: "VALIDATION_ERROR", message: "Review the selected journal resources." };
+  }
+
+  try {
+    await updateArticleResources(parsed.data.articleId, parsed.data.resources);
+    return { success: true, message: "Journal resources saved." };
+  } catch (error) {
+    return classifyServiceError(error, {
+      operation: "update-resources",
+      contentType: "article",
+      recordId: parsed.data.articleId,
+    });
+  }
 }
 
 export async function deleteArticleAction(id: string): Promise<DeleteResult> {
