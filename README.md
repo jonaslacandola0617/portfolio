@@ -17,7 +17,7 @@ Live site: https://www.jonasl.online
 
 PostgreSQL is the runtime source of truth for Projects, Labs, Journal entries, Certificates, Skills, Tags, Categories, Media, and Site Settings. Public pages read from the database, while the private `/admin` area manages content through authenticated forms and editor actions.
 
-Projects, Labs, and Journal entries can attach downloadable resources from the shared Media Library, with labels, descriptions, and manual ordering managed in the CMS.
+Projects, Labs, and Journal entries support downloadable resources from the shared Media Library, including custom labels, descriptions, and manual ordering in the CMS.
 
 The repository does not ship demo Projects, Labs, or Journal entries. Those are created and maintained through the CMS.
 
