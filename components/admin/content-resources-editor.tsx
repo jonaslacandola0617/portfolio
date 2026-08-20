@@ -118,6 +118,11 @@ export function ContentResourcesEditor({
       </label>
 
       <div className="space-y-2">
+        {resources.length === 0 && (
+          <p className="border border-border bg-surface px-3 py-3 text-xs text-muted">
+            No resources attached yet.
+          </p>
+        )}
         {resources.map((resource, index) => {
           const item = available.find((candidate) => candidate.id === resource.mediaId);
           return (
