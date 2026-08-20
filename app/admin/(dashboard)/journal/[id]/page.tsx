@@ -19,6 +19,13 @@ export default async function EditArticlePage({ params }: { params: ArticleEditP
         tags: article.tags.map((t) => t.name), date: article.date.toISOString().slice(0, 10),
         scheduledFor: article.scheduledFor ? article.scheduledFor.toISOString().slice(0, 16) : "",
         content: article.content as never,
+        downloads: article.downloads
+          .filter((download) => download.mediaId)
+          .map((download) => ({
+            mediaId: download.mediaId!,
+            label: download.label,
+            description: download.description ?? "",
+          })),
       }}
     />
   );
