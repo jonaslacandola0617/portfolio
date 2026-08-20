@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toast";
 
 const UPLOAD_TIMEOUT_MS = 5 * 60 * 1000;
 const SAVE_TIMEOUT_MS = 30 * 1000;
+const MEDIA_ACCEPT = ".png,.jpg,.jpeg,.webp,.gif,.mp4,.webm,.pkt,.pka,.pcap,.pcapng,.pdf,.doc,.docx,.xlsx,.xls,.csv,.ods,.zip,.cfg,.txt";
 
 type UploadStage = "idle" | "uploading" | "saving";
 
@@ -157,6 +158,7 @@ export function MediaUpload() {
       <input
         ref={inputRef}
         type="file"
+        accept={MEDIA_ACCEPT}
         multiple
         hidden
         disabled={uploading}
