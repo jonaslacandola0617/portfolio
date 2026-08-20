@@ -194,7 +194,7 @@ export function MediaUpload() {
           </div>
         )}
         <p className="mt-1 font-mono text-xs text-muted">
-          Images, PDF, Word (.doc/.docx), ZIP, PCAP, Packet Tracer (.pkt), video
+          Images, PDF, Word, Excel/CSV (.xlsx/.xls/.csv/.ods), ZIP, PCAP, Packet Tracer, video
         </p>
       </div>
 
