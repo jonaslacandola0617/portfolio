@@ -16,7 +16,8 @@ export const IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 
 const allowedExtensions = new Set([
   "png", "jpg", "jpeg", "webp", "gif", "mp4", "webm", "pkt", "pka",
-  "pcap", "pcapng", "pdf", "doc", "docx", "zip", "cfg", "txt",
+  "pcap", "pcapng", "pdf", "doc", "docx", "xlsx", "xls", "csv", "ods",
+  "zip", "cfg", "txt",
 ]);
 
 const contentTypesByExtension: Record<string, string[]> = {
@@ -37,6 +38,13 @@ const contentTypesByExtension: Record<string, string[]> = {
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     "application/octet-stream",
   ],
+  xlsx: [
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    "application/octet-stream",
+  ],
+  xls: ["application/vnd.ms-excel", "application/octet-stream"],
+  csv: ["text/csv", "text/plain", "application/vnd.ms-excel", "application/octet-stream"],
+  ods: ["application/vnd.oasis.opendocument.spreadsheet", "application/octet-stream"],
   zip: ["application/zip", "application/x-zip-compressed"],
   cfg: ["text/plain", "application/octet-stream"],
   txt: ["text/plain"],
@@ -60,7 +68,7 @@ export function getMediaUploadPolicy(pathname: string) {
   const extension = extensionOf(filename);
   if (!allowedExtensions.has(extension)) {
     throw new Error(
-      "Unsupported media file extension. Use an image, PDF, Word document, ZIP, PCAP, Packet Tracer file, video, CFG, or TXT file.",
+      "Unsupported media file extension. Use an image, PDF, Word document, spreadsheet, ZIP, PCAP, Packet Tracer file, video, CFG, or TXT file.",
     );
   }
 
