@@ -248,7 +248,7 @@ export default async function HomePage() {
             <div className="mt-7 flex flex-wrap gap-3">
               <Link
                 href="/resume"
-                className="border border-surface bg-surface px-5 py-3 text-sm font-medium text-ink"
+                className="border border-surface bg-surface px-5 py-3 text-sm font-medium text-text"
               >
                 Review résumé
               </Link>
