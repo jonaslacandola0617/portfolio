@@ -26,7 +26,7 @@ const collectionTargets: Record<RevalidationContentType, RevalidationTarget[]> =
     { path: "/admin" }, { path: "/admin/certificates" }, { path: "/certifications" },
     { path: "/sitemap.xml" }, { path: "/", type: "layout" },
   ],
-  skill: [{ path: "/admin" }, { path: "/admin/skills" }, { path: "/projects" }],
+  skill: [{ path: "/admin" }, { path: "/projects" }],
   settings: [
     { path: "/admin/settings" }, { path: "/admin/about" }, { path: "/" }, { path: "/about" }, { path: "/contact" },
     { path: "/resume" }, { path: "/", type: "layout" },
