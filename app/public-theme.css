@@ -1,0 +1,136 @@
+/* Public theme layer: dark is deliberately flat; light keeps tonal separation. */
+
+.public-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.public-theme-toggle > button {
+  width: 34px;
+  height: 34px;
+  border-color: color-mix(in srgb, var(--jp-ink) 22%, transparent) !important;
+  color: var(--jp-ink) !important;
+  background: transparent !important;
+}
+
+/* Dark mode uses one continuous dark canvas. Light text, rules and media are
+   allowed; only UI/background surfaces are flattened to a single tone. */
+.dark .public-stage {
+  --jp-paper: #0b0c0c;
+  --jp-paper-2: #0b0c0c;
+  --jp-ink: #f4efe6;
+  --jp-soft-ink: #f4efe6;
+  --jp-muted: #aaa49a;
+  --jp-line: rgba(244, 239, 230, .18);
+  --jp-rust: #d45a3d;
+  --jp-rust-dark: #e06b4f;
+  --jp-warm-white: #f4efe6;
+  --ink: #0b0c0c;
+  --graphite: #0b0c0c;
+  --charcoal: #0b0c0c;
+  --surface: #0b0c0c;
+  --surface-2: #0b0c0c;
+  --surface-3: #0b0c0c;
+  --bone: #0b0c0c;
+  --paper: #0b0c0c;
+  --border: rgba(244, 239, 230, .18);
+  --border-strong: rgba(244, 239, 230, .5);
+  --muted: #aaa49a;
+  --text: #f4efe6;
+  --text-dim: #c2bcb3;
+  background: #0b0c0c;
+  color: #f4efe6;
+}
+
+.dark .public-stage .public-nav,
+.dark .public-stage .public-mobile-menu,
+.dark .public-stage .spatial-hero,
+.dark .public-stage .space-project,
+.dark .public-stage .space-project-dark,
+.dark .public-stage .space-project-light,
+.dark .public-stage .space-lab,
+.dark .public-stage .space-journal,
+.dark .public-stage .space-about,
+.dark .public-stage .space-footer,
+.dark .public-stage .public-page-shell,
+.dark .public-stage .public-page-header,
+.dark .public-stage .public-about-page,
+.dark .public-stage .public-resume,
+.dark .public-stage .public-contact,
+.dark .public-stage .public-search-page,
+.dark .public-stage .public-not-found,
+.dark .public-stage .bg-surface,
+.dark .public-stage .bg-surface-2,
+.dark .public-stage .bg-surface-3 {
+  background-color: #0b0c0c !important;
+}
+
+.dark .public-stage .public-nav {
+  background: rgba(11, 12, 12, .92) !important;
+  border-bottom-color: rgba(244, 239, 230, .16);
+}
+
+.dark .public-stage .space-project-dark,
+.dark .public-stage .space-project-light,
+.dark .public-stage .space-about,
+.dark .public-stage .public-mobile-menu {
+  color: #f4efe6;
+}
+
+.dark .public-stage .space-project-light .space-project-visual {
+  background-color: #0b0c0c;
+}
+
+.dark .public-stage .space-lab-tags span,
+.dark .public-stage input,
+.dark .public-stage textarea,
+.dark .public-stage select,
+.dark .public-stage button,
+.dark .public-stage [role="dialog"] {
+  border-color: rgba(244, 239, 230, .2);
+}
+
+.dark .public-stage .space-journal-row:hover,
+.dark .public-stage .project-index-row:hover {
+  background: rgba(255,255,255,.025) !important;
+}
+
+.dark .public-stage .prose-docs {
+  color: #c8c2b9 !important;
+}
+
+.dark .public-stage .prose-docs code:not(pre code) {
+  color: #f0a18d;
+  background: #0b0c0c;
+  border-color: rgba(244,239,230,.18);
+}
+
+.dark .public-stage .public-not-found-code,
+.dark .public-stage .space-lab-number {
+  color: rgba(244,239,230,.055);
+}
+
+.dark .public-stage .public-not-found-line,
+.dark .public-stage .space-lab-grid .edge {
+  background: rgba(244,239,230,.42);
+}
+
+.dark .public-stage .public-not-found-line span {
+  box-shadow: 0 0 0 7px #0b0c0c;
+}
+
+.dark .public-stage .spatial-line span {
+  box-shadow: 0 0 0 8px #0b0c0c;
+}
+
+.dark .public-stage .text-text { color:#f4efe6 !important; }
+.dark .public-stage .text-text-dim,
+.dark .public-stage .text-muted,
+.dark .public-stage .text-muted-foreground { color:#aaa49a !important; }
+.dark .public-stage .border-border { border-color:rgba(244,239,230,.18) !important; }
+.dark .public-stage .border-border-strong { border-color:rgba(244,239,230,.5) !important; }
+
+@media (max-width: 900px) {
+  .public-nav-actions { margin-left: auto; }
+}
