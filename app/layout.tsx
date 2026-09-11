@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Manrope, Playfair_Display, IBM_Plex_Mono } from "next/font/google";
+import { Inter, Space_Grotesk, Manrope, Playfair_Display, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
@@ -10,6 +10,8 @@ import { ToastProvider } from "@/components/ui/toast";
 import { getSearchIndex } from "@/lib/content";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", display: "swap" });
 const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap" });
 const ibmPlexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-ibm-plex-mono", display: "swap" });
@@ -76,7 +78,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [searchIndex, settings] = await Promise.all([getSearchIndex(), getSiteSettings()]);
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(manrope.variable, playfair.variable, ibmPlexMono.variable, "font-body")}>
+      <body className={cn(inter.variable, spaceGrotesk.variable, manrope.variable, playfair.variable, ibmPlexMono.variable, "font-body")}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ToastProvider>
             <SearchProvider index={searchIndex}>
