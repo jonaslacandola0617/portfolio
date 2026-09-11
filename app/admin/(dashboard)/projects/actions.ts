@@ -8,9 +8,11 @@ import {
   updateProjectContent,
   deleteProject,
   deleteProjects,
+  setProjectHomepageShowcase,
+  ProjectShowcaseError,
 } from "@/lib/services/project-admin-service";
 import { projectFormSchema } from "@/lib/validations/project";
-import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
+import { bulkDeleteSchema, deleteIdSchema, projectShowcaseToggleSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
 import { saveEditorContent } from "@/lib/services/content-save-service";
 import type { ActionResult, SaveContentPayload, SaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
@@ -18,14 +20,9 @@ import type { ActionResult, SaveContentPayload, SaveResult, DeleteResult, BulkDe
 export type { ActionResult };
 
 /**
- * Every action here calls requireAdmin() itself, even though
- * middleware.ts already blocks unauthenticated requests to /admin/*.
- * Server Actions are callable RPC-style endpoints Next.js exposes
- * directly — middleware's path matching protects the *page* that
- * renders the trigger, not a guarantee about how the action itself gets
- * invoked. Same defense-in-depth reasoning as
- * app/admin/(dashboard)/layout.tsx calling requireAdmin() a second time
- * on top of middleware (see ARCHITECTURE.md §3).
+ * Every action calls requireAdmin() itself. Server Actions are RPC-style
+ * mutation endpoints, so this remains a defense-in-depth boundary even
+ * though middleware and the admin layout also require authentication.
  */
 
 function parseFormData(formData: FormData) {
@@ -108,19 +105,40 @@ export async function updateProjectAction(
   return { success: true, recordId: id, message: "Metadata changes saved." };
 }
 
-/** Called from the editor's autosave hook, not a form submit — a much
- *  higher-frequency, narrower write than the metadata action above.
- *  Returns a structured AutosaveResult rather than throwing (see
- *  hooks/use-autosave.ts and docs/PRE_PHASE_6_STABILIZATION_REPORT.md
- *  Workstream A) — a thrown error here used to leave the editor with no
- *  safe, displayable reason for a failed save. */
+export async function toggleProjectShowcaseAction(id: string, enabled: boolean): Promise<ActionResult> {
+  await requireAdmin();
+
+  const parsed = projectShowcaseToggleSchema.safeParse({ id, enabled });
+  if (!parsed.success) {
+    return { success: false, code: "VALIDATION_ERROR", message: "Invalid showcase request." };
+  }
+
+  try {
+    const result = await setProjectHomepageShowcase(parsed.data.id, parsed.data.enabled);
+    return {
+      success: true,
+      recordId: parsed.data.id,
+      message: result.showcaseOrder
+        ? `Project added to homepage showcase slot ${result.showcaseOrder}.`
+        : "Project removed from the homepage showcase.",
+    };
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    if (error instanceof ProjectShowcaseError) {
+      return { success: false, code: error.code, message: error.message };
+    }
+    return classifyServiceError(error, {
+      operation: "toggleShowcase",
+      contentType: "project",
+      recordId: parsed.data.id,
+    });
+  }
+}
+
 export async function autosaveProjectContentAction(payload: SaveContentPayload): Promise<SaveResult> {
   return saveEditorContent("project", payload, updateProjectContent);
 }
 
-/** Single-record delete. Does not redirect — used from both the edit
- *  page (which navigates away on success) and a management-list row
- *  (which just refreshes in place); see types/admin.ts's DeleteResult. */
 export async function deleteProjectAction(id: string): Promise<DeleteResult> {
   await requireAdmin();
   const parsed = deleteIdSchema.safeParse(id);
