@@ -47,9 +47,10 @@ export default async function HomePage() {
   ];
 
   const projectById = new Map(projects.map((project) => [project.recordId, project]));
-  const configuredProjects = settings.homepageProjectIds
-    .map((id) => projectById.get(id))
-    .filter((project): project is NonNullable<typeof project> => Boolean(project));
+  const configuredProjects = settings.homepageProjectIds.flatMap((id) => {
+    const project = projectById.get(id);
+    return project ? [project] : [];
+  });
 
   // Preserve the old automatic pair only until the admin explicitly chooses
   // a showcase project. After that, the homepage reflects only the toggled
