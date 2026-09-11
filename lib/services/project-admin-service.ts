@@ -40,14 +40,6 @@ interface AdminProjectDetail {
   scheduledFor: Date | null;
 }
 
-export interface HomepageShowcaseProjectOption {
-  id: string;
-  title: string;
-  summary: string;
-  liveSiteUrl: string | null;
-  thumbnailUrl: string | null;
-}
-
 function isWebDevelopmentCategory(category: string) {
   return category.trim().replace(/\s+/g, " ").toLocaleLowerCase() === "web development";
 }
@@ -81,33 +73,29 @@ async function relationInput(fm: ProjectFormValues) {
   };
 }
 
+async function removeProjectsFromHomepage(ids: string[]) {
+  if (!ids.length) return;
+  const settings = await prisma.siteSettings.findUnique({
+    where: { id: "singleton" },
+    select: { homepageProjectIds: true },
+  });
+  if (!settings) return;
+
+  const next = settings.homepageProjectIds.filter((id) => !ids.includes(id));
+  if (next.length === settings.homepageProjectIds.length) return;
+
+  await prisma.siteSettings.update({
+    where: { id: "singleton" },
+    data: { homepageProjectIds: next },
+  });
+  revalidateContent("settings");
+}
+
 export async function getAllProjectsForAdmin(): Promise<AdminProjectListItem[]> {
   return prisma.project.findMany({
     include: { category: true, tags: true },
     orderBy: { updatedAt: "desc" },
   }) as Promise<AdminProjectListItem[]>;
-}
-
-export async function getPublishedProjectShowcaseOptions(): Promise<HomepageShowcaseProjectOption[]> {
-  const projects = await prisma.project.findMany({
-    where: { publishStatus: "PUBLISHED" },
-    select: {
-      id: true,
-      title: true,
-      summary: true,
-      liveSiteUrl: true,
-      thumbnail: { select: { url: true } },
-    },
-    orderBy: [{ updatedAt: "desc" }, { title: "asc" }],
-  });
-
-  return projects.map((project) => ({
-    id: project.id,
-    title: project.title,
-    summary: project.summary,
-    liveSiteUrl: project.liveSiteUrl,
-    thumbnailUrl: project.thumbnail?.url ?? null,
-  }));
 }
 
 export async function getProjectForEdit(id: string): Promise<AdminProjectDetail | null> {
@@ -171,6 +159,10 @@ export async function updateProjectMetadata(id: string, fm: ProjectFormValues) {
     },
   });
 
+  if (project.publishStatus !== "PUBLISHED") {
+    await removeProjectsFromHomepage([id]);
+  }
+
   revalidateContent("project", existing ? [existing.slug, project.slug] : [project.slug]);
   return project;
 }
@@ -188,6 +180,7 @@ export async function updateProjectContent(id: string, content: TipTapDoc) {
 
 export async function deleteProject(id: string) {
   const project = await prisma.project.delete({ where: { id }, select: { slug: true } });
+  await removeProjectsFromHomepage([id]);
   revalidateContent("project", [project.slug]);
 }
 
@@ -198,6 +191,7 @@ export async function deleteProjects(ids: string[]): Promise<number> {
     return records.map((r: { slug: string }) => r.slug);
   });
 
+  await removeProjectsFromHomepage(ids);
   revalidateContent("project", slugs);
   return slugs.length;
 }
