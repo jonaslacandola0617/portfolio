@@ -15,6 +15,7 @@ interface AdminProjectListItem {
   title: string;
   slug: string;
   publishStatus: string;
+  showcaseOrder: number | null;
   updatedAt: Date;
   category: { name: string } | null;
 }
@@ -40,12 +41,14 @@ interface AdminProjectDetail {
   scheduledFor: Date | null;
 }
 
-export interface HomepageShowcaseProjectOption {
-  id: string;
-  title: string;
-  summary: string;
-  liveSiteUrl: string | null;
-  thumbnailUrl: string | null;
+export class ProjectShowcaseError extends Error {
+  constructor(
+    public readonly code: "NOT_PUBLISHED" | "SHOWCASE_FULL" | "NOT_FOUND",
+    message: string,
+  ) {
+    super(message);
+    this.name = "ProjectShowcaseError";
+  }
 }
 
 function isWebDevelopmentCategory(category: string) {
@@ -83,31 +86,66 @@ async function relationInput(fm: ProjectFormValues) {
 
 export async function getAllProjectsForAdmin(): Promise<AdminProjectListItem[]> {
   return prisma.project.findMany({
-    include: { category: true, tags: true },
+    include: { category: true },
     orderBy: { updatedAt: "desc" },
   }) as Promise<AdminProjectListItem[]>;
 }
 
-export async function getPublishedProjectShowcaseOptions(): Promise<HomepageShowcaseProjectOption[]> {
-  const projects = await prisma.project.findMany({
-    where: { publishStatus: "PUBLISHED" },
-    select: {
-      id: true,
-      title: true,
-      summary: true,
-      liveSiteUrl: true,
-      thumbnail: { select: { url: true } },
-    },
-    orderBy: [{ updatedAt: "desc" }, { title: "asc" }],
+export async function setProjectHomepageShowcase(id: string, enabled: boolean) {
+  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+    const project = await tx.project.findUnique({
+      where: { id },
+      select: { id: true, slug: true, publishStatus: true, showcaseOrder: true },
+    });
+
+    if (!project) {
+      throw new ProjectShowcaseError("NOT_FOUND", "This project no longer exists.");
+    }
+
+    if (!enabled) {
+      if (project.showcaseOrder === null) return { slug: project.slug, showcaseOrder: null };
+      const updated = await tx.project.update({
+        where: { id },
+        data: { showcaseOrder: null },
+        select: { slug: true, showcaseOrder: true },
+      });
+      return updated;
+    }
+
+    if (project.publishStatus !== "PUBLISHED") {
+      throw new ProjectShowcaseError(
+        "NOT_PUBLISHED",
+        "Publish this project before showcasing it on the homepage.",
+      );
+    }
+
+    if (project.showcaseOrder !== null) {
+      return { slug: project.slug, showcaseOrder: project.showcaseOrder };
+    }
+
+    const occupied = await tx.project.findMany({
+      where: { showcaseOrder: { not: null } },
+      select: { showcaseOrder: true },
+    });
+    const used = new Set(occupied.map((item) => item.showcaseOrder).filter((slot): slot is number => slot !== null));
+    const showcaseOrder = [1, 2].find((slot) => !used.has(slot));
+
+    if (!showcaseOrder) {
+      throw new ProjectShowcaseError(
+        "SHOWCASE_FULL",
+        "The homepage already has two showcased projects. Turn one off first.",
+      );
+    }
+
+    return tx.project.update({
+      where: { id },
+      data: { showcaseOrder },
+      select: { slug: true, showcaseOrder: true },
+    });
   });
 
-  return projects.map((project) => ({
-    id: project.id,
-    title: project.title,
-    summary: project.summary,
-    liveSiteUrl: project.liveSiteUrl,
-    thumbnailUrl: project.thumbnail?.url ?? null,
-  }));
+  revalidateContent("project", [result.slug]);
+  return result;
 }
 
 export async function getProjectForEdit(id: string): Promise<AdminProjectDetail | null> {
@@ -165,6 +203,7 @@ export async function updateProjectMetadata(id: string, fm: ProjectFormValues) {
       ...(fm.publishStatus === "PUBLISHED" && existing?.publishStatus !== "PUBLISHED"
         ? { publishedAt: new Date() }
         : {}),
+      ...(fm.publishStatus !== "PUBLISHED" ? { showcaseOrder: null } : {}),
       category: relations.category,
       tags: { set: [], ...relations.tags },
       skills: { set: [], ...relations.skills },
