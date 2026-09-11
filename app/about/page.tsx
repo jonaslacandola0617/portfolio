@@ -1,7 +1,6 @@
 import Link from "next/link";
-import { Download } from "lucide-react";
+import { ArrowUpRight, Download } from "lucide-react";
 import { JsonLd } from "@/components/shared/json-ld";
-import { PageHeader, PageShell } from "@/components/shared/page-header";
 import { Tag } from "@/components/shared/tag";
 import { getAboutPage } from "@/lib/db/queries/about";
 import { getSiteSettings } from "@/lib/db/queries/settings";
@@ -27,15 +26,8 @@ export const metadata = buildStaticPageMetadata({
 });
 
 export default async function AboutPage() {
-  const [about, settings] = await Promise.all([
-    getAboutPage(),
-    getSiteSettings(),
-  ]);
-  const initials = settings.name
-    .split(" ")
-    .map((word) => word[0])
-    .join("")
-    .toUpperCase();
+  const [about, settings] = await Promise.all([getAboutPage(), getSiteSettings()]);
+  const initials = settings.name.split(" ").map((word) => word[0]).join("").toUpperCase();
   const profileJsonLd = buildProfilePageJsonLd({
     name: settings.name,
     role: settings.role,
@@ -48,77 +40,53 @@ export default async function AboutPage() {
   });
 
   return (
-    <div>
+    <div className="about-space">
       <JsonLd data={profileJsonLd} />
-      <PageHeader index="01" eyebrow="Profile" title="About" />
-      <PageShell>
-        <div className="grid grid-cols-1 gap-12 lg:grid-cols-[220px_1fr]">
-          <div className="lg:sticky lg:top-8 lg:self-start">
-            <div className="relative flex aspect-square w-full items-center justify-center overflow-hidden border border-border-strong bg-surface-2">
-              {about.profileImageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={about.profileImageUrl}
-                  alt={`${settings.name} profile`}
-                  className="h-full w-full object-cover grayscale"
-                />
-              ) : (
-                <span className="font-display text-5xl font-semibold text-cobalt">
-                  {initials}
-                </span>
-              )}
-              <div className="pointer-events-none absolute left-3 top-3 h-8 w-8 border border-border" />
-              <div className="pointer-events-none absolute bottom-3 right-3 h-3 w-3 bg-vermilion" />
-            </div>
-            <p className="mt-4 text-xs text-muted">Profile</p>
-            <Link
-              href="/resume"
-              className="mt-5 flex items-center justify-center gap-2 border border-border-strong bg-text px-4 py-2.5 text-sm font-medium text-surface"
-            >
-              <Download size={14} /> Résumé
-            </Link>
-          </div>
 
-          <div className="max-w-content">
-            <p className="mb-8 border-l-2 border-vermilion pl-5 font-display text-xl leading-snug text-text sm:text-2xl">
-              &quot;{about.quote}&quot;
-            </p>
-
-            <section className="mb-8">
-              <p className="idx mb-2">01 — Background</p>
-              <p className="mb-4 text-[15px] leading-relaxed text-text">
-                {about.background}
-              </p>
-            </section>
-
-            <section className="mb-8">
-              <p className="idx mb-2">02 — Current Focus</p>
-              <p className="mb-4 text-[15px] leading-relaxed text-text">
-                {about.currentFocus}
-              </p>
-              <div className="flex flex-wrap gap-1.5">
-                {about.focusTags.map((item) => (
-                  <Tag key={item}>{item}</Tag>
-                ))}
-              </div>
-            </section>
-
-            <section className="mb-8">
-              <p className="idx mb-2">03 — Learning Philosophy</p>
-              <p className="text-[15px] leading-relaxed text-text">
-                {about.learningPhilosophy}
-              </p>
-            </section>
-
-            <section>
-              <p className="idx mb-2">04 — What&apos;s Next</p>
-              <p className="text-[15px] leading-relaxed text-text">
-                {about.whatsNext}
-              </p>
-            </section>
+      <section className="about-space-hero">
+        <div className="about-space-number">01 / ABOUT</div>
+        <div className="about-space-copy">
+          <p className="about-space-kicker">WEB DEVELOPER / TECHNICAL PROBLEM SOLVER</p>
+          <h1>I like <em>understanding</em> how things work.</h1>
+          <p>{settings.tagline}</p>
+          <div className="about-space-actions">
+            <Link href="/resume"><Download size={14}/> Résumé</Link>
+            <Link href="/contact">Contact <ArrowUpRight size={14}/></Link>
           </div>
         </div>
-      </PageShell>
+        <div className="about-space-profile">
+          {about.profileImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={about.profileImageUrl} alt={`${settings.name} profile`} />
+          ) : (
+            <span>{initials}</span>
+          )}
+          <i aria-hidden="true" /><b aria-hidden="true" />
+        </div>
+      </section>
+
+      <section className="about-space-philosophy">
+        <div className="about-philosophy-label">HOW I LEARN</div>
+        <div className="about-philosophy-words"><span>Build.</span><span>Break.</span><span>Rebuild.</span></div>
+        <p>{about.learningPhilosophy}</p>
+      </section>
+
+      <section className="about-space-grid">
+        <article>
+          <small>01 / BACKGROUND</small>
+          <p>{about.background}</p>
+        </article>
+        <article>
+          <small>02 / CURRENT FOCUS</small>
+          <p>{about.currentFocus}</p>
+          <div className="about-focus-tags">{about.focusTags.map((item) => <Tag key={item}>{item}</Tag>)}</div>
+        </article>
+        <article>
+          <small>03 / WHAT&apos;S NEXT</small>
+          <p>{about.whatsNext}</p>
+        </article>
+        <blockquote>“{about.quote}”</blockquote>
+      </section>
     </div>
   );
 }
