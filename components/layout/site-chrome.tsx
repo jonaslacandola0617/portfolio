@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Github, Linkedin, Menu, Search, X } from "lucide-react";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SearchDialog } from "@/components/shared/search-dialog";
 import { useSearch } from "@/hooks/use-search";
 import type { SiteSettingsData } from "@/lib/db/queries/settings";
@@ -31,23 +32,27 @@ export function SiteChrome({ children, settings }: { children: React.ReactNode; 
           <span>JL</span><i>/</i>
         </Link>
 
-        <nav className="public-nav-links" aria-label="Primary navigation">
-          {nav.map((item) => {
-            const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
-            return (
-              <Link key={item.href} href={item.href} className={active ? "is-active" : ""}>
-                {item.label}<span aria-hidden="true">●</span>
-              </Link>
-            );
-          })}
-          <button type="button" onClick={() => setOpen(true)} className="public-search" aria-label="Search portfolio">
-            <Search size={14} /><kbd>/</kbd>
-          </button>
-        </nav>
+        <div className="public-nav-actions">
+          <nav className="public-nav-links" aria-label="Primary navigation">
+            {nav.map((item) => {
+              const active = pathname === item.href || pathname?.startsWith(`${item.href}/`);
+              return (
+                <Link key={item.href} href={item.href} className={active ? "is-active" : ""}>
+                  {item.label}<span aria-hidden="true">●</span>
+                </Link>
+              );
+            })}
+            <button type="button" onClick={() => setOpen(true)} className="public-search" aria-label="Search portfolio">
+              <Search size={14} /><kbd>/</kbd>
+            </button>
+          </nav>
 
-        <button type="button" onClick={() => setMenuOpen((value) => !value)} className="public-menu-toggle" aria-expanded={menuOpen} aria-label="Toggle menu">
-          {menuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
+          <div className="public-theme-toggle"><ThemeToggle compact /></div>
+
+          <button type="button" onClick={() => setMenuOpen((value) => !value)} className="public-menu-toggle" aria-expanded={menuOpen} aria-label="Toggle menu">
+            {menuOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </header>
 
       {menuOpen ? (
