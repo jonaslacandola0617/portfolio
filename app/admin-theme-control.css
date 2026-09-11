@@ -19,12 +19,35 @@
   --signal-yellow: #d8aa47;
   --signal-teal: #6da897;
   --ac-paper: #10110f;
+  --ac-ink: #f2ece2;
   --ac-rust: #d45a40;
+  --ac-white: #10110f;
   background: var(--surface);
   color: var(--text);
 }
 
-/* Sidebar remains the same near-black control rail in both themes. */
+/* The navigation rail stays near-black in both themes. */
+.dark .admin-control-sidebar,
+.dark .admin-control-mobile-head,
+.dark .admin-control-mobile-drawer,
+.dark .admin-control-login-art {
+  background: #0b0c0c !important;
+  color: #f6f0e7 !important;
+}
+
+.dark .admin-control-sidebar .admin-control-wordmark,
+.dark .admin-control-mobile-head .admin-control-wordmark,
+.dark .admin-control-mobile-drawer .admin-control-wordmark,
+.dark .admin-control-login-art .admin-control-wordmark,
+.dark .admin-control-login-art h1 {
+  color: #f6f0e7 !important;
+}
+
+.dark .admin-control-sidebar .admin-control-view-site:hover {
+  background: #f6f0e7 !important;
+  color: #0b0c0c !important;
+}
+
 .admin-control-sidebar button[aria-label="Toggle color theme"],
 .admin-control-mobile-head button[aria-label="Toggle color theme"] {
   border-color: rgba(246, 240, 231, 0.28) !important;
@@ -117,4 +140,12 @@
 
 .dark .admin-control [data-bauhaus-metadata-sheet="true"] {
   background: var(--surface-2) !important;
+}
+
+/* Final-sweep utilities that intentionally use --ac-ink now inherit the
+ * light foreground token in dark mode, so media, dialogs and separators
+ * remain visible instead of collapsing into black-on-black. */
+.dark body:has(.admin-control) div[role="dialog"][aria-label^="Preview "] {
+  background: var(--surface-2) !important;
+  color: var(--text) !important;
 }
