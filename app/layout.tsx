@@ -8,6 +8,7 @@ import "./public-about.css";
 import "./public-finishing.css";
 import "./public-tokens.css";
 import "./public-tweaks.css";
+import "./public-modal-layer.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
