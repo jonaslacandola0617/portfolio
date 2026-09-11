@@ -3,6 +3,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, ExternalLink, Github, TriangleAlert } from "lucide-react";
 import { auth } from "@/auth";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { signInWithGitHub } from "./actions";
 
 export const metadata: Metadata = {
@@ -39,6 +40,10 @@ export default async function AdminLoginPage({
 
   return (
     <div className="admin-control-login">
+      <div className="absolute right-4 top-4 z-10">
+        <ThemeToggle compact />
+      </div>
+
       <section className="admin-control-login-art">
         <div className="admin-control-wordmark" aria-label="JL Control">
           <strong>JL<i>/</i></strong>
