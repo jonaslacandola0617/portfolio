@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { auth } from "@/auth";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { SignOutButton } from "@/components/admin/sign-out-button";
 import { AdminSearchDialog } from "@/components/admin/admin-search-dialog";
 import { AdminNav } from "@/components/admin/admin-nav";
@@ -22,14 +23,17 @@ export async function AdminSidebar() {
       <AdminNav />
 
       <div className="admin-control-sidebar-foot border-t">
-        <Link
-          href="/"
-          target="_blank"
-          className="admin-control-view-site label mb-2 flex w-full items-center justify-center gap-2 border px-3 py-2.5 transition-colors"
-        >
-          <ExternalLink className="h-3 w-3" />
-          <span>View site</span>
-        </Link>
+        <div className="mb-2 flex items-center gap-2">
+          <Link
+            href="/"
+            target="_blank"
+            className="admin-control-view-site label flex min-w-0 flex-1 items-center justify-center gap-2 border px-3 py-2.5 transition-colors"
+          >
+            <ExternalLink className="h-3 w-3" />
+            <span>View site</span>
+          </Link>
+          <ThemeToggle compact />
+        </div>
         <SignOutButton />
       </div>
     </aside>
