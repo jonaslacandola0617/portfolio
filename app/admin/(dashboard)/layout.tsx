@@ -15,7 +15,7 @@ export default async function AdminDashboardLayout({
     <div className="admin-control-shell">
       <AdminSidebar />
       <AdminMobileNav />
-      <main className="admin-control-main lg:pl-[248px]">{children}</main>
+      <main className="admin-control-main lg:pl-[220px]">{children}</main>
     </div>
   );
 }
