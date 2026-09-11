@@ -12,10 +12,10 @@ export default async function AdminDashboardLayout({
   await requireAdmin();
 
   return (
-    <div className="min-h-screen bg-surface">
+    <div className="admin-control-shell">
       <AdminSidebar />
       <AdminMobileNav />
-      <main className="lg:pl-[248px]">{children}</main>
+      <main className="admin-control-main lg:pl-[248px]">{children}</main>
     </div>
   );
 }
