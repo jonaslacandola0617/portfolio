@@ -18,3 +18,26 @@ export async function upsertSiteSettings(fm: SettingsFormValues) {
   });
   revalidateContent("settings");
 }
+
+export async function updateHomepageProjectIds(ids: string[]) {
+  const cleanIds = ids.filter(Boolean);
+  if (new Set(cleanIds).size !== cleanIds.length) {
+    throw new Error("Choose two different projects.");
+  }
+
+  if (cleanIds.length) {
+    const published = await prisma.project.findMany({
+      where: { id: { in: cleanIds }, publishStatus: "PUBLISHED" },
+      select: { id: true },
+    });
+    if (published.length !== cleanIds.length) {
+      throw new Error("Homepage showcase projects must be published projects.");
+    }
+  }
+
+  await prisma.siteSettings.update({
+    where: { id: "singleton" },
+    data: { homepageProjectIds: cleanIds },
+  });
+  revalidateContent("settings");
+}
