@@ -9,9 +9,8 @@ import "./public-finishing.css";
 import "./public-tokens.css";
 import "./public-tweaks.css";
 import "./public-modal-layer.css";
-import "./admin-control.css";
-import "./admin-editor-control.css";
-import "./admin-control-fixes.css";
+import "./public-theme.css";
+import "./admin-clean.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
@@ -90,7 +89,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn(inter.variable, spaceGrotesk.variable, manrope.variable, playfair.variable, ibmPlexMono.variable, "font-body")}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <ToastProvider>
             <SearchProvider index={searchIndex}>
               <SiteChrome settings={settings}>{children}</SiteChrome>
