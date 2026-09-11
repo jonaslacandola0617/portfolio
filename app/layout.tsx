@@ -10,6 +10,7 @@ import "./public-tokens.css";
 import "./public-tweaks.css";
 import "./public-modal-layer.css";
 import "./admin-control.css";
+import "./admin-editor-control.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
