@@ -5,10 +5,6 @@ import { toPrismaJson } from "@/lib/prisma-json";
 import { revalidateContent } from "@/lib/services/content-revalidation";
 
 export async function upsertSiteSettings(fm: SettingsFormValues) {
-  // `currentlyLearning` is the one non-TipTap Json field in the schema
-  // (an array of { label, href }) — same structural mismatch against
-  // Prisma.InputJsonValue as TipTap content, same fix: route it through
-  // the one shared JSON persistence boundary rather than a local cast.
   const data = { ...fm, currentlyLearning: toPrismaJson(fm.currentlyLearning) };
 
   await prisma.siteSettings.upsert({
@@ -19,25 +15,49 @@ export async function upsertSiteSettings(fm: SettingsFormValues) {
   revalidateContent("settings");
 }
 
-export async function updateHomepageProjectIds(ids: string[]) {
-  const cleanIds = ids.filter(Boolean);
-  if (new Set(cleanIds).size !== cleanIds.length) {
-    throw new Error("Choose two different projects.");
-  }
+export async function toggleHomepageProjectId(projectId: string, enabled: boolean) {
+  const [settings, project] = await Promise.all([
+    prisma.siteSettings.findUnique({
+      where: { id: "singleton" },
+      select: { homepageProjectIds: true },
+    }),
+    prisma.project.findUnique({
+      where: { id: projectId },
+      select: { id: true, title: true, publishStatus: true },
+    }),
+  ]);
 
-  if (cleanIds.length) {
-    const published = await prisma.project.findMany({
-      where: { id: { in: cleanIds }, publishStatus: "PUBLISHED" },
-      select: { id: true },
-    });
-    if (published.length !== cleanIds.length) {
-      throw new Error("Homepage showcase projects must be published projects.");
+  if (!settings) throw new Error("Site settings are not available.");
+  if (!project) throw new Error("That project no longer exists.");
+
+  const current = settings.homepageProjectIds.filter(Boolean);
+  const alreadyEnabled = current.includes(projectId);
+
+  if (enabled) {
+    if (alreadyEnabled) return current;
+    if (project.publishStatus !== "PUBLISHED") {
+      throw new Error("Publish this project before adding it to the homepage showcase.");
     }
+    if (current.length >= 2) {
+      throw new Error("Only two projects can be showcased at once. Toggle off one of the current showcase projects first.");
+    }
+
+    const next = [...current, projectId];
+    await prisma.siteSettings.update({
+      where: { id: "singleton" },
+      data: { homepageProjectIds: next },
+    });
+    revalidateContent("settings");
+    return next;
   }
 
+  if (!alreadyEnabled) return current;
+
+  const next = current.filter((id) => id !== projectId);
   await prisma.siteSettings.update({
     where: { id: "singleton" },
-    data: { homepageProjectIds: cleanIds },
+    data: { homepageProjectIds: next },
   });
   revalidateContent("settings");
+  return next;
 }
