@@ -42,8 +42,34 @@ function toISODate(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
+function firstContentImage(value: unknown): string | undefined {
+  if (!value || typeof value !== "object") return undefined;
+
+  if (Array.isArray(value)) {
+    for (const child of value) {
+      const found = firstContentImage(child);
+      if (found) return found;
+    }
+    return undefined;
+  }
+
+  const node = value as Record<string, unknown>;
+  if (node.type === "mediaImage" && node.attrs && typeof node.attrs === "object") {
+    const src = (node.attrs as Record<string, unknown>).src;
+    if (typeof src === "string" && src.trim()) return src;
+  }
+
+  if (Array.isArray(node.content)) {
+    return firstContentImage(node.content);
+  }
+
+  return undefined;
+}
+
 function mapProject(project: ProjectWithRelations): DbContentItem<ProjectFrontmatter> {
   const doc = project.content as TipTapDoc;
+  const previewImage = project.thumbnail?.url ?? firstContentImage(doc);
+
   return {
     recordId: project.id,
     frontmatter: {
@@ -60,7 +86,7 @@ function mapProject(project: ProjectWithRelations): DbContentItem<ProjectFrontma
       estimatedTime: project.estimatedTime ?? "",
       completionDate: toISODate(project.completionDate),
       lastUpdated: toISODate(project.updatedAt),
-      thumbnail: project.thumbnail?.url,
+      thumbnail: previewImage,
       githubUrl: project.githubUrl ?? undefined,
       liveSiteUrl: project.liveSiteUrl ?? undefined,
       demoUrl: project.demoUrl ?? undefined,
