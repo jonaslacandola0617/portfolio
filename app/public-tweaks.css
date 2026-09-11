@@ -1,14 +1,139 @@
 /* Final layout refinements for the approved public redesign.
- * Keep the original type scale. This file only handles project imagery,
+ * Keep the original type scale except for a very small hero reduction requested
+ * during preview review. This file also handles live project previews,
  * the restored homepage contact form, and collision-safe responsive layout.
  */
 
-/* Project previews always display CMS imagery as a composed crop. */
+/* Project previews: live site when available, CMS image behind it as fallback. */
 .public-stage .space-project-visual,
-.public-stage .project-index-preview {
+.public-stage .project-index-preview,
+.public-stage .project-visual-preview {
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+}
+
+.public-stage .space-project-visual,
+.public-stage .project-index-preview {
+  position: relative;
+  overflow: hidden;
+}
+
+.public-stage .project-visual-preview {
+  position: absolute;
+  inset: 0;
+  background-color: inherit;
+}
+
+.public-stage .project-visual-preview iframe {
+  position: absolute;
+  inset: 0;
+  width: 125%;
+  height: 125%;
+  border: 0;
+  background: transparent;
+  transform: scale(.8);
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.public-stage .project-visual-preview > span {
+  position: absolute;
+  z-index: 1;
+  left: 28px;
+  bottom: 26px;
+  max-width: 80%;
+  font-family: var(--font-playfair), serif;
+  font-size: clamp(34px, 5vw, 76px);
+  line-height: .84;
+  letter-spacing: -.055em;
+  color: #f3eee4;
+}
+
+.public-stage .project-index-preview .project-visual-preview > span {
+  left: 16px;
+  bottom: 14px;
+  font-size: clamp(22px, 2.3vw, 36px);
+}
+
+/* Hero: slightly smaller statement, and NOW always gets its own vertical space. */
+.public-stage .spatial-hero {
+  padding-bottom: clamp(132px, 16vh, 190px);
+}
+
+.public-stage .spatial-statement {
+  font-size: clamp(20px, 2.05vw, 34px);
+}
+
+.public-stage .spatial-statement .serif {
+  font-size: 1.12em;
+}
+
+.public-stage .spatial-focus {
+  position: static;
+  width: min(420px, 46vw);
+  min-width: 0;
+  margin: 28px 0 0 auto;
+}
+
+/* Search should feel spacious, not oversized. */
+.public-search-dialog {
+  width: min(980px, calc(100vw - 36px)) !important;
+  height: min(700px, calc(100svh - 70px));
+}
+
+.public-search-dialog-head {
+  padding: 22px 26px;
+}
+
+.public-search-dialog-head > div > span {
+  font-size: clamp(26px, 3vw, 42px);
+}
+
+.public-search-dialog-head p {
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.public-search-input-wrap {
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 20px 26px;
+}
+
+.public-search-input-wrap input {
+  font-size: clamp(24px, 3.4vw, 46px);
+}
+
+.public-search-results {
+  padding: 0 26px;
+}
+
+.public-search-group {
+  grid-template-columns: 96px 1fr;
+}
+
+.public-search-group-label {
+  padding: 21px 16px 21px 0;
+}
+
+.public-search-result {
+  min-height: 74px;
+  padding: 14px 0;
+}
+
+.public-search-result strong {
+  font-size: clamp(19px, 1.75vw, 28px);
+  line-height: 1.05;
+}
+
+.public-search-result p {
+  margin-top: 4px;
+  font-size: 10px;
+}
+
+.public-search-dialog-foot {
+  padding: 12px 26px;
 }
 
 /* Footer: give the statement priority and keep the form intentionally compact. */
@@ -99,24 +224,17 @@
   color: var(--jp-ink) !important;
 }
 
-/* The hero's NOW block is absolute on wide screens. Once horizontal room gets
- * tight, return it to document flow before it can overlap the main statement. */
 @media (max-width: 1180px) {
-  .spatial-hero {
-    padding-bottom: 118px;
-  }
-
-  .spatial-statement {
+  .public-stage .spatial-statement {
     width: min(680px, 76vw);
     margin-left: 0;
     margin-right: auto;
   }
 
-  .spatial-focus {
-    position: static;
+  .public-stage .spatial-focus {
     width: min(100%, 420px);
-    min-width: 0;
-    margin-top: 34px;
+    margin-left: 0;
+    margin-right: auto;
   }
 
   .space-footer-main {
@@ -125,6 +243,15 @@
 }
 
 @media (max-width: 900px) {
+  .public-stage .spatial-hero {
+    padding-bottom: 132px;
+  }
+
+  .public-stage .spatial-focus {
+    width: min(100%, 420px);
+    margin-top: 34px;
+  }
+
   .space-footer-main {
     grid-template-columns: 1fr;
     gap: 56px;
@@ -133,6 +260,18 @@
   .space-footer-form {
     width: min(100%, 520px);
     justify-self: start;
+  }
+
+  .public-search-dialog {
+    height: min(720px, calc(100svh - 36px));
+  }
+
+  .public-search-group {
+    grid-template-columns: 1fr;
+  }
+
+  .public-search-group-label {
+    padding-bottom: 6px;
   }
 }
 
@@ -144,6 +283,18 @@
 
   .space-footer-form {
     width: 100%;
+  }
+
+  .public-search-dialog-head,
+  .public-search-input-wrap,
+  .public-search-results,
+  .public-search-dialog-foot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .public-search-input-wrap input {
+    font-size: clamp(22px, 8vw, 34px);
   }
 
   /* Keep 16px controls on phones to avoid browser zoom while leaving the
