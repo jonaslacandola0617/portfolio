@@ -2,9 +2,8 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Search, X, FolderGit2, FlaskConical, NotebookPen, BadgeCheck } from "lucide-react";
+import { Search, FolderGit2, FlaskConical, NotebookPen, BadgeCheck } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { searchAdminContent, type AdminSearchResult } from "@/lib/services/admin-search-service";
 
 const typeIcon = {
@@ -14,11 +13,11 @@ const typeIcon = {
   certificate: BadgeCheck,
 } as const;
 
-const statusVariant = {
-  DRAFT: "default",
-  PUBLISHED: "success",
-  ARCHIVED: "outline",
-  SCHEDULED: "warning",
+const typeLabel = {
+  project: "PROJECT",
+  lab: "LAB",
+  article: "JOURNAL",
+  certificate: "CREDENTIAL",
 } as const;
 
 export function AdminSearchDialog({ enableShortcuts = true }: { enableShortcuts?: boolean }) {
@@ -56,7 +55,7 @@ export function AdminSearchDialog({ enableShortcuts = true }: { enableShortcuts?
       const found = await searchAdminContent(query);
       setResults(found);
       setLoading(false);
-    }, 300);
+    }, 240);
     return () => clearTimeout(timeout);
   }, [query]);
 
@@ -65,40 +64,54 @@ export function AdminSearchDialog({ enableShortcuts = true }: { enableShortcuts?
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="mx-4 mt-4 flex items-center gap-2 border border-border px-3 py-2 text-left text-xs text-muted transition-colors hover:border-border-strong hover:text-text-dim"
+        className="admin-control-search-trigger"
       >
         <Search className="h-[13px] w-[13px]" />
-        <span className="flex-1">Search</span>
-        {enableShortcuts && <kbd className="border border-border px-1 font-mono text-[10px]">/</kbd>}
+        <span className="flex-1">Search control</span>
+        {enableShortcuts && <kbd>/</kbd>}
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="top-24 translate-y-0 max-w-xl border-border-strong bg-surface-2 p-0 sm:top-32 [&>button]:hidden">
-          <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-            <Search className="h-4 w-4 text-muted" />
-            <input
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search projects, labs, journal, certificates…"
-              className="min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted"
-            />
-            <kbd className="hidden border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted sm:inline-block">ESC</kbd>
-            <button
-              type="button"
-              onClick={() => setOpen(false)}
-              className="text-muted hover:text-text sm:hidden"
-              aria-label="Close search"
-            >
-              <X className="h-4 w-4" />
-            </button>
+        <DialogContent
+          className="admin-control-search-dialog [&>button]:hidden"
+          overlayClassName="admin-control-search-overlay"
+        >
+          <div className="admin-control-search-head">
+            <span className="admin-control-search-kicker">CONTROL / SEARCH</span>
+            <div className="admin-control-search-input-row">
+              <Search className="h-4 w-4" />
+              <input
+                autoFocus
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Find projects, labs, journals, credentials…"
+                aria-label="Search admin content"
+              />
+              <kbd>ESC</kbd>
+            </div>
           </div>
-          <div className="thin-scroll max-h-96 overflow-y-auto p-2">
-            {loading && <p className="px-3 py-8 text-center text-sm text-muted">Searching…</p>}
-            {!loading && query.trim() && results.length === 0 && (
-              <p className="px-3 py-8 text-center text-sm text-muted">No results for “{query}”</p>
+
+          <div className="admin-control-search-results thin-scroll">
+            {!query.trim() && !loading && (
+              <div className="admin-control-search-empty">
+                <span>READY</span>
+                <p>Type a title, content type, or status to jump directly into the CMS.</p>
+              </div>
             )}
-            {results.map((item) => {
+            {loading && (
+              <div className="admin-control-search-empty">
+                <span>SEARCHING</span>
+                <p>Looking across portfolio content…</p>
+              </div>
+            )}
+            {!loading && query.trim() && results.length === 0 && (
+              <div className="admin-control-search-empty">
+                <span>NO MATCH</span>
+                <p>No control records match “{query}”.</p>
+              </div>
+            )}
+
+            {results.map((item, index) => {
               const Icon = typeIcon[item.type];
               return (
                 <button
@@ -108,13 +121,17 @@ export function AdminSearchDialog({ enableShortcuts = true }: { enableShortcuts?
                     setOpen(false);
                     router.push(item.href);
                   }}
-                  className="flex w-full items-center gap-3 border border-transparent px-3 py-2.5 text-left text-sm transition-colors hover:border-border hover:bg-surface-3"
+                  className="admin-control-search-result"
                 >
-                  <Icon className="h-4 w-4 shrink-0 text-cobalt" />
-                  <span className="min-w-0 flex-1 truncate text-text">{item.title}</span>
-                  <Badge variant={statusVariant[item.publishStatus as keyof typeof statusVariant]}>
+                  <span className="admin-control-search-index">{String(index + 1).padStart(2, "0")}</span>
+                  <Icon className="admin-control-search-icon" />
+                  <span className="admin-control-search-result-copy">
+                    <strong>{item.title}</strong>
+                    <small>{typeLabel[item.type]}</small>
+                  </span>
+                  <span className={`admin-control-search-status is-${item.publishStatus.toLowerCase()}`}>
                     {item.publishStatus}
-                  </Badge>
+                  </span>
                 </button>
               );
             })}
