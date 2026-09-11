@@ -15,6 +15,7 @@ import "./admin-control-fixes.css";
 import "./admin-completion.css";
 import "./admin-polish.css";
 import "./admin-final-sweep.css";
+import "./admin-theme-control.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
