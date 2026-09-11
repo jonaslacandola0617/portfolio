@@ -44,7 +44,10 @@ export function SearchDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="public-search-dialog [&>button]:hidden">
+      <DialogContent
+        overlayClassName="public-search-overlay"
+        className="public-search-dialog [&>button]:hidden"
+      >
         <div className="public-search-dialog-head">
           <div>
             <span>SEARCH /</span>
