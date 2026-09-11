@@ -3,12 +3,10 @@
 import { requireAdmin } from "@/lib/services/auth-service";
 import { upsertSiteSettings } from "@/lib/services/settings-admin-service";
 import { settingsFormSchema, parseLearningLines } from "@/lib/validations/settings";
-import { getSiteSettings } from "@/lib/db/queries/settings";
 import type { ActionResult } from "@/types/admin";
 
 export async function updateSettingsAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
-  const current = await getSiteSettings();
 
   const parsed = settingsFormSchema.safeParse({
     name: formData.get("name"),
@@ -19,7 +17,6 @@ export async function updateSettingsAction(_prevState: ActionResult, formData: F
     linkedinUrl: formData.get("linkedinUrl"),
     resumeUrl: formData.get("resumeUrl"),
     currentlyLearning: parseLearningLines((formData.get("currentlyLearning") as string) ?? ""),
-    homepageProjectIds: current.homepageProjectIds,
   });
 
   if (!parsed.success) {
