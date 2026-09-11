@@ -23,9 +23,9 @@ const config: Config = {
         destructive: { DEFAULT: "var(--vermilion)", foreground: "#ffffff" },
       },
       fontFamily: {
-        sans: ["var(--font-manrope)", "Manrope", "system-ui", "sans-serif"],
-        body: ["var(--font-manrope)", "Manrope", "system-ui", "sans-serif"],
-        display: ["var(--font-playfair)", "'Playfair Display'", "Georgia", "serif"],
+        sans: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        body: ["var(--font-inter)", "Inter", "system-ui", "sans-serif"],
+        display: ["var(--font-space-grotesk)", "'Space Grotesk'", "system-ui", "sans-serif"],
         mono: ["var(--font-ibm-plex-mono)", "'IBM Plex Mono'", "ui-monospace", "monospace"],
       },
       borderRadius: { xs: "2px", sm: "4px", md: "6px", lg: "10px" },
