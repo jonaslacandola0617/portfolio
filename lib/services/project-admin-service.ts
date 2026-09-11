@@ -40,6 +40,14 @@ interface AdminProjectDetail {
   scheduledFor: Date | null;
 }
 
+export interface HomepageShowcaseProjectOption {
+  id: string;
+  title: string;
+  summary: string;
+  liveSiteUrl: string | null;
+  thumbnailUrl: string | null;
+}
+
 function isWebDevelopmentCategory(category: string) {
   return category.trim().replace(/\s+/g, " ").toLocaleLowerCase() === "web development";
 }
@@ -78,6 +86,28 @@ export async function getAllProjectsForAdmin(): Promise<AdminProjectListItem[]> 
     include: { category: true, tags: true },
     orderBy: { updatedAt: "desc" },
   }) as Promise<AdminProjectListItem[]>;
+}
+
+export async function getPublishedProjectShowcaseOptions(): Promise<HomepageShowcaseProjectOption[]> {
+  const projects = await prisma.project.findMany({
+    where: { publishStatus: "PUBLISHED" },
+    select: {
+      id: true,
+      title: true,
+      summary: true,
+      liveSiteUrl: true,
+      thumbnail: { select: { url: true } },
+    },
+    orderBy: [{ updatedAt: "desc" }, { title: "asc" }],
+  });
+
+  return projects.map((project) => ({
+    id: project.id,
+    title: project.title,
+    summary: project.summary,
+    liveSiteUrl: project.liveSiteUrl,
+    thumbnailUrl: project.thumbnail?.url ?? null,
+  }));
 }
 
 export async function getProjectForEdit(id: string): Promise<AdminProjectDetail | null> {
