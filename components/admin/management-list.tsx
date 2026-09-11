@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, ChevronUp, GripVertical, Inbox, Pencil, Plus, Search, Trash2 } from "lucide-react";
@@ -14,6 +14,7 @@ export interface ManagementListRow {
   meta: string;
   status: string;
   updated: string;
+  showcaseOrder?: number | null;
 }
 
 interface ManagementListProps {
@@ -28,6 +29,7 @@ interface ManagementListProps {
   deleteOneAction: (id: string) => Promise<DeleteResult>;
   deleteManyAction: (ids: string[]) => Promise<DeleteResult>;
   reorderAction?: (ids: string[]) => Promise<ActionResult>;
+  showcaseAction?: (id: string, enabled: boolean) => Promise<ActionResult>;
 }
 
 function statusDot(status: string) {
@@ -46,6 +48,7 @@ export function ManagementList({
   deleteOneAction,
   deleteManyAction,
   reorderAction,
+  showcaseAction,
 }: ManagementListProps) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -54,7 +57,13 @@ export function ManagementList({
   const [dropId, setDropId] = useState<string | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
   const [orderMessage, setOrderMessage] = useState<string | null>(null);
+  const [showcaseBusyId, setShowcaseBusyId] = useState<string | null>(null);
+  const [showcaseMessage, setShowcaseMessage] = useState<string | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    setOrderedRows(rows);
+  }, [rows]);
 
   const filtered = useMemo(() => {
     const normalized = query.trim().toLowerCase();
@@ -66,6 +75,7 @@ export function ManagementList({
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((row) => selected.has(row.id));
   const canReorder = Boolean(reorderAction) && !query.trim() && !savingOrder;
+  const showcaseCount = showcaseAction ? orderedRows.filter((row) => row.showcaseOrder != null).length : 0;
 
   function toggle(id: string) {
     setSelected((previous) => {
@@ -83,6 +93,17 @@ export function ManagementList({
       else filtered.forEach((row) => next.add(row.id));
       return next;
     });
+  }
+
+  async function toggleShowcase(row: ManagementListRow) {
+    if (!showcaseAction || showcaseBusyId) return;
+    const enabled = row.showcaseOrder == null;
+    setShowcaseBusyId(row.id);
+    setShowcaseMessage(null);
+    const result = await showcaseAction(row.id, enabled);
+    setShowcaseBusyId(null);
+    setShowcaseMessage(result.message ?? (result.success ? "Homepage showcase updated." : "Could not update homepage showcase."));
+    if (result.success) router.refresh();
   }
 
   async function saveOrder(next: ManagementListRow[], previous: ManagementListRow[]) {
@@ -139,8 +160,12 @@ export function ManagementList({
   }
 
   const gridClass = reorderAction
-    ? "sm:grid-cols-[46px_28px_1fr_140px_110px_140px_80px]"
-    : "sm:grid-cols-[28px_1fr_140px_110px_140px_80px]";
+    ? showcaseAction
+      ? "sm:grid-cols-[46px_28px_1fr_130px_105px_120px_110px_80px]"
+      : "sm:grid-cols-[46px_28px_1fr_140px_110px_140px_80px]"
+    : showcaseAction
+      ? "sm:grid-cols-[28px_1fr_130px_105px_120px_110px_80px]"
+      : "sm:grid-cols-[28px_1fr_140px_110px_140px_80px]";
   const mobileGridClass = reorderAction
     ? "grid-cols-[46px_28px_1fr_auto]"
     : "grid-cols-[28px_1fr_auto]";
@@ -163,6 +188,11 @@ export function ManagementList({
             />
           </div>
           <div className="flex items-center gap-3">
+            {showcaseAction && (
+              <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted sm:inline" aria-live="polite">
+                {showcaseMessage ?? `${showcaseCount}/2 homepage showcase`}
+              </span>
+            )}
             {reorderAction && (
               <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted sm:inline" aria-live="polite">
                 {query.trim() ? "Clear search to reorder" : orderMessage ?? "Drag to reorder"}
@@ -176,6 +206,12 @@ export function ManagementList({
             </Link>
           </div>
         </div>
+
+        {showcaseAction && showcaseMessage && (
+          <p className="mb-4 font-mono text-[10px] uppercase tracking-wider text-text-dim sm:hidden" aria-live="polite">
+            {showcaseMessage}
+          </p>
+        )}
 
         {filtered.length > 0 && (
           <div className="mb-4 flex items-center justify-between gap-3 sm:hidden">
@@ -228,11 +264,44 @@ export function ManagementList({
               <span className="label">Category</span>
               <span className="label">Status</span>
               <span className="label">Updated</span>
+              {showcaseAction && <span className="label">Homepage</span>}
               <span className="label text-right">Actions</span>
             </div>
             <div className="divide-y divide-border">
               {filtered.map((row) => {
                 const position = orderedRows.findIndex((item) => item.id === row.id) + 1;
+                const showcased = row.showcaseOrder != null;
+                const published = row.status.toUpperCase() === "PUBLISHED";
+                const showcaseDisabled = Boolean(
+                  showcaseBusyId || (!showcased && (!published || showcaseCount >= 2)),
+                );
+                const showcaseTitle = !published
+                  ? "Publish this project before showcasing it"
+                  : !showcased && showcaseCount >= 2
+                    ? "Two homepage showcase slots are already in use"
+                    : showcased
+                      ? `Remove from homepage showcase slot ${row.showcaseOrder}`
+                      : "Showcase this project on the homepage";
+                const showcaseToggle = showcaseAction ? (
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={showcased}
+                    aria-label={`${showcased ? "Remove" : "Add"} ${row.title} ${showcased ? "from" : "to"} homepage showcase`}
+                    title={showcaseTitle}
+                    disabled={showcaseDisabled}
+                    onClick={() => void toggleShowcase(row)}
+                    className={`inline-flex h-7 min-w-[78px] items-center justify-between gap-2 border px-2 font-mono text-[9px] uppercase tracking-wider transition-colors disabled:cursor-not-allowed disabled:opacity-35 ${
+                      showcased
+                        ? "border-cobalt bg-cobalt text-white"
+                        : "border-border text-text-dim hover:border-border-strong hover:text-text"
+                    }`}
+                  >
+                    <span>{showcased ? `Slot ${row.showcaseOrder}` : "Off"}</span>
+                    <span className={`h-1.5 w-1.5 ${showcased ? "bg-white" : "bg-muted"}`} aria-hidden="true" />
+                  </button>
+                ) : null;
+
                 return (
                   <div
                     key={row.id}
@@ -281,7 +350,9 @@ export function ManagementList({
                       <span className="label">{row.status}</span>
                     </span>
                     <span className="hidden font-mono text-xs text-muted sm:block">{row.updated}</span>
+                    {showcaseAction && <div className="hidden sm:block">{showcaseToggle}</div>}
                     <div className={`${reorderAction ? "col-span-4" : "col-span-3"} flex items-center justify-end gap-1 sm:col-span-1`}>
+                      {showcaseAction && <div className="mr-auto sm:hidden">{showcaseToggle}</div>}
                       {reorderAction && (
                         <div className="mr-auto flex items-center gap-1 sm:hidden">
                           <button
