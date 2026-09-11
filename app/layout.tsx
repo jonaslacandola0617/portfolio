@@ -13,6 +13,7 @@ import "./admin-control.css";
 import "./admin-editor-control.css";
 import "./admin-control-fixes.css";
 import "./admin-completion.css";
+import "./admin-polish.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
