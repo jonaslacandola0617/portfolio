@@ -53,6 +53,10 @@
 .dark .public-stage .space-journal,
 .dark .public-stage .space-about,
 .dark .public-stage .space-footer,
+.dark .public-stage .about-space,
+.dark .public-stage .about-space-hero,
+.dark .public-stage .about-space-philosophy,
+.dark .public-stage .about-space-grid,
 .dark .public-stage .public-page-shell,
 .dark .public-stage .public-page-header,
 .dark .public-stage .public-about-page,
@@ -68,6 +72,16 @@
 .dark .public-stage .bg-surface-2,
 .dark .public-stage .bg-surface-3 {
   background-color: #0b0c0c !important;
+}
+
+.dark .public-stage .about-space-hero,
+.dark .public-stage .about-space-philosophy,
+.dark .public-stage .about-space-grid {
+  color: #f4efe6;
+}
+
+.dark .public-stage .about-space-grid article > p {
+  color: #c2bcb3;
 }
 
 .dark .public-stage .public-nav {
