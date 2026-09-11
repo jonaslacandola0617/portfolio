@@ -26,19 +26,19 @@ export default async function CertificationsPage() {
     <div>
       <PageHeader
         index="05"
-        eyebrow="Credentials"
+        eyebrow="Credential Record"
         title="Certifications"
-        description="Professional certifications and structured coursework, with the practical skills developed through each credential."
+        description="Structured learning and professional credentials, kept alongside the work and labs where I apply what I learned."
       />
       <PageShell>
         {certifications.length ? (
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="credential-index">
             {certifications.map((certificate, index) => (
               <CertificateCard key={certificate.id} cert={certificate} index={index + 1} />
             ))}
           </div>
         ) : (
-          <p className="text-sm text-text-dim">No published certifications yet.</p>
+          <p className="project-index-empty">No published certifications yet.</p>
         )}
       </PageShell>
     </div>
