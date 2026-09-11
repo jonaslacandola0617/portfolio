@@ -1,0 +1,8 @@
+/* Search is a true modal state and must sit above the fixed public navigation. */
+.public-search-overlay {
+  z-index: 120 !important;
+}
+
+.public-search-dialog {
+  z-index: 121 !important;
+}
