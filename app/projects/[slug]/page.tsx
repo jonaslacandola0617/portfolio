@@ -25,7 +25,6 @@ export async function generateMetadata({ params }: { params: ProjectParams }): P
   const { slug } = await params;
   const project = await getProjectBySlug(slug);
   if (!project) return {};
-
   const { frontmatter, content } = project;
   return buildContentMetadata({
     title: frontmatter.title,
@@ -49,11 +48,7 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
   const [certifications, allProjects, related] = await Promise.all([
     getAllCertificates(),
     getAllProjects(),
-    getRelatedContent({
-      currentPath,
-      tags: frontmatter.tags,
-      category: frontmatter.category,
-    }),
+    getRelatedContent({ currentPath, tags: frontmatter.tags, category: frontmatter.category }),
   ]);
   const cert = certifications.find((certificate) => certificate.id === frontmatter.relatedCertification);
   const idx = allProjects.findIndex((entry) => entry.frontmatter.slug === frontmatter.slug);
@@ -74,174 +69,92 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
   });
 
   return (
-    <div>
+    <div className="public-project-detail">
       <JsonLd data={projectJsonLd} />
-      <header className="border-b border-border px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
-        <div className="mx-auto max-w-3xl">
-          <Link
-            href="/projects"
-            className="mb-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-text"
-          >
-            <ArrowLeft size={12} /> All Projects
-          </Link>
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <span className="idx">{String(Math.max(0, idx) + 1).padStart(2, "0")}</span>
-            <span className="label text-cobalt">{frontmatter.category}</span>
+
+      <header className="public-detail-hero">
+        <div className="public-detail-hero-inner">
+          <Link href="/projects" className="public-detail-back"><ArrowLeft size={12} /> All work</Link>
+          <div className="public-detail-kicker">
+            <span>{String(Math.max(0, idx) + 1).padStart(2, "0")} / PROJECT</span>
+            <span className="accent">{frontmatter.category}</span>
             <StatusBadge status={frontmatter.status} />
           </div>
-          <h1 className="font-display text-3xl font-semibold leading-tight text-text sm:text-4xl lg:text-5xl">
-            {frontmatter.title}
-          </h1>
-          <p className="mt-4 text-base text-text-dim sm:text-lg">{frontmatter.summary}</p>
+          <h1 className="public-detail-title">{frontmatter.title}</h1>
+          <p className="public-detail-summary">{frontmatter.summary}</p>
+          <div className="public-detail-line" aria-hidden="true"><span /></div>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-5xl grid-cols-1 gap-10 px-6 py-12 sm:px-10 lg:grid-cols-[1fr_260px] lg:px-14">
-        <article className="min-w-0 max-w-content">
+      {projectImage ? <div className="public-project-image" style={{ backgroundImage: `url(${projectImage})` }} aria-hidden="true" /> : null}
+
+      <div className="public-detail-layout">
+        <article className="public-detail-main">
           <ContentRenderer
             content={content}
-            context={{
-              model: "Project",
-              id: project.recordId,
-              slug: frontmatter.slug,
-              title: frontmatter.title,
-            }}
+            context={{ model: "Project", id: project.recordId, slug: frontmatter.slug, title: frontmatter.title }}
           />
-          <div className="mt-10 border border-border bg-surface-2 p-5">
-            <p className="label mb-3">Technologies</p>
-            <div className="flex flex-wrap gap-1.5">
-              {frontmatter.technologies.map((technology) => (
-                <Tag key={technology}>{technology}</Tag>
-              ))}
+
+          <div className="public-detail-tech">
+            <p>Technologies</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {frontmatter.technologies.map((technology) => <Tag key={technology}>{technology}</Tag>)}
             </div>
           </div>
 
           <RelatedContentLinks items={related} />
 
-          <div className="mt-10 flex flex-col gap-3 border-t border-border pt-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="public-detail-nav">
             {prev ? (
-              <Link
-                href={`/projects/${prev.frontmatter.slug}`}
-                className="group flex items-center gap-2 text-sm text-text-dim hover:text-text"
-              >
-                <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
-                <span className="truncate">{prev.frontmatter.title}</span>
-              </Link>
-            ) : (
-              <span />
-            )}
-            {next && (
-              <Link
-                href={`/projects/${next.frontmatter.slug}`}
-                className="group ml-auto flex items-center gap-2 text-right text-sm text-text-dim hover:text-text"
-              >
-                <span className="truncate">{next.frontmatter.title}</span>
-                <ArrowRight size={14} className="transition-transform group-hover:translate-x-0.5" />
-              </Link>
-            )}
+              <Link href={`/projects/${prev.frontmatter.slug}`}><ArrowLeft size={14} /><span>{prev.frontmatter.title}</span></Link>
+            ) : <span />}
+            {next ? (
+              <Link href={`/projects/${next.frontmatter.slug}`}><span>{next.frontmatter.title}</span><ArrowRight size={14} /></Link>
+            ) : null}
           </div>
         </article>
 
-        <aside className="space-y-6 lg:sticky lg:top-8 lg:self-start">
-          <div className="border border-border bg-surface-2 p-5">
-            <p className="label mb-3">Metadata</p>
-            <dl className="space-y-3 text-sm">
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Difficulty</dt>
-                <dd><DifficultyBadge difficulty={frontmatter.difficulty} /></dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Est. time</dt>
-                <dd className="font-mono text-text-dim">{frontmatter.estimatedTime}</dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Completed</dt>
-                <dd className="font-mono text-text-dim">{formatDate(frontmatter.completionDate)}</dd>
-              </div>
-              <div className="flex justify-between gap-3">
-                <dt className="text-muted-foreground">Updated</dt>
-                <dd className="font-mono text-text-dim">{formatDate(frontmatter.lastUpdated)}</dd>
-              </div>
+        <aside className="public-detail-aside">
+          <section className="public-detail-aside-section">
+            <p>Project record</p>
+            <dl>
+              <div><dt>Difficulty</dt><dd><DifficultyBadge difficulty={frontmatter.difficulty} /></dd></div>
+              <div><dt>Est. time</dt><dd className="font-mono">{frontmatter.estimatedTime}</dd></div>
+              <div><dt>Completed</dt><dd className="font-mono">{formatDate(frontmatter.completionDate)}</dd></div>
+              <div><dt>Updated</dt><dd className="font-mono">{formatDate(frontmatter.lastUpdated)}</dd></div>
             </dl>
-          </div>
+          </section>
 
-          {isWebDevelopment && (frontmatter.liveSiteUrl || frontmatter.demoUrl) && (
-            <div className="border border-cobalt/40 bg-surface-2 p-5">
-              <p className="label mb-3 text-cobalt">Web Project</p>
-              <div className="space-y-2">
-                {frontmatter.liveSiteUrl && (
-                  <a
-                    href={frontmatter.liveSiteUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex items-center justify-between border border-cobalt bg-cobalt px-3 py-2.5 text-sm font-medium text-white transition-opacity hover:opacity-90"
-                  >
-                    <span>Open Live Site</span>
-                    <ExternalLink size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </a>
-                )}
-                {frontmatter.demoUrl && (
-                  <a
-                    href={frontmatter.demoUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex items-center justify-between border border-border-strong px-3 py-2.5 text-sm font-medium text-text transition-colors hover:border-cobalt hover:text-cobalt"
-                  >
-                    <span>View Demo</span>
-                    <ExternalLink size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                  </a>
-                )}
-              </div>
-            </div>
-          )}
+          {isWebDevelopment && (frontmatter.liveSiteUrl || frontmatter.demoUrl) ? (
+            <section className="public-detail-aside-section">
+              <p>Experience</p>
+              {frontmatter.liveSiteUrl ? <a href={frontmatter.liveSiteUrl} target="_blank" rel="noreferrer" className="public-detail-resource">Open live site <ExternalLink size={13} /></a> : null}
+              {frontmatter.demoUrl ? <a href={frontmatter.demoUrl} target="_blank" rel="noreferrer" className="public-detail-resource">View demo <ExternalLink size={13} /></a> : null}
+            </section>
+          ) : null}
 
-          <div className="border border-border bg-surface-2 p-5">
-            <p className="label mb-3">Tags</p>
-            <div className="flex flex-wrap gap-1.5">
-              {frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}
-            </div>
-          </div>
+          <section className="public-detail-aside-section">
+            <p>Tags</p>
+            <div className="flex flex-wrap gap-1.5">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
+          </section>
 
-          <div className="border border-border bg-surface-2 p-5">
-            <p className="label mb-3">Skills Practiced</p>
-            <div className="flex flex-wrap gap-1.5">
-              {frontmatter.skills.map((skill) => <Tag key={skill}>{skill}</Tag>)}
-            </div>
-          </div>
+          <section className="public-detail-aside-section">
+            <p>Skills practiced</p>
+            <div className="flex flex-wrap gap-1.5">{frontmatter.skills.map((skill) => <Tag key={skill}>{skill}</Tag>)}</div>
+          </section>
 
-          {(frontmatter.githubUrl || frontmatter.downloads?.length || cert) && (
-            <div className="border border-border bg-surface-2 p-5">
-              <p className="label mb-3">Resources</p>
-              <div className="space-y-2">
-                {frontmatter.githubUrl && (
-                  <a
-                    href={frontmatter.githubUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="flex items-center gap-2 text-sm text-text-dim hover:text-text"
-                  >
-                    <Github size={14} /> GitHub Repository
-                  </a>
-                )}
-                {frontmatter.downloads?.map((download) => (
-                  <a
-                    key={`${download.label}-${download.href}`}
-                    href={download.href}
-                    className="flex items-center gap-2 text-sm text-text-dim hover:text-text"
-                    download
-                  >
-                    {download.type === "config" ? <FileText size={14} /> : <Download size={14} />}
-                    {download.label}
-                  </a>
-                ))}
-                {cert && (
-                  <Link href="/certifications" className="block border-t border-border pt-3 text-sm text-cobalt">
-                    {cert.name}
-                  </Link>
-                )}
-              </div>
-            </div>
-          )}
+          {(frontmatter.githubUrl || frontmatter.downloads?.length || cert) ? (
+            <section className="public-detail-aside-section">
+              <p>Resources</p>
+              {frontmatter.githubUrl ? <a href={frontmatter.githubUrl} target="_blank" rel="noreferrer" className="public-detail-resource"><Github size={13} /> GitHub repository</a> : null}
+              {frontmatter.downloads?.map((download) => (
+                <a key={`${download.label}-${download.href}`} href={download.href} className="public-detail-resource" download>
+                  {download.type === "config" ? <FileText size={13} /> : <Download size={13} />}{download.label}
+                </a>
+              ))}
+              {cert ? <Link href="/certifications" className="public-detail-resource">{cert.name}</Link> : null}
+            </section>
+          ) : null}
         </aside>
       </div>
     </div>
