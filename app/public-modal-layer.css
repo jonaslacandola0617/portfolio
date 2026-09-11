@@ -41,3 +41,43 @@
     transform-origin: 0 0 !important;
   }
 }
+
+/* Homepage messaging uses the same field language as the dedicated Contact page.
+ * Keep the compact homepage placement, but do not invent a second form style. */
+.public-stage .space-footer-form form label {
+  color: var(--jp-muted) !important;
+}
+
+.public-stage .space-footer-form form input:not([type="hidden"]),
+.public-stage .space-footer-form form textarea {
+  border: 0 !important;
+  border-bottom: 1px solid var(--jp-line) !important;
+  background: transparent !important;
+  padding: 13px 0 !important;
+  color: var(--jp-ink) !important;
+  font-family: var(--font-manrope), Manrope, sans-serif !important;
+  box-shadow: none !important;
+}
+
+.public-stage .space-footer-form form input::placeholder,
+.public-stage .space-footer-form form textarea::placeholder {
+  color: var(--jp-muted) !important;
+  opacity: .72;
+}
+
+.public-stage .space-footer-form form input:focus,
+.public-stage .space-footer-form form textarea:focus {
+  border-bottom-color: var(--jp-rust) !important;
+  outline: 0 !important;
+}
+
+.public-stage .space-footer-form form button[type="submit"] {
+  border: 1px solid var(--jp-ink) !important;
+  background: var(--jp-ink) !important;
+  color: var(--jp-warm-white) !important;
+  padding: 13px 22px !important;
+}
+
+.public-stage .space-footer-form form [role="status"] {
+  background: transparent !important;
+}
