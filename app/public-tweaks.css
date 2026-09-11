@@ -1,69 +1,7 @@
-/* Final readability + contact refinements for the approved public redesign. */
-
-/* Slightly larger supporting copy without changing the display hierarchy. */
-.public-stage .spatial-role,
-.public-stage .space-eyebrow,
-.public-stage .public-page-kicker,
-.public-stage .public-section-label > span,
-.public-stage .public-detail-kicker,
-.public-stage .public-detail-aside-section > p:first-child,
-.public-stage .public-detail-tech > p,
-.public-stage .public-lab-objective small,
-.public-stage .public-lab-record-label,
-.public-stage .public-journal-meta,
-.public-stage .project-index-filters > span {
-  font-size: 10px;
-}
-
-.public-stage .spatial-focus small,
-.public-stage .spatial-disciplines,
-.public-stage .project-index-filters button,
-.public-stage .project-index-number,
-.public-stage .project-index-category,
-.public-stage .project-index-year,
-.public-stage .space-meta {
-  font-size: 10.5px;
-}
-
-.public-stage .spatial-focus span {
-  font-size: 14px;
-  line-height: 1.4;
-}
-
-.public-stage .space-project-summary,
-.public-stage .space-lab-copy > p:not(.space-eyebrow),
-.public-stage .space-journal-head p,
-.public-stage .space-about-copy > p:not(.space-eyebrow),
-.public-stage .public-page-header-inner > p,
-.public-stage .public-detail-summary,
-.public-stage .public-journal-summary {
-  font-size: clamp(15px, 1.05vw, 17px);
-  line-height: 1.72;
-}
-
-.public-stage .project-index-copy p {
-  font-size: 13.5px;
-  line-height: 1.6;
-}
-
-.public-stage .public-detail-aside dl,
-.public-stage .public-detail-resource {
-  font-size: 12.5px;
-}
-
-.public-stage .space-journal-row .journal-date,
-.public-stage .space-journal-row .journal-time {
-  font-size: 11.5px;
-}
-
-.public-stage .space-journal-row strong {
-  font-size: clamp(18px, 1.55vw, 23px);
-  line-height: 1.22;
-}
-
-.public-stage .space-lab-tags span {
-  font-size: 11px;
-}
+/* Final layout refinements for the approved public redesign.
+ * Keep the original type scale. This file only handles project imagery,
+ * the restored homepage contact form, and collision-safe responsive layout.
+ */
 
 /* Project previews always display CMS imagery as a composed crop. */
 .public-stage .space-project-visual,
@@ -73,11 +11,11 @@
   background-size: cover;
 }
 
-/* Preserve the approved footer composition while restoring direct messaging. */
+/* Footer: give the statement priority and keep the form intentionally compact. */
 .space-footer-main {
   display: grid;
-  grid-template-columns: minmax(0, 0.92fr) minmax(440px, 1.08fr);
-  gap: clamp(56px, 8vw, 140px);
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.65fr);
+  gap: clamp(44px, 5vw, 86px);
   align-items: start;
 }
 
@@ -85,56 +23,63 @@
   min-width: 0;
 }
 
+.space-footer-question {
+  max-width: 940px;
+}
+
 .space-footer-form {
+  width: min(100%, 480px);
   min-width: 0;
-  border-top: 1px solid rgba(244, 239, 230, 0.22);
-  padding-top: 22px;
+  justify-self: end;
+  border-top: 1px solid color-mix(in srgb, var(--jp-ink) 22%, transparent);
+  padding-top: 20px;
+  color: var(--jp-ink);
 }
 
 .space-footer-form-head {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 18px;
+  gap: 14px;
   align-items: baseline;
-  margin-bottom: 26px;
+  margin-bottom: 24px;
 }
 
 .space-footer-form-head span {
   font-family: var(--font-ibm-plex-mono), monospace;
-  font-size: 10px;
+  font-size: 8px;
   letter-spacing: 0.13em;
-  color: rgba(244, 239, 230, 0.55);
+  color: var(--jp-muted);
 }
 
 .space-footer-form-head p {
   margin: 0;
-  font-size: 14px;
+  font-size: 12px;
   line-height: 1.55;
-  color: rgba(244, 239, 230, 0.7);
+  color: var(--jp-muted);
 }
 
-.space-footer-form form {
-  gap: 18px;
+/* ContactForm originally places name/email side by side. In this narrower
+ * homepage treatment, stack them so neither field or its label gets squeezed. */
+.space-footer-form form .grid.sm\:grid-cols-2 {
+  grid-template-columns: 1fr !important;
 }
 
 .space-footer-form form .label,
 .space-footer-form form .font-mono {
-  color: rgba(244, 239, 230, 0.68) !important;
-  font-size: 10.5px !important;
+  color: var(--jp-muted) !important;
 }
 
 .space-footer-form form input:not([type="hidden"]),
 .space-footer-form form textarea {
-  border-color: rgba(244, 239, 230, 0.24) !important;
-  background: rgba(255, 255, 255, 0.025) !important;
-  color: var(--jp-warm-white) !important;
-  font-size: 14px !important;
-  line-height: 1.55;
+  width: 100%;
+  border-color: color-mix(in srgb, var(--jp-ink) 28%, transparent) !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: var(--jp-ink) !important;
 }
 
 .space-footer-form form input::placeholder,
 .space-footer-form form textarea::placeholder {
-  color: rgba(244, 239, 230, 0.34) !important;
+  color: color-mix(in srgb, var(--jp-ink) 42%, transparent) !important;
 }
 
 .space-footer-form form input:focus,
@@ -143,39 +88,66 @@
 }
 
 .space-footer-form form button[type="submit"] {
-  border-color: var(--jp-warm-white) !important;
-  background: var(--jp-warm-white) !important;
-  color: var(--jp-ink) !important;
-  font-size: 13px;
+  border-color: var(--jp-ink) !important;
+  background: var(--jp-ink) !important;
+  color: var(--jp-paper) !important;
 }
 
 .space-footer-form form [role="status"] {
-  border-color: rgba(244, 239, 230, 0.25) !important;
-  background: rgba(255, 255, 255, 0.035) !important;
-  color: var(--jp-warm-white) !important;
+  border-color: color-mix(in srgb, var(--jp-ink) 24%, transparent) !important;
+  background: rgba(255, 255, 255, 0.24) !important;
+  color: var(--jp-ink) !important;
 }
 
-@media (max-width: 980px) {
+/* The hero's NOW block is absolute on wide screens. Once horizontal room gets
+ * tight, return it to document flow before it can overlap the main statement. */
+@media (max-width: 1180px) {
+  .spatial-hero {
+    padding-bottom: 118px;
+  }
+
+  .spatial-statement {
+    width: min(680px, 76vw);
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .spatial-focus {
+    position: static;
+    width: min(100%, 420px);
+    min-width: 0;
+    margin-top: 34px;
+  }
+
+  .space-footer-main {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  }
+}
+
+@media (max-width: 900px) {
   .space-footer-main {
     grid-template-columns: 1fr;
-    gap: 62px;
+    gap: 56px;
   }
 
   .space-footer-form {
-    max-width: 760px;
+    width: min(100%, 520px);
+    justify-self: start;
   }
 }
 
 @media (max-width: 620px) {
-  .public-stage .project-index-copy p {
-    font-size: 13px;
-  }
-
   .space-footer-form-head {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 7px;
   }
 
+  .space-footer-form {
+    width: 100%;
+  }
+
+  /* Keep 16px controls on phones to avoid browser zoom while leaving the
+   * public typography itself at the approved original scale. */
   .space-footer-form form input:not([type="hidden"]),
   .space-footer-form form textarea {
     font-size: 16px !important;
