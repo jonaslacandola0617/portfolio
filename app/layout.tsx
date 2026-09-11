@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk, Manrope, Playfair_Display, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
+import "./public-redesign.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
