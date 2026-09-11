@@ -64,9 +64,9 @@ export function DeleteConfirmationDialog({
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-ink/70 data-[state=open]:animate-fade-in" />
+        <Dialog.Overlay className="admin-control-dialog-overlay fixed inset-0 z-50 data-[state=open]:animate-fade-in" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 border border-border-strong bg-surface-2 outline-none data-[state=open]:animate-fade-up"
+          className="admin-control-danger-dialog fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 outline-none data-[state=open]:animate-fade-up"
           onEscapeKeyDown={(event) => pending && event.preventDefault()}
           onPointerDownOutside={(event) => pending && event.preventDefault()}
           onOpenAutoFocus={(event) => {
@@ -74,35 +74,35 @@ export function DeleteConfirmationDialog({
             cancelRef.current?.focus();
           }}
         >
-          <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
+          <header className="admin-control-danger-head">
             <div>
-              <Dialog.Title className="font-display text-base font-semibold text-text">{heading}</Dialog.Title>
+              <span>CONTROL / DELETE</span>
+              <Dialog.Title>{heading}</Dialog.Title>
               <Dialog.Description className="sr-only">{description}</Dialog.Description>
             </div>
-            <Dialog.Close disabled={pending} aria-label="Close dialog" className="shrink-0 text-muted hover:text-text disabled:opacity-40">
+            <Dialog.Close disabled={pending} aria-label="Close dialog" className="admin-control-danger-close">
               <X className="h-4 w-4" />
             </Dialog.Close>
+          </header>
+
+          <div className="admin-control-danger-body">
+            <AlertTriangle className="h-4 w-4" />
+            <p>{description}</p>
           </div>
 
-          <div className="px-5 py-4">
-            <div className="flex items-start gap-3 border border-vermilion/30 bg-vermilion/10 px-3.5 py-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-vermilion" />
-              <p className="text-sm text-text-dim">{description}</p>
-            </div>
-            {error && <p role="alert" className="mt-3 border border-vermilion/30 px-3 py-2 text-sm text-vermilion">{error}</p>}
-          </div>
+          {error && <p role="alert" className="admin-control-danger-error">{error}</p>}
 
-          <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
+          <footer className="admin-control-danger-foot">
             <Dialog.Close asChild>
-              <button ref={cancelRef} type="button" disabled={pending} className="border border-border px-4 py-2 text-sm text-text-dim hover:text-text disabled:opacity-50">
+              <button ref={cancelRef} type="button" disabled={pending} className="admin-control-danger-cancel">
                 Cancel
               </button>
             </Dialog.Close>
-            <button type="button" onClick={confirm} disabled={pending} aria-label={confirmLabel} className="flex items-center gap-2 border border-vermilion bg-vermilion px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60">
+            <button type="button" onClick={confirm} disabled={pending} aria-label={confirmLabel} className="admin-control-danger-confirm">
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
               {pending ? "Deleting…" : "Delete"}
             </button>
-          </div>
+          </footer>
         </Dialog.Content>
       </Dialog.Portal>
     </Dialog.Root>
