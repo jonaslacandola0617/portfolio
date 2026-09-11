@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { ExternalLink, Menu, X } from "lucide-react";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminSearchDialog } from "@/components/admin/admin-search-dialog";
 import { SignOutButton } from "@/components/admin/sign-out-button";
@@ -17,15 +18,18 @@ export function AdminMobileNav() {
           <strong>JL<i>/</i></strong>
           <span>CONTROL</span>
         </div>
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Open menu"
-          aria-expanded={open}
-          className="flex h-9 w-9 items-center justify-center border border-white/20 text-[#f6f0e7]"
-        >
-          <Menu className="h-4 w-4" />
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle compact />
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            aria-label="Open menu"
+            aria-expanded={open}
+            className="flex h-9 w-9 items-center justify-center border border-white/20 text-[#f6f0e7]"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+        </div>
       </header>
 
       {open && (
