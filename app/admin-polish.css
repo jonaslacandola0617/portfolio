@@ -1,0 +1,304 @@
+/* Remaining JL / CONTROL surfaces. Loaded last. */
+
+/* About editor */
+.admin-control-about-form {
+  max-width: 920px;
+}
+
+.admin-control-about-profile {
+  display: grid;
+  grid-template-columns: minmax(220px, .8fr) minmax(320px, 1.2fr);
+  gap: clamp(28px, 5vw, 64px);
+  align-items: center;
+  padding: 28px 0 32px;
+  border-top: 1px solid var(--ac-ink);
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-control-about-profile h2 {
+  font-family: var(--font-playfair), serif;
+  font-size: clamp(30px, 3.4vw, 44px);
+  font-weight: 500;
+  line-height: .94;
+  letter-spacing: -.045em;
+}
+
+.admin-control-about-profile > div:first-child > p {
+  max-width: 360px;
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.admin-control-about-fields {
+  max-width: 720px;
+}
+
+.admin-control-about-fields > div {
+  padding: 18px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-control-about-fields textarea {
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.admin-control-about-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 26px;
+}
+
+/* New-content template chooser */
+.admin-template-list {
+  border-top: 1px solid var(--ac-ink);
+  border-bottom: 1px solid var(--ac-ink);
+}
+
+.admin-template-row {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 34px 38px minmax(0, 1fr) minmax(170px, .8fr) 24px;
+  align-items: center;
+  gap: 14px;
+  min-height: 78px;
+  padding: 8px 4px;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: transparent;
+  color: var(--ac-ink);
+  text-align: left;
+  transition: background 160ms ease;
+}
+
+.admin-template-row:last-child { border-bottom: 0; }
+.admin-template-row:hover,
+.admin-template-row.is-active { background: color-mix(in srgb, var(--ac-ink) 3%, transparent); }
+
+.admin-template-index {
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 8px;
+  color: var(--muted);
+}
+
+.admin-template-icon {
+  display: flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  color: var(--ac-rust);
+}
+
+.admin-template-copy { min-width: 0; }
+.admin-template-copy strong {
+  display: block;
+  font-family: var(--font-playfair), serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -.035em;
+}
+
+.admin-template-copy small {
+  display: block;
+  max-width: 540px;
+  margin-top: 5px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.admin-template-sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: flex-end;
+}
+
+.admin-template-sections i {
+  border-bottom: 1px solid var(--border);
+  padding: 2px 0;
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 7px;
+  font-style: normal;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+
+.admin-template-choice {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  align-items: center;
+  justify-content: center;
+  color: var(--ac-rust);
+}
+
+.admin-template-row.is-active .admin-template-choice {
+  background: var(--ac-rust);
+  color: var(--ac-white);
+}
+
+.admin-template-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 24px;
+}
+
+.admin-template-foot > a {
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 8px;
+  letter-spacing: .08em;
+  color: var(--muted);
+}
+
+.admin-template-start-button {
+  border: 1px solid var(--ac-ink);
+  background: var(--ac-ink);
+  padding: 11px 16px;
+  color: var(--ac-white);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* Destructive confirmation */
+.admin-control-dialog-overlay {
+  background: rgba(11, 12, 12, .78);
+  backdrop-filter: blur(9px);
+}
+
+.admin-control-danger-dialog {
+  overflow: hidden;
+  border: 1px solid var(--ac-ink);
+  background: var(--ac-paper);
+  color: var(--ac-ink);
+  box-shadow: 14px 14px 0 rgba(0, 0, 0, .12);
+}
+
+.admin-control-danger-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 24px 24px 18px;
+  border-bottom: 1px solid var(--ac-ink);
+}
+
+.admin-control-danger-head span {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 7px;
+  letter-spacing: .13em;
+  color: var(--vermilion);
+}
+
+.admin-control-danger-head h2 {
+  font-family: var(--font-playfair), serif;
+  font-size: 27px;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -.04em;
+}
+
+.admin-control-danger-close {
+  color: var(--muted);
+}
+
+.admin-control-danger-body {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 10px;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+}
+
+.admin-control-danger-body svg { color: var(--vermilion); }
+.admin-control-danger-body p { font-size: 11px; line-height: 1.6; color: var(--text-dim); }
+.admin-control-danger-error { margin: 0 24px; padding: 10px 0; border-bottom: 1px solid var(--vermilion); font-size: 10px; color: var(--vermilion); }
+
+.admin-control-danger-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px 20px;
+}
+
+.admin-control-danger-cancel,
+.admin-control-danger-confirm {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 11px;
+}
+
+.admin-control-danger-cancel {
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--ac-ink);
+}
+
+.admin-control-danger-confirm {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--vermilion);
+  background: var(--vermilion);
+  color: white;
+}
+
+/* Radix/dialog surfaces used by media, link, templates, AI and proofreading.
+ * They inherit the JL tokens from body:has(.admin-control); these rules remove
+ * the old panel feeling without changing component behavior. */
+body:has(.admin-control) [role="dialog"] {
+  border-radius: 0 !important;
+}
+
+body:has(.admin-control) [role="dialog"] input:not([type="checkbox"]):not([type="file"]),
+body:has(.admin-control) [role="dialog"] textarea,
+body:has(.admin-control) [role="dialog"] select {
+  border-radius: 0 !important;
+}
+
+body:has(.admin-control) [role="dialog"] .text-cobalt,
+body:has(.admin-control) [role="listbox"] .text-cobalt { color: var(--ac-rust) !important; }
+body:has(.admin-control) [role="dialog"] .bg-cobalt,
+body:has(.admin-control) [role="listbox"] .bg-cobalt { background: var(--ac-rust) !important; }
+body:has(.admin-control) [role="dialog"] .border-cobalt,
+body:has(.admin-control) [role="listbox"] .border-cobalt { border-color: var(--ac-rust) !important; }
+
+body:has(.admin-control) [role="dialog"] .focus\:border-cobalt:focus,
+body:has(.admin-control) [role="listbox"] .focus\:border-cobalt:focus { border-color: var(--ac-rust) !important; }
+
+/* Native/local combobox menus and segmented controls inside the workspace. */
+.admin-control [role="listbox"] {
+  border-color: var(--ac-ink) !important;
+  background: var(--ac-paper) !important;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, .08);
+}
+
+.admin-control [role="option"]:hover,
+.admin-control [role="option"][aria-selected="true"] {
+  background: color-mix(in srgb, var(--ac-ink) 4%, transparent) !important;
+}
+
+/* Legacy Tailwind semantic aliases are neutralized within admin. */
+.admin-control .text-foreground { color: var(--ac-ink) !important; }
+.admin-control .text-muted-foreground { color: var(--muted) !important; }
+.admin-control .text-primary { color: var(--ac-rust) !important; }
+.admin-control .ring-ring { --tw-ring-color: var(--ac-rust) !important; }
+.admin-control .accent-cobalt { accent-color: var(--ac-rust) !important; }
+
+@media (max-width: 760px) {
+  .admin-control-about-profile { grid-template-columns: 1fr; }
+  .admin-template-row {
+    grid-template-columns: 28px 32px minmax(0, 1fr) 22px;
+    min-height: 72px;
+  }
+  .admin-template-sections { display: none; }
+}
