@@ -23,9 +23,15 @@ export const settingsFormSchema = z.object({
     .max(50)
     .default([]),
   homepageProjectIds: z
-    .array(z.string().trim().min(1))
+    .array(z.string().trim())
     .max(2, "Choose at most two homepage projects")
-    .refine((ids) => new Set(ids).size === ids.length, "Choose two different projects")
+    .refine(
+      (ids) => {
+        const chosen = ids.filter(Boolean);
+        return new Set(chosen).size === chosen.length;
+      },
+      "Choose two different projects",
+    )
     .default([]),
 });
 
