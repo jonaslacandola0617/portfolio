@@ -8,6 +8,13 @@ import type { ActionResult } from "@/types/admin";
 export async function updateSettingsAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
 
+  const homepageProjectIds = [
+    formData.get("homepagePrimaryProjectId"),
+    formData.get("homepageSecondaryProjectId"),
+  ]
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .map((value) => value.trim());
+
   const parsed = settingsFormSchema.safeParse({
     name: formData.get("name"),
     role: formData.get("role"),
@@ -17,6 +24,7 @@ export async function updateSettingsAction(_prevState: ActionResult, formData: F
     linkedinUrl: formData.get("linkedinUrl"),
     resumeUrl: formData.get("resumeUrl"),
     currentlyLearning: parseLearningLines((formData.get("currentlyLearning") as string) ?? ""),
+    homepageProjectIds,
   });
 
   if (!parsed.success) {
@@ -24,5 +32,5 @@ export async function updateSettingsAction(_prevState: ActionResult, formData: F
   }
 
   await upsertSiteSettings(parsed.data);
-  return { success: true };
+  return { success: true, message: "Settings saved." };
 }
