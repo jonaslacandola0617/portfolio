@@ -4,9 +4,12 @@ import { getSiteSettings } from "@/lib/db/queries/settings";
 export default async function AdminSettingsPage() {
   const settings = await getSiteSettings();
   return (
-    <div className="px-6 py-8 sm:px-10">
-      <h1 className="font-display text-2xl font-semibold text-text">Settings</h1>
-      <p className="mb-8 mt-1 text-sm text-text-dim">Site identity, public links, resume path, and current learning items.</p>
+    <div className="admin-control-settings">
+      <header className="admin-control-settings-head">
+        <span>09 / SYSTEM</span>
+        <h1>Settings</h1>
+        <p>Site identity, public links, resume path, current learning items, and homepage presentation controls.</p>
+      </header>
       <SettingsForm settings={settings} />
     </div>
   );
