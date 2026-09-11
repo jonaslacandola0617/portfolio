@@ -47,23 +47,16 @@ export default async function HomePage() {
   ];
 
   const projectById = new Map(projects.map((project) => [project.recordId, project]));
-  const configuredPrimary = settings.homepageProjectIds[0]
-    ? projectById.get(settings.homepageProjectIds[0])
-    : undefined;
-  const configuredSecondary = settings.homepageProjectIds[1]
-    ? projectById.get(settings.homepageProjectIds[1])
-    : undefined;
+  const configuredProjects = settings.homepageProjectIds
+    .map((id) => projectById.get(id))
+    .filter((project): project is NonNullable<typeof project> => Boolean(project));
 
-  const usedProjectIds = new Set<string>();
-  const nextAutomatic = () => automaticOrder.find((project) => !usedProjectIds.has(project.recordId));
-
-  const primaryProject = configuredPrimary ?? nextAutomatic();
-  if (primaryProject) usedProjectIds.add(primaryProject.recordId);
-
-  const secondaryProject = configuredSecondary && !usedProjectIds.has(configuredSecondary.recordId)
-    ? configuredSecondary
-    : nextAutomatic();
-  if (secondaryProject) usedProjectIds.add(secondaryProject.recordId);
+  // Preserve the old automatic pair only until the admin explicitly chooses
+  // a showcase project. After that, the homepage reflects only the toggled
+  // projects instead of silently filling an empty slot with a recent project.
+  const explicitShowcase = settings.homepageProjectIds.length > 0;
+  const primaryProject = explicitShowcase ? configuredProjects[0] : automaticOrder[0];
+  const secondaryProject = explicitShowcase ? configuredProjects[1] : automaticOrder[1];
 
   const currentYear = new Date().getFullYear();
   const websiteJsonLd = buildWebsiteJsonLd({ name: settings.name, description: siteConfig.description });
