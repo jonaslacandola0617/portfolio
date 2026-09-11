@@ -18,21 +18,19 @@ const groups = [
   {
     label: "Assets",
     items: [
-      { label: "Skills", href: "/admin/skills", idx: "05" },
-      { label: "Media Library", href: "/admin/media", idx: "06" },
+      { label: "Media Library", href: "/admin/media", idx: "05" },
     ],
   },
   {
     label: "Presentation",
     items: [
-      { label: "Homepage", href: "/admin/showcase", idx: "07" },
-      { label: "About", href: "/admin/about", idx: "08" },
+      { label: "About", href: "/admin/about", idx: "06" },
     ],
   },
   {
     label: "System",
     items: [
-      { label: "Settings", href: "/admin/settings", idx: "09" },
+      { label: "Settings", href: "/admin/settings", idx: "07" },
     ],
   },
 ] as const;
