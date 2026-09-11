@@ -13,7 +13,6 @@ export interface SiteSettingsData {
   linkedinUrl: string;
   resumeUrl: string;
   currentlyLearning: { label: string; href: string }[];
-  homepageProjectIds: string[];
 }
 
 function fallback(): SiteSettingsData {
@@ -26,7 +25,6 @@ function fallback(): SiteSettingsData {
     linkedinUrl: siteConfig.social.linkedin,
     resumeUrl: siteConfig.resumeUrl,
     currentlyLearning: [...siteConfig.currentlyLearning],
-    homepageProjectIds: [],
   };
 }
 
@@ -43,7 +41,6 @@ export const getSiteSettings = cache(async (): Promise<SiteSettingsData> =>
       linkedinUrl: row.linkedinUrl,
       resumeUrl: row.resumeUrl,
       currentlyLearning: row.currentlyLearning as { label: string; href: string }[],
-      homepageProjectIds: row.homepageProjectIds,
     };
   })
 );
