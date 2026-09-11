@@ -9,10 +9,7 @@ import { TableOfContents } from "@/components/shared/table-of-contents";
 import { Tag } from "@/components/shared/tag";
 import { StatusBadge } from "@/components/shared/status-badges";
 import { getAllLabSlugs, getLabBySlug } from "@/lib/content";
-import {
-  extractContentHeadings,
-  type ContentHeading,
-} from "@/lib/content-headings";
+import { extractContentHeadings, type ContentHeading } from "@/lib/content-headings";
 import { buildContentMetadata, getFirstContentImage } from "@/lib/metadata";
 import { getRelatedContent } from "@/lib/related-content";
 import { buildArticleJsonLd } from "@/lib/structured-data";
@@ -25,15 +22,10 @@ export async function generateStaticParams() {
   return slugs.map((slug) => ({ slug }));
 }
 
-export async function generateMetadata({
-  params,
-}: {
-  params: LabParams;
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: LabParams }): Promise<Metadata> {
   const { slug } = await params;
   const lab = await getLabBySlug(slug);
   if (!lab) return {};
-
   const { frontmatter, content } = lab;
   return buildContentMetadata({
     title: frontmatter.title,
@@ -54,21 +46,13 @@ export default async function LabPage({ params }: { params: LabParams }) {
 
   const { frontmatter, content } = lab;
   const currentPath = `/labs/${frontmatter.slug}`;
-  const [related] = await Promise.all([
-    getRelatedContent({
-      currentPath,
-      tags: frontmatter.tags,
-      category: frontmatter.category,
-    }),
-  ]);
+  const related = await getRelatedContent({ currentPath, tags: frontmatter.tags, category: frontmatter.category });
   const contentHeadings = extractContentHeadings(content);
   const tocItems: ContentHeading[] = [
     { id: "lab-objective", text: "Objective", level: 2 },
     { id: "lab-record", text: "Lab Record", level: 2 },
     ...contentHeadings,
-    ...(frontmatter.downloads?.length
-      ? ([{ id: "lab-resources", text: "Resources", level: 2 }] satisfies ContentHeading[])
-      : []),
+    ...(frontmatter.downloads?.length ? ([{ id: "lab-resources", text: "Resources", level: 2 }] satisfies ContentHeading[]) : []),
   ];
   const labImage = getFirstContentImage(content);
   const labJsonLd = buildArticleJsonLd({
@@ -84,81 +68,62 @@ export default async function LabPage({ params }: { params: LabParams }) {
   });
 
   return (
-    <div>
+    <div className="public-lab-detail">
       <JsonLd data={labJsonLd} />
-      <header className="border-b border-border px-6 py-10 sm:px-10 sm:py-14 lg:px-14">
-        <div className="mx-auto max-w-6xl">
-          <div className="max-w-3xl">
-            <Link
-              href="/labs"
-              className="mb-6 inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-text"
-            >
-              <ArrowLeft size={12} /> All Labs
-            </Link>
-            <div className="mb-4 flex flex-wrap items-center gap-3">
-              <span className="label text-cobalt">{frontmatter.category} Lab</span>
-              <StatusBadge status={frontmatter.status} />
-              <span className="font-mono text-xs text-muted-foreground">
-                {formatDate(frontmatter.date)}
-              </span>
-            </div>
-            <h1 className="font-display text-3xl font-semibold leading-tight text-text sm:text-4xl">
-              {frontmatter.title}
-            </h1>
+
+      <header className="public-detail-hero public-lab-hero">
+        <div className="public-detail-hero-inner">
+          <Link href="/labs" className="public-detail-back"><ArrowLeft size={12} /> All labs</Link>
+          <div className="public-detail-kicker">
+            <span>LAB / TECHNICAL RECORD</span>
+            <span className="accent">{frontmatter.category}</span>
+            <StatusBadge status={frontmatter.status} />
+            <span>{formatDate(frontmatter.date)}</span>
           </div>
+          <h1 className="public-detail-title">{frontmatter.title}</h1>
+          <div className="public-detail-line" aria-hidden="true"><span /></div>
         </div>
       </header>
 
-      <div className="mx-auto grid max-w-6xl gap-12 px-6 py-12 sm:px-10 lg:px-14 xl:grid-cols-[minmax(0,1fr)_220px]">
-        <main className="min-w-0 max-w-3xl">
-          <section id="lab-objective" className="mb-10 scroll-mt-8">
-            <p className="idx mb-2">01 — Objective</p>
-            <p className="text-[15px] leading-relaxed text-text">{frontmatter.purpose}</p>
+      <div className="public-lab-layout">
+        <main className="min-w-0">
+          <section id="lab-objective" className="public-lab-objective scroll-mt-28">
+            <small>01 / Objective</small>
+            <p>{frontmatter.purpose}</p>
           </section>
 
-          <section id="lab-record" className="mb-10 scroll-mt-8">
-            <p className="idx mb-4">02 — Lab Record</p>
-            <ContentRenderer
-              content={content}
-              context={{
-                model: "Lab",
-                id: lab.recordId,
-                slug: frontmatter.slug,
-                title: frontmatter.title,
-              }}
-            />
+          <section id="lab-record" className="scroll-mt-28">
+            <p className="public-lab-record-label">02 / Lab record</p>
+            <div className="mt-6">
+              <ContentRenderer
+                content={content}
+                context={{ model: "Lab", id: lab.recordId, slug: frontmatter.slug, title: frontmatter.title }}
+              />
+            </div>
           </section>
 
           {frontmatter.downloads?.length ? (
-            <section id="lab-resources" className="mb-10 scroll-mt-8">
-              <p className="idx mb-4">03 — Resources</p>
-              <div className="divide-y divide-border border border-border bg-surface-2">
+            <section id="lab-resources" className="public-detail-tech scroll-mt-28">
+              <p>03 / Resources</p>
+              <div className="mt-3 divide-y divide-border">
                 {frontmatter.downloads.map((download) => (
-                  <a
-                    key={`${download.href}-${download.label}`}
-                    href={download.href}
-                    download
-                    className="flex items-center gap-3 px-4 py-3 text-sm text-text-dim hover:text-text"
-                  >
-                    <Download size={14} className="text-cobalt" />
-                    <span className="flex-1">{download.label}</span>
-                    <span className="label">Download</span>
+                  <a key={`${download.href}-${download.label}`} href={download.href} download className="public-detail-resource py-3">
+                    <Download size={13} /><span className="flex-1">{download.label}</span><span className="font-mono text-[8px] uppercase">Download</span>
                   </a>
                 ))}
               </div>
             </section>
           ) : null}
 
-          <div className="flex flex-wrap gap-1.5 border-t border-border pt-6">
-            {frontmatter.tags.map((tag) => (
-              <Tag key={tag}>{tag}</Tag>
-            ))}
+          <div className="public-detail-tech">
+            <p>Tags</p>
+            <div className="mt-3 flex flex-wrap gap-1.5">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
           </div>
 
           <RelatedContentLinks items={related} />
         </main>
 
-        <TableOfContents items={tocItems} />
+        <aside className="public-detail-aside"><TableOfContents items={tocItems} /></aside>
       </div>
     </div>
   );
