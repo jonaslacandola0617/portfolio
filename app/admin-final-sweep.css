@@ -1,0 +1,179 @@
+/* JL / CONTROL — final legacy-surface sweep. */
+
+/* Editor assistants share the same dark operational language as metadata. */
+.admin-control .editor-workspace > aside {
+  --surface: #0b0c0c;
+  --surface-2: #141514;
+  --surface-3: #20211f;
+  --border: rgba(246, 240, 231, .17);
+  --border-strong: rgba(246, 240, 231, .34);
+  --text: #f6f0e7;
+  --text-dim: rgba(246, 240, 231, .7);
+  --muted: rgba(246, 240, 231, .46);
+  --cobalt: #cc4b32;
+  --cobalt-dim: rgba(204, 75, 50, .15);
+  background: #0b0c0c !important;
+  border-color: rgba(246, 240, 231, .24) !important;
+  color: #f6f0e7;
+  box-shadow: 12px 12px 0 rgba(0, 0, 0, .16) !important;
+}
+
+.admin-control .editor-workspace > aside h2 {
+  font-family: var(--font-playfair), serif !important;
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  letter-spacing: -.035em;
+}
+
+.admin-control .editor-workspace > aside .bg-surface,
+.admin-control .editor-workspace > aside .bg-surface-2 {
+  background: transparent !important;
+}
+
+.admin-control .editor-workspace > aside .bg-cobalt-dim {
+  background: rgba(204, 75, 50, .13) !important;
+}
+
+.admin-control .editor-workspace > aside .border-cobalt,
+.admin-control .editor-workspace > aside .hover\:border-cobalt:hover {
+  border-color: #cc4b32 !important;
+}
+
+.admin-control .editor-workspace > aside .text-cobalt,
+.admin-control .editor-workspace > aside .hover\:text-cobalt:hover {
+  color: #cc4b32 !important;
+}
+
+.admin-control .editor-workspace > aside .bg-cobalt {
+  background: #cc4b32 !important;
+}
+
+/* Metadata-specific local popovers should not flash back to paper/blue. */
+.admin-control [data-bauhaus-metadata-sheet="true"] [role="listbox"] {
+  border-color: rgba(246, 240, 231, .3) !important;
+  background: #171816 !important;
+  color: #f6f0e7 !important;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, .24);
+}
+
+.admin-control [data-bauhaus-metadata-sheet="true"] [role="option"] {
+  color: #f6f0e7 !important;
+}
+
+.admin-control [data-bauhaus-metadata-sheet="true"] [role="option"]:hover,
+.admin-control [data-bauhaus-metadata-sheet="true"] [role="option"][aria-selected="true"] {
+  background: rgba(246, 240, 231, .07) !important;
+}
+
+.admin-control [data-bauhaus-metadata-sheet="true"] [role="radiogroup"] {
+  border-color: rgba(246, 240, 231, .24) !important;
+  background: transparent !important;
+}
+
+.admin-control [data-bauhaus-metadata-sheet="true"] [role="radio"] {
+  border-color: rgba(246, 240, 231, .14) !important;
+  background: transparent !important;
+  color: rgba(246, 240, 231, .64) !important;
+}
+
+.admin-control [data-bauhaus-metadata-sheet="true"] [role="radio"][aria-checked="true"] {
+  background: #cc4b32 !important;
+  color: #fff !important;
+}
+
+.admin-control [data-bauhaus-metadata-sheet="true"] span[class*="bg-surface-2"] {
+  border-color: rgba(246, 240, 231, .18) !important;
+  background: rgba(246, 240, 231, .06) !important;
+  color: rgba(246, 240, 231, .75) !important;
+}
+
+/* Media library: visual assets can remain a grid, but not generic SaaS cards. */
+.admin-control .public-page-shell > .mt-6.flex.max-w-xs {
+  max-width: 420px !important;
+  border: 0 !important;
+  border-bottom: 1px solid var(--ac-ink) !important;
+  background: transparent !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+.admin-control .public-page-shell > .mt-4.grid > button {
+  border-color: var(--ac-ink) !important;
+  background: transparent !important;
+}
+
+.admin-control .public-page-shell > .mt-4.grid > button:hover {
+  border-color: var(--ac-rust) !important;
+}
+
+.admin-control .public-page-shell > .mt-4.grid > button > div:first-child {
+  border-bottom: 1px solid var(--ac-ink);
+}
+
+.admin-control .public-page-shell > .mt-4.grid > button .bg-cobalt-dim {
+  background: color-mix(in srgb, var(--ac-rust) 8%, var(--ac-paper)) !important;
+}
+
+/* Upload is a utility zone, not another card. */
+.admin-control .public-page-shell > .mb-8 > div[class*="border-dashed"] {
+  min-height: 160px;
+  border: 0 !important;
+  border-top: 1px solid var(--ac-ink) !important;
+  border-bottom: 1px solid var(--ac-ink) !important;
+  background: transparent !important;
+}
+
+/* Skills are operational groups: lines and records instead of panels. */
+.admin-control .public-page-shell section.border {
+  border-left: 0 !important;
+  border-right: 0 !important;
+  border-color: var(--ac-ink) !important;
+  background: transparent !important;
+}
+
+.admin-control .public-page-shell section.border > div:first-child {
+  background: transparent !important;
+}
+
+.admin-control .public-page-shell section.border select {
+  border: 0 !important;
+  border-bottom: 1px solid var(--border) !important;
+  background: transparent !important;
+}
+
+/* Manual media preview dialog (not Radix) also follows the same system. */
+body:has(.admin-control) div[role="dialog"][aria-label^="Preview "] {
+  border-color: var(--ac-ink) !important;
+  background: var(--ac-paper) !important;
+  color: var(--ac-ink) !important;
+  box-shadow: 12px 12px 0 rgba(0, 0, 0, .14);
+}
+
+/* The media picker is allowed to be spacious, but its hierarchy is JL / CONTROL. */
+body:has(.admin-control) [role="dialog"] header h2 {
+  font-family: var(--font-playfair), serif !important;
+  font-weight: 500 !important;
+  letter-spacing: -.035em !important;
+}
+
+body:has(.admin-control) [role="dialog"] .bg-cobalt-dim {
+  background: color-mix(in srgb, var(--ac-rust) 10%, transparent) !important;
+}
+
+/* Generic admin empty/error states stop looking like detached legacy cards. */
+.admin-control main .border-dashed {
+  background: transparent !important;
+}
+
+.admin-control main [class*="shadow-xl"],
+.admin-control main [class*="shadow-2xl"] {
+  border-radius: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .admin-control .editor-workspace > aside {
+    right: 8px !important;
+    width: calc(100% - 16px) !important;
+    box-shadow: 6px 6px 0 rgba(0, 0, 0, .16) !important;
+  }
+}
