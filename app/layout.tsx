@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk, Manrope, Playfair_Display, IBM_Plex_Mono } from "
 import "./globals.css";
 import "./public-redesign.css";
 import "./public-pages.css";
+import "./public-components.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
