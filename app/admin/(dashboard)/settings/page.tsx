@@ -7,9 +7,9 @@ export default async function AdminSettingsPage() {
   return (
     <div className="admin-control-settings">
       <header className="admin-control-settings-head">
-        <span>09 / SYSTEM</span>
+        <span>08 / SYSTEM</span>
         <h1>Settings</h1>
-        <p>Site identity, public links, resume path, and current learning items. Homepage project presentation is managed separately under Homepage.</p>
+        <p>Site identity, public links, resume path, and current learning items.</p>
       </header>
       <SettingsForm settings={settings} />
     </div>
