@@ -1,0 +1,120 @@
+/* JL / CONTROL theme bridge. Keeps the approved admin identity while preserving
+ * the light/dark control that existed before the visual redesign. */
+
+.dark .admin-control {
+  --surface: #10110f;
+  --surface-2: #171815;
+  --surface-3: #23241f;
+  --bone: #151613;
+  --paper: #10110f;
+  --border: #38372f;
+  --border-strong: #eee7dc;
+  --muted: #9d968a;
+  --text: #f2ece2;
+  --text-dim: #c2baad;
+  --cobalt: #d45a40;
+  --cobalt-dim: #3a211b;
+  --vermilion: #ef6b55;
+  --vermilion-dim: #3a1d18;
+  --signal-yellow: #d8aa47;
+  --signal-teal: #6da897;
+  --ac-paper: #10110f;
+  --ac-rust: #d45a40;
+  background: var(--surface);
+  color: var(--text);
+}
+
+/* Sidebar remains the same near-black control rail in both themes. */
+.admin-control-sidebar button[aria-label="Toggle color theme"],
+.admin-control-mobile-head button[aria-label="Toggle color theme"] {
+  border-color: rgba(246, 240, 231, 0.28) !important;
+  color: rgba(246, 240, 231, 0.82) !important;
+  background: transparent !important;
+}
+
+.admin-control-sidebar button[aria-label="Toggle color theme"]:hover,
+.admin-control-mobile-head button[aria-label="Toggle color theme"]:hover {
+  border-color: rgba(246, 240, 231, 0.55) !important;
+  color: #f6f0e7 !important;
+}
+
+.dark .admin-control .public-page-header,
+.dark .admin-control .public-page-shell,
+.dark .admin-control-shell,
+.dark .admin-control-main,
+.dark .admin-control .admin-control-settings,
+.dark .admin-control-login,
+.dark .admin-control .admin-control-authoring,
+.dark .admin-control .editor-workspace,
+.dark .admin-control .editor-workspace > .thin-scroll {
+  background: var(--surface) !important;
+  color: var(--text);
+}
+
+.dark .admin-control-dashboard-metrics,
+.dark .admin-control-activity,
+.dark .admin-control .admin-control-settings-head {
+  border-color: var(--border-strong) !important;
+}
+
+.dark .admin-control-dashboard-metric,
+.dark .admin-control-activity-row,
+.dark .admin-control .admin-control-settings-head h1,
+.dark .admin-control .public-page-title-wrap h1,
+.dark .admin-control .admin-control-authoring-title,
+.dark .admin-control .editor-workspace > .thin-scroll > .mx-auto > h1 {
+  color: var(--text) !important;
+}
+
+.dark .admin-control-activity-row:hover {
+  background: color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.dark .admin-control .public-page-shell .bg-surface-2,
+.dark .admin-control .admin-control-authoring-head,
+.dark .admin-control .editor-workspace > div:first-child {
+  background: color-mix(in srgb, var(--surface) 88%, white 12%) !important;
+}
+
+.dark .admin-control .admin-control-settings-form input,
+.dark .admin-control .admin-control-settings-form textarea,
+.dark .admin-control [data-bauhaus-metadata-sheet="true"] input:not([type="hidden"]):not([type="checkbox"]):not([role="combobox"]),
+.dark .admin-control [data-bauhaus-metadata-sheet="true"] textarea,
+.dark .admin-control [data-bauhaus-metadata-sheet="true"] select {
+  color: var(--text) !important;
+  background: transparent !important;
+  border-color: var(--border-strong) !important;
+}
+
+.dark .admin-control .admin-control-settings-save,
+.dark .admin-control-login-button,
+.dark .admin-control .admin-control-authoring-action-primary {
+  border-color: var(--text) !important;
+  background: var(--text) !important;
+  color: var(--surface) !important;
+}
+
+.dark .admin-control .admin-control-authoring-action-secondary {
+  border-color: var(--border-strong) !important;
+  color: var(--text) !important;
+}
+
+.dark .admin-control .editor-workspace > .thin-scroll > .mx-auto {
+  border-color: color-mix(in srgb, var(--text) 12%, transparent);
+}
+
+.dark .admin-control .editor-workspace .prose-docs {
+  color: color-mix(in srgb, var(--text) 84%, var(--surface));
+}
+
+.dark .admin-control .editor-workspace .prose-docs h1,
+.dark .admin-control .editor-workspace .prose-docs h2,
+.dark .admin-control .editor-workspace .prose-docs h3,
+.dark .admin-control .editor-workspace .prose-docs h4,
+.dark .admin-control .editor-workspace .prose-docs strong {
+  color: var(--text) !important;
+}
+
+.dark .admin-control [data-bauhaus-metadata-sheet="true"] {
+  background: var(--surface-2) !important;
+}
