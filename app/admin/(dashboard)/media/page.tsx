@@ -8,7 +8,7 @@ export default async function AdminMediaPage() {
   return (
     <div>
       <PageHeader
-        index="06"
+        index="05"
         eyebrow="Portfolio assets."
         title="Media Library"
         description="Images and file attachments used across projects, labs, journal entries, and credentials."
