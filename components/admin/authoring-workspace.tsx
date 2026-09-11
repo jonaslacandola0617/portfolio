@@ -62,7 +62,7 @@ export function AuthoringWorkspace({
   const sheetContent = {
     project: {
       label: "Project Metadata",
-      description: "Taxonomy, dates, status, and resources for this project.",
+      description: "Taxonomy, dates, status, links, and resources for this project.",
     },
     lab: {
       label: "Lab Metadata",
@@ -70,7 +70,7 @@ export function AuthoringWorkspace({
     },
     "journal entry": {
       label: "Journal Metadata",
-      description: "Taxonomy, publishing status, and summary for this journal entry.",
+      description: "Taxonomy, publishing status, summary, and resources for this journal entry.",
     },
     certificate: {
       label: "Certificate Metadata",
@@ -121,12 +121,13 @@ export function AuthoringWorkspace({
                     <SlidersHorizontal className="h-3 w-3" /> Metadata
                   </button>
                 </SheetTrigger>
-                <SheetContent className="p-0">
-                  <SheetHeader className="text-left">
-                    <SheetTitle>{sheetContent.label}</SheetTitle>
-                    <SheetDescription>{sheetContent.description}</SheetDescription>
+                <SheetContent className="admin-control-sheet p-0">
+                  <SheetHeader className="admin-control-sheet-head text-left">
+                    <span className="admin-control-sheet-kicker">CONTROL / METADATA</span>
+                    <SheetTitle className="admin-control-sheet-title">{sheetContent.label}</SheetTitle>
+                    <SheetDescription className="admin-control-sheet-description">{sheetContent.description}</SheetDescription>
                   </SheetHeader>
-                  <div className="min-h-0 flex-1 overflow-hidden">{inspector}</div>
+                  <div className="admin-control-sheet-body min-h-0 flex-1 overflow-hidden">{inspector}</div>
                 </SheetContent>
               </Sheet>
 
