@@ -20,13 +20,18 @@ const groups = [
     items: [
       { label: "Skills", href: "/admin/skills", idx: "05" },
       { label: "Media Library", href: "/admin/media", idx: "06" },
-      { label: "Taxonomy", href: "/admin/taxonomy", idx: "07" },
+    ],
+  },
+  {
+    label: "Presentation",
+    items: [
+      { label: "Homepage", href: "/admin/showcase", idx: "07" },
+      { label: "About", href: "/admin/about", idx: "08" },
     ],
   },
   {
     label: "System",
     items: [
-      { label: "About", href: "/admin/about", idx: "08" },
       { label: "Settings", href: "/admin/settings", idx: "09" },
     ],
   },
