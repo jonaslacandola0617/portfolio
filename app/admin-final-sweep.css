@@ -124,24 +124,6 @@
   background: transparent !important;
 }
 
-/* Skills are operational groups: lines and records instead of panels. */
-.admin-control .public-page-shell section.border {
-  border-left: 0 !important;
-  border-right: 0 !important;
-  border-color: var(--ac-ink) !important;
-  background: transparent !important;
-}
-
-.admin-control .public-page-shell section.border > div:first-child {
-  background: transparent !important;
-}
-
-.admin-control .public-page-shell section.border select {
-  border: 0 !important;
-  border-bottom: 1px solid var(--border) !important;
-  background: transparent !important;
-}
-
 /* Manual media preview dialog (not Radix) also follows the same system. */
 body:has(.admin-control) div[role="dialog"][aria-label^="Preview "] {
   border-color: var(--ac-ink) !important;
