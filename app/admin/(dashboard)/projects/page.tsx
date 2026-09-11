@@ -1,16 +1,27 @@
 import { ManagementList, type ManagementListRow } from "@/components/admin/management-list";
 import { getAllProjectsForAdmin } from "@/lib/services/project-admin-service";
+import { getSiteSettings } from "@/lib/db/queries/settings";
 import { formatDate } from "@/lib/utils";
-import { deleteProjectAction, bulkDeleteProjectsAction } from "@/app/admin/(dashboard)/projects/actions";
+import {
+  deleteProjectAction,
+  bulkDeleteProjectsAction,
+  toggleProjectShowcaseAction,
+} from "@/app/admin/(dashboard)/projects/actions";
 
 export default async function AdminProjectsPage() {
-  const items = await getAllProjectsForAdmin();
+  const [items, settings] = await Promise.all([
+    getAllProjectsForAdmin(),
+    getSiteSettings(),
+  ]);
+  const showcaseIds = new Set(settings.homepageProjectIds);
+
   const rows: ManagementListRow[] = items.map((p) => ({
     id: p.id,
     title: p.title,
     meta: p.category?.name ?? "Uncategorized",
     status: p.publishStatus,
     updated: formatDate(p.updatedAt.toISOString().slice(0, 10)),
+    showcase: showcaseIds.has(p.id),
   }));
 
   return (
@@ -25,6 +36,8 @@ export default async function AdminProjectsPage() {
       itemLabelPlural="projects"
       deleteOneAction={deleteProjectAction}
       deleteManyAction={bulkDeleteProjectsAction}
+      showcaseToggleAction={toggleProjectShowcaseAction}
+      showcaseLimit={2}
     />
   );
 }
