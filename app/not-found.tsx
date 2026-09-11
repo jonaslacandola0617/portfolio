@@ -1,14 +1,17 @@
 import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 text-center">
-      <p className="idx mb-4">404</p>
-      <h1 className="font-display text-3xl font-semibold text-text">Page not found</h1>
-      <p className="mt-3 max-w-sm text-sm text-text-dim">The page you&apos;re looking for doesn&apos;t exist.</p>
-      <Link href="/" className="mt-6 border border-border-strong bg-text px-5 py-2.5 text-sm font-medium text-surface">
-        Back to home
-      </Link>
-    </div>
+    <section className="public-not-found">
+      <div className="public-not-found-code">404</div>
+      <div className="public-not-found-line" aria-hidden="true"><span /></div>
+      <div className="public-not-found-copy">
+        <span>OUTSIDE THE MAP</span>
+        <h1>Nothing lives here.</h1>
+        <p>The page you&apos;re looking for doesn&apos;t exist, but the rest of the work is still where you left it.</p>
+        <Link href="/"><ArrowLeft size={13}/> Back home</Link>
+      </div>
+    </section>
   );
 }
