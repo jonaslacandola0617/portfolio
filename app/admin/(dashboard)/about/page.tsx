@@ -7,7 +7,7 @@ export default async function AdminAboutPage() {
   return (
     <div>
       <PageHeader
-        index="08"
+        index="06"
         eyebrow="Public identity."
         title="About"
         description="Manage the personal narrative, profile image, current focus, learning philosophy, and what comes next."
