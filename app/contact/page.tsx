@@ -1,5 +1,4 @@
-import { Mail, Github, Linkedin } from "lucide-react";
-import { PageHeader, PageShell } from "@/components/shared/page-header";
+import { ArrowUpRight, Github, Linkedin, Mail } from "lucide-react";
 import { ContactForm } from "@/components/shared/contact-form";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
@@ -26,49 +25,28 @@ export const metadata = buildStaticPageMetadata({
 export default async function ContactPage() {
   const settings = await getSiteSettings();
   return (
-    <div>
-      <PageHeader
-        index="07"
-        eyebrow="Reach Out"
-        title="Contact"
-        description="Open to web development, IT support, technical support, networking, and broader technical opportunities — remote or on-site."
-      />
-      <PageShell>
-        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[1fr_320px]">
+    <div className="contact-space">
+      <section className="contact-space-hero">
+        <span className="contact-space-index">07 / CONTACT</span>
+        <h1>What should we <em>build</em> next?</h1>
+        <p>Open to web development, IT support, technical support, networking, cybersecurity, and broader technical opportunities — remote or on-site.</p>
+        <div className="contact-space-line" aria-hidden="true"><span /></div>
+      </section>
+
+      <section className="contact-space-body">
+        <div className="contact-space-form">
+          <div className="contact-space-label">SEND A MESSAGE</div>
           <ContactForm />
-          <aside className="space-y-3">
-            <a
-              href={`mailto:${settings.email}`}
-              className="flex items-center gap-3 border border-border bg-surface-2 px-4 py-3.5 text-sm text-text-dim hover:text-text"
-            >
-              <Mail size={15} className="text-cobalt" />
-              {settings.email}
-            </a>
-            <a
-              href={settings.linkedinUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3 border border-border bg-surface-2 px-4 py-3.5 text-sm text-text-dim hover:text-text"
-            >
-              <Linkedin size={15} className="text-cobalt" />
-              LinkedIn Profile
-            </a>
-            <a
-              href={settings.githubUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-3 border border-border bg-surface-2 px-4 py-3.5 text-sm text-text-dim hover:text-text"
-            >
-              <Github size={15} className="text-cobalt" />
-              GitHub Profile
-            </a>
-            <div className="border border-border bg-surface-2 px-4 py-3.5">
-              <p className="label mb-1">Response expectation</p>
-              <p className="text-sm text-text-dim">Typically within 1–2 business days.</p>
-            </div>
-          </aside>
         </div>
-      </PageShell>
+
+        <aside className="contact-space-links">
+          <span>DIRECT</span>
+          <a href={`mailto:${settings.email}`}><Mail size={14}/><strong>{settings.email}</strong><ArrowUpRight size={13}/></a>
+          <a href={settings.linkedinUrl} target="_blank" rel="noreferrer"><Linkedin size={14}/><strong>LinkedIn</strong><ArrowUpRight size={13}/></a>
+          <a href={settings.githubUrl} target="_blank" rel="noreferrer"><Github size={14}/><strong>GitHub</strong><ArrowUpRight size={13}/></a>
+          <div className="contact-space-response"><small>RESPONSE</small><p>Typically within 1–2 business days.</p></div>
+        </aside>
+      </section>
     </div>
   );
 }
