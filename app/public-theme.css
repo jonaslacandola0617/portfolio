@@ -60,6 +60,10 @@
 .dark .public-stage .public-contact,
 .dark .public-stage .public-search-page,
 .dark .public-stage .public-not-found,
+.dark .public-stage .contact-space,
+.dark .public-stage .contact-space-hero,
+.dark .public-stage .resume-space,
+.dark .public-stage .resume-space-hero,
 .dark .public-stage .bg-surface,
 .dark .public-stage .bg-surface-2,
 .dark .public-stage .bg-surface-3 {
@@ -74,7 +78,8 @@
 .dark .public-stage .space-project-dark,
 .dark .public-stage .space-project-light,
 .dark .public-stage .space-about,
-.dark .public-stage .public-mobile-menu {
+.dark .public-stage .public-mobile-menu,
+.dark .public-stage .contact-space-hero {
   color: #f4efe6;
 }
 
@@ -124,12 +129,41 @@
   box-shadow: 0 0 0 8px #0b0c0c;
 }
 
+.dark .public-stage .contact-space-line span {
+  box-shadow: 0 0 0 7px #0b0c0c;
+}
+
 .dark .public-stage .text-text { color:#f4efe6 !important; }
 .dark .public-stage .text-text-dim,
 .dark .public-stage .text-muted,
 .dark .public-stage .text-muted-foreground { color:#aaa49a !important; }
 .dark .public-stage .border-border { border-color:rgba(244,239,230,.18) !important; }
 .dark .public-stage .border-border-strong { border-color:rgba(244,239,230,.5) !important; }
+
+/* Search is portaled outside .public-stage, so it needs body-level dark rules. */
+.dark .public-search-dialog {
+  background:#0b0c0c !important;
+  color:#f4efe6 !important;
+  border-color:rgba(244,239,230,.35) !important;
+}
+.dark .public-search-dialog-head,
+.dark .public-search-input-wrap,
+.dark .public-search-group,
+.dark .public-search-result,
+.dark .public-search-dialog-foot {
+  border-color:rgba(244,239,230,.16) !important;
+}
+.dark .public-search-dialog-head p,
+.dark .public-search-group-label,
+.dark .public-search-result > span,
+.dark .public-search-result p,
+.dark .public-search-dialog-foot,
+.dark .public-search-empty p { color:#aaa49a !important; }
+.dark .public-search-dialog-head button,
+.dark .public-search-input-wrap kbd { border-color:rgba(244,239,230,.22) !important; color:#f4efe6 !important; }
+.dark .public-search-input-wrap input { color:#f4efe6 !important; }
+.dark .public-search-input-wrap input::placeholder { color:#77736c !important; }
+.dark .public-search-overlay { background:rgba(0,0,0,.78) !important; }
 
 @media (max-width: 900px) {
   .public-nav-actions { margin-left: auto; }
