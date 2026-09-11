@@ -92,7 +92,6 @@ export function LabForm({ mode, lab, media = [], templateId }: LabFormProps) {
   return (
     <AuthoringWorkspace
       enabled={mode === "edit"}
-      storageKey="cms:lab:inspector"
       contentLabel="lab"
       title={title}
       backHref="/admin/labs"

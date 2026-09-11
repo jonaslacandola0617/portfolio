@@ -18,6 +18,10 @@ export interface BulkDeleteResult {
   deletedCount?: number;
 }
 
+export type HomepageShowcaseResult =
+  | { success: true; selectedIds: string[]; message: string }
+  | { success: false; message: string };
+
 export type SaveFailureCode =
   | "SERIALIZATION_ERROR"
   | "VALIDATION_ERROR"

@@ -22,17 +22,6 @@ export const settingsFormSchema = z.object({
     )
     .max(50)
     .default([]),
-  homepageProjectIds: z
-    .array(z.string().trim())
-    .max(2, "Choose at most two homepage projects")
-    .refine(
-      (ids) => {
-        const chosen = ids.filter(Boolean);
-        return new Set(chosen).size === chosen.length;
-      },
-      "Choose two different projects",
-    )
-    .default([]),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsFormSchema>;

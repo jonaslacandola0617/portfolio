@@ -40,30 +40,12 @@ export default async function HomePage() {
     getAboutPage(),
   ]);
 
-  const previewProjects = projects.filter((project) => Boolean(project.frontmatter.liveSiteUrl || project.frontmatter.thumbnail));
-  const automaticOrder = [
-    ...previewProjects,
-    ...projects.filter((project) => !previewProjects.some((preview) => preview.recordId === project.recordId)),
-  ];
-
   const projectById = new Map(projects.map((project) => [project.recordId, project]));
-  const configuredPrimary = settings.homepageProjectIds[0]
-    ? projectById.get(settings.homepageProjectIds[0])
-    : undefined;
-  const configuredSecondary = settings.homepageProjectIds[1]
-    ? projectById.get(settings.homepageProjectIds[1])
-    : undefined;
-
-  const usedProjectIds = new Set<string>();
-  const nextAutomatic = () => automaticOrder.find((project) => !usedProjectIds.has(project.recordId));
-
-  const primaryProject = configuredPrimary ?? nextAutomatic();
-  if (primaryProject) usedProjectIds.add(primaryProject.recordId);
-
-  const secondaryProject = configuredSecondary && !usedProjectIds.has(configuredSecondary.recordId)
-    ? configuredSecondary
-    : nextAutomatic();
-  if (secondaryProject) usedProjectIds.add(secondaryProject.recordId);
+  const showcasedProjects = settings.homepageProjectIds
+    .slice(0, 2)
+    .map((id) => projectById.get(id))
+    .filter((project) => project !== undefined);
+  const [primaryProject, secondaryProject] = showcasedProjects;
 
   const currentYear = new Date().getFullYear();
   const websiteJsonLd = buildWebsiteJsonLd({ name: settings.name, description: siteConfig.description });

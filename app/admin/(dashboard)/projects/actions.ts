@@ -8,12 +8,14 @@ import {
   updateProjectContent,
   deleteProject,
   deleteProjects,
+  setHomepageProjectShowcase,
 } from "@/lib/services/project-admin-service";
 import { projectFormSchema } from "@/lib/validations/project";
-import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
+import { bulkDeleteSchema, deleteIdSchema, homepageShowcaseToggleSchema } from "@/lib/validations/admin";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
 import { saveEditorContent } from "@/lib/services/content-save-service";
-import type { ActionResult, SaveContentPayload, SaveResult, DeleteResult, BulkDeleteResult } from "@/types/admin";
+import { revalidateContent } from "@/lib/services/content-revalidation";
+import type { ActionResult, SaveContentPayload, SaveResult, DeleteResult, BulkDeleteResult, HomepageShowcaseResult } from "@/types/admin";
 
 export type { ActionResult };
 
@@ -153,4 +155,30 @@ export async function bulkDeleteProjectsAction(ids: string[]): Promise<BulkDelet
   }
 
   return { success: true, deletedCount };
+}
+
+export async function toggleHomepageProjectAction(
+  projectId: string,
+  showcased: boolean,
+): Promise<HomepageShowcaseResult> {
+  await requireAdmin();
+
+  const parsed = homepageShowcaseToggleSchema.safeParse({ projectId, showcased });
+  if (!parsed.success) {
+    return { success: false, message: "Invalid homepage showcase request." };
+  }
+
+  try {
+    const result = await setHomepageProjectShowcase(parsed.data.projectId, parsed.data.showcased);
+    if (result.success) revalidateContent("settings");
+    return result;
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    const failure = classifyServiceError(error, {
+      operation: "update",
+      contentType: "project",
+      recordId: parsed.data.projectId,
+    });
+    return { success: false, message: failure.message ?? "Could not update the homepage showcase." };
+  }
 }
