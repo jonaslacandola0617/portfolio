@@ -2,28 +2,15 @@
 
 import * as React from "react";
 import Link from "next/link";
-import {
-  Search,
-  FolderGit2,
-  FlaskConical,
-  NotebookPen,
-  Award,
-  X,
-} from "lucide-react";
+import { Search, X, ArrowUpRight } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useSearch } from "@/hooks/use-search";
 
-const typeIcon = {
-  project: FolderGit2,
-  lab: FlaskConical,
-  article: NotebookPen,
-  certificate: Award,
-};
 const typeLabel = {
-  project: "Projects",
+  project: "Work",
   lab: "Labs",
   article: "Journal",
-  certificate: "Certifications",
+  certificate: "Credentials",
 };
 
 export function SearchDialog() {
@@ -44,7 +31,7 @@ export function SearchDialog() {
           item.summary.toLowerCase().includes(q) ||
           item.tags.some((tag) => tag.toLowerCase().includes(q)),
       )
-      .slice(0, 12);
+      .slice(0, 16);
   }, [query, index]);
 
   const groups = (Object.keys(typeLabel) as (keyof typeof typeLabel)[])
@@ -57,61 +44,66 @@ export function SearchDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="top-24 translate-y-0 max-w-xl sm:top-32 [&>button]:hidden">
-        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-          <Search className="h-4 w-4 text-muted" />
+      <DialogContent
+        overlayClassName="public-search-overlay"
+        className="public-search-dialog [&>button]:hidden"
+      >
+        <div className="public-search-dialog-head">
+          <div>
+            <span>SEARCH /</span>
+            <p>Find something I built, tested, or wrote about.</p>
+          </div>
+          <button type="button" onClick={() => setOpen(false)} aria-label="Close search">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="public-search-input-wrap">
+          <Search size={20} />
           <input
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search projects, labs, journal, certifications…"
-            className="w-full bg-transparent font-body text-sm text-text outline-none placeholder:text-muted"
+            placeholder="network, Laravel, NIST, Linux…"
           />
-          <kbd className="hidden shrink-0 border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted sm:block">
-            ESC
-          </kbd>
-          <button
-            type="button"
-            onClick={() => setOpen(false)}
-            aria-label="Close search"
-            className="sm:hidden"
-          >
-            <X className="h-4 w-4 text-muted" />
-          </button>
+          <kbd>ESC</kbd>
         </div>
 
-        <div className="thin-scroll max-h-80 overflow-y-auto p-2">
+        <div className="public-search-results">
           {groups.length === 0 ? (
-            <div className="px-3 py-10 text-center">
-              <p className="text-sm text-text-dim">No results for &ldquo;{query}&rdquo;</p>
-              <p className="mt-1 text-xs text-muted">Try a project, lab, or technology name.</p>
+            <div className="public-search-empty">
+              <strong>No match.</strong>
+              <p>Try a project, lab, technology, or topic.</p>
             </div>
           ) : (
             groups.map((group) => (
-              <div key={group.type} className="mb-1">
-                <div className="label px-2 py-1.5">{group.label}</div>
-                {group.items.map((item) => {
-                  const Icon = typeIcon[item.type];
-                  return (
+              <section key={group.type} className="public-search-group">
+                <div className="public-search-group-label">{group.label}</div>
+                <div>
+                  {group.items.map((item, index) => (
                     <Link
                       key={`${item.type}:${item.title}:${item.href}`}
                       href={item.href}
                       onClick={() => setOpen(false)}
-                      className="flex w-full items-center gap-2.5 px-2 py-2 text-left text-sm text-text transition-colors hover:bg-surface-3"
+                      className="public-search-result"
                     >
-                      <Icon className="h-3.5 w-3.5 shrink-0 text-cobalt" />
-                      <span className="truncate">{item.title}</span>
+                      <span>{String(index + 1).padStart(2, "0")}</span>
+                      <div>
+                        <strong>{item.title}</strong>
+                        <p>{item.summary}</p>
+                      </div>
+                      <ArrowUpRight size={16} />
                     </Link>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              </section>
             ))
           )}
         </div>
 
-        <div className="flex items-center justify-between border-t border-border px-4 py-2">
-          <span className="label">Search</span>
-          <span className="font-mono text-[10px] text-muted">↑↓ navigate · ↵ select</span>
+        <div className="public-search-dialog-foot">
+          <span>TYPE TO FILTER</span>
+          <span>CLICK A RESULT TO OPEN</span>
         </div>
       </DialogContent>
     </Dialog>

@@ -165,7 +165,7 @@ model Article {
   content       Json
   date          DateTime
   publishStatus PublishStatus @default(DRAFT)
-  category      Category?     @relation(fields: [categoryId], references: [id])
+  category      Category?      @relation(fields: [categoryId], references: [id])
   categoryId    String?
   tags          Tag[]
   downloads     Download[]
@@ -206,15 +206,16 @@ model Certificate {
 }
 
 model SiteSettings {
-  id                String   @id @default("singleton")
-  name              String
-  role              String
-  tagline           String
-  email             String
-  githubUrl         String
-  linkedinUrl       String
-  resumeUrl         String
-  currentlyLearning Json
-  aboutPage         Json?
-  updatedAt         DateTime @updatedAt
+  id                 String   @id @default("singleton")
+  name               String
+  role               String
+  tagline            String
+  email              String
+  githubUrl          String
+  linkedinUrl        String
+  resumeUrl          String
+  currentlyLearning  Json
+  aboutPage          Json?
+  homepageProjectIds String[] @default([])
+  updatedAt          DateTime @updatedAt
 }

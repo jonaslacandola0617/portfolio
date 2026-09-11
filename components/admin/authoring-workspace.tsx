@@ -80,8 +80,8 @@ export function AuthoringWorkspace({
 
   return (
     <EditorHeaderBridge.Provider value={setEditorHeader}>
-      <div className="flex h-[calc(100dvh-53px)] min-h-0 flex-col overflow-hidden lg:h-[100dvh]">
-        <div className="sticky top-[53px] z-20 shrink-0 bg-surface/95 backdrop-blur lg:top-0">
+      <div className="admin-control-authoring flex h-[calc(100dvh-53px)] min-h-0 flex-col overflow-hidden lg:h-[100dvh]">
+        <div className="admin-control-authoring-head sticky top-[53px] z-20 shrink-0 bg-surface/95 backdrop-blur lg:top-0">
           <div className="flex items-center justify-between gap-3 px-5 py-3">
             <div className="flex min-w-0 items-center gap-3">
               {backHref && (
@@ -95,7 +95,7 @@ export function AuthoringWorkspace({
               )}
               <div className="min-w-0">
                 <p className="label">{contentLabel}</p>
-                <p className="truncate font-display text-sm font-semibold text-text">
+                <p className="admin-control-authoring-title truncate text-text">
                   {title || "Untitled Draft"}
                 </p>
               </div>
@@ -116,7 +116,7 @@ export function AuthoringWorkspace({
                 <SheetTrigger asChild>
                   <button
                     type="button"
-                    className="flex items-center gap-1.5 border border-border px-3 py-1.5 text-xs font-medium text-text-dim hover:border-border-strong hover:text-text"
+                    className="admin-control-authoring-action admin-control-authoring-action-secondary flex items-center gap-1.5 border px-3 py-1.5 text-xs font-medium"
                   >
                     <SlidersHorizontal className="h-3 w-3" /> Metadata
                   </button>
@@ -134,7 +134,7 @@ export function AuthoringWorkspace({
                 type="button"
                 onClick={() => editorHeader?.save()}
                 disabled={!editorHeader || editorHeader.isSaving}
-                className="flex items-center gap-1.5 border border-border-strong bg-text px-3 py-1.5 text-xs font-medium text-surface disabled:opacity-50"
+                className="admin-control-authoring-action admin-control-authoring-action-primary flex items-center gap-1.5 border px-3 py-1.5 text-xs font-medium disabled:opacity-50"
               >
                 <Check className="h-3 w-3" /> Save
               </button>

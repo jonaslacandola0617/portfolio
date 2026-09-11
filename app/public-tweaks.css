@@ -1,0 +1,306 @@
+/* Final layout refinements for the approved public redesign.
+ * Keep the original type scale except for a very small hero reduction requested
+ * during preview review. This file also handles live project previews,
+ * the restored homepage contact form, and collision-safe responsive layout.
+ */
+
+/* Project previews: live site when available, CMS image behind it as fallback. */
+.public-stage .space-project-visual,
+.public-stage .project-index-preview,
+.public-stage .project-visual-preview {
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.public-stage .space-project-visual,
+.public-stage .project-index-preview {
+  position: relative;
+  overflow: hidden;
+}
+
+.public-stage .project-visual-preview {
+  position: absolute;
+  inset: 0;
+  background-color: inherit;
+}
+
+.public-stage .project-visual-preview iframe {
+  position: absolute;
+  inset: 0;
+  width: 125%;
+  height: 125%;
+  border: 0;
+  background: transparent;
+  transform: scale(.8);
+  transform-origin: 0 0;
+  pointer-events: none;
+}
+
+.public-stage .project-visual-preview > span {
+  position: absolute;
+  z-index: 1;
+  left: 28px;
+  bottom: 26px;
+  max-width: 80%;
+  font-family: var(--font-playfair), serif;
+  font-size: clamp(34px, 5vw, 76px);
+  line-height: .84;
+  letter-spacing: -.055em;
+  color: #f3eee4;
+}
+
+.public-stage .project-index-preview .project-visual-preview > span {
+  left: 16px;
+  bottom: 14px;
+  font-size: clamp(22px, 2.3vw, 36px);
+}
+
+/* Hero: slightly smaller statement, and NOW always gets its own vertical space. */
+.public-stage .spatial-hero {
+  padding-bottom: clamp(132px, 16vh, 190px);
+}
+
+.public-stage .spatial-statement {
+  font-size: clamp(20px, 2.05vw, 34px);
+}
+
+.public-stage .spatial-statement .serif {
+  font-size: 1.12em;
+}
+
+.public-stage .spatial-focus {
+  position: static;
+  width: min(420px, 46vw);
+  min-width: 0;
+  margin: 28px 0 0 auto;
+}
+
+/* Search should feel spacious, not oversized. */
+.public-search-dialog {
+  width: min(980px, calc(100vw - 36px)) !important;
+  height: min(700px, calc(100svh - 70px));
+}
+
+.public-search-dialog-head {
+  padding: 22px 26px;
+}
+
+.public-search-dialog-head > div > span {
+  font-size: clamp(26px, 3vw, 42px);
+}
+
+.public-search-dialog-head p {
+  margin-top: 6px;
+  font-size: 11px;
+}
+
+.public-search-input-wrap {
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 12px;
+  padding: 20px 26px;
+}
+
+.public-search-input-wrap input {
+  font-size: clamp(24px, 3.4vw, 46px);
+}
+
+.public-search-results {
+  padding: 0 26px;
+}
+
+.public-search-group {
+  grid-template-columns: 96px 1fr;
+}
+
+.public-search-group-label {
+  padding: 21px 16px 21px 0;
+}
+
+.public-search-result {
+  min-height: 74px;
+  padding: 14px 0;
+}
+
+.public-search-result strong {
+  font-size: clamp(19px, 1.75vw, 28px);
+  line-height: 1.05;
+}
+
+.public-search-result p {
+  margin-top: 4px;
+  font-size: 10px;
+}
+
+.public-search-dialog-foot {
+  padding: 12px 26px;
+}
+
+/* Footer: give the statement priority and keep the form intentionally compact. */
+.space-footer-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.65fr);
+  gap: clamp(44px, 5vw, 86px);
+  align-items: start;
+}
+
+.space-footer-intro {
+  min-width: 0;
+}
+
+.space-footer-question {
+  max-width: 940px;
+}
+
+.space-footer-form {
+  width: min(100%, 480px);
+  min-width: 0;
+  justify-self: end;
+  border-top: 1px solid color-mix(in srgb, var(--jp-ink) 22%, transparent);
+  padding-top: 20px;
+  color: var(--jp-ink);
+}
+
+.space-footer-form-head {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 14px;
+  align-items: baseline;
+  margin-bottom: 24px;
+}
+
+.space-footer-form-head span {
+  font-family: var(--font-ibm-plex-mono), monospace;
+  font-size: 8px;
+  letter-spacing: 0.13em;
+  color: var(--jp-muted);
+}
+
+.space-footer-form-head p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--jp-muted);
+}
+
+/* ContactForm originally places name/email side by side. In this narrower
+ * homepage treatment, stack them so neither field or its label gets squeezed. */
+.space-footer-form form .grid.sm\:grid-cols-2 {
+  grid-template-columns: 1fr !important;
+}
+
+.space-footer-form form .label,
+.space-footer-form form .font-mono {
+  color: var(--jp-muted) !important;
+}
+
+.space-footer-form form input:not([type="hidden"]),
+.space-footer-form form textarea {
+  width: 100%;
+  border-color: color-mix(in srgb, var(--jp-ink) 28%, transparent) !important;
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: var(--jp-ink) !important;
+}
+
+.space-footer-form form input::placeholder,
+.space-footer-form form textarea::placeholder {
+  color: color-mix(in srgb, var(--jp-ink) 42%, transparent) !important;
+}
+
+.space-footer-form form input:focus,
+.space-footer-form form textarea:focus {
+  border-color: var(--jp-rust) !important;
+}
+
+.space-footer-form form button[type="submit"] {
+  border-color: var(--jp-ink) !important;
+  background: var(--jp-ink) !important;
+  color: var(--jp-paper) !important;
+}
+
+.space-footer-form form [role="status"] {
+  border-color: color-mix(in srgb, var(--jp-ink) 24%, transparent) !important;
+  background: rgba(255, 255, 255, 0.24) !important;
+  color: var(--jp-ink) !important;
+}
+
+@media (max-width: 1180px) {
+  .public-stage .spatial-statement {
+    width: min(680px, 76vw);
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .public-stage .spatial-focus {
+    width: min(100%, 420px);
+    margin-left: 0;
+    margin-right: auto;
+  }
+
+  .space-footer-main {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+  }
+}
+
+@media (max-width: 900px) {
+  .public-stage .spatial-hero {
+    padding-bottom: 132px;
+  }
+
+  .public-stage .spatial-focus {
+    width: min(100%, 420px);
+    margin-top: 34px;
+  }
+
+  .space-footer-main {
+    grid-template-columns: 1fr;
+    gap: 56px;
+  }
+
+  .space-footer-form {
+    width: min(100%, 520px);
+    justify-self: start;
+  }
+
+  .public-search-dialog {
+    height: min(720px, calc(100svh - 36px));
+  }
+
+  .public-search-group {
+    grid-template-columns: 1fr;
+  }
+
+  .public-search-group-label {
+    padding-bottom: 6px;
+  }
+}
+
+@media (max-width: 620px) {
+  .space-footer-form-head {
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+
+  .space-footer-form {
+    width: 100%;
+  }
+
+  .public-search-dialog-head,
+  .public-search-input-wrap,
+  .public-search-results,
+  .public-search-dialog-foot {
+    padding-left: 18px;
+    padding-right: 18px;
+  }
+
+  .public-search-input-wrap input {
+    font-size: clamp(22px, 8vw, 34px);
+  }
+
+  /* Keep 16px controls on phones to avoid browser zoom while leaving the
+   * public typography itself at the approved original scale. */
+  .space-footer-form form input:not([type="hidden"]),
+  .space-footer-form form textarea {
+    font-size: 16px !important;
+  }
+}
