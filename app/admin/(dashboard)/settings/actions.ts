@@ -8,12 +8,18 @@ import type { ActionResult } from "@/types/admin";
 export async function updateSettingsAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
 
-  const homepageProjectIds = [
-    formData.get("homepagePrimaryProjectId"),
-    formData.get("homepageSecondaryProjectId"),
-  ]
-    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
-    .map((value) => value.trim());
+  const primaryProjectId = typeof formData.get("homepagePrimaryProjectId") === "string"
+    ? String(formData.get("homepagePrimaryProjectId")).trim()
+    : "";
+  const secondaryProjectId = typeof formData.get("homepageSecondaryProjectId") === "string"
+    ? String(formData.get("homepageSecondaryProjectId")).trim()
+    : "";
+
+  const homepageProjectIds = secondaryProjectId
+    ? [primaryProjectId, secondaryProjectId]
+    : primaryProjectId
+      ? [primaryProjectId]
+      : [];
 
   const parsed = settingsFormSchema.safeParse({
     name: formData.get("name"),
