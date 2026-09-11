@@ -15,6 +15,7 @@ function run(label, entrypoint, args) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
+run("auditing source reachability", "scripts/audit-dead-code.mjs", []);
 run("verifying database content and public counts", require.resolve("tsx/cli"), [
   "scripts/verify-build-data.ts",
 ]);
