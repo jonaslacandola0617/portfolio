@@ -25,14 +25,13 @@ const groups = [
   {
     label: "Presentation",
     items: [
-      { label: "Homepage", href: "/admin/showcase", idx: "07" },
-      { label: "About", href: "/admin/about", idx: "08" },
+      { label: "About", href: "/admin/about", idx: "07" },
     ],
   },
   {
     label: "System",
     items: [
-      { label: "Settings", href: "/admin/settings", idx: "09" },
+      { label: "Settings", href: "/admin/settings", idx: "08" },
     ],
   },
 ] as const;
