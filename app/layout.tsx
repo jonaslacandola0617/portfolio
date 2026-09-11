@@ -4,6 +4,7 @@ import "./globals.css";
 import "./public-redesign.css";
 import "./public-pages.css";
 import "./public-components.css";
+import "./public-about.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
 import { ThemeProvider } from "@/components/layout/theme-provider";
