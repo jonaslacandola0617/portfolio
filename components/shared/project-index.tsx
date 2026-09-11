@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
+import { ProjectVisualPreview } from "@/components/shared/project-visual-preview";
 import type { ProjectFrontmatter } from "@/types";
 
 export function ProjectIndex({ projects }: { projects: ProjectFrontmatter[] }) {
@@ -48,12 +49,12 @@ export function ProjectIndex({ projects }: { projects: ProjectFrontmatter[] }) {
             <span className="project-index-category">{project.category}</span>
             <span className="project-index-year">{new Date(project.completionDate).getFullYear()}</span>
             <ArrowUpRight className="project-index-arrow" size={17} />
-            <div
-              className="project-index-preview"
-              style={project.thumbnail ? { backgroundImage: `url(${project.thumbnail})` } : undefined}
-              aria-hidden="true"
-            >
-              {!project.thumbnail ? <span>{project.title}</span> : null}
+            <div className="project-index-preview" aria-hidden="true">
+              <ProjectVisualPreview
+                title={project.title}
+                liveSiteUrl={project.liveSiteUrl}
+                thumbnail={project.thumbnail}
+              />
             </div>
           </Link>
         ))}
