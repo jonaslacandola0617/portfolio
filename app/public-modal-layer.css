@@ -6,3 +6,23 @@
 .public-search-dialog {
   z-index: 121 !important;
 }
+
+/* Work index live previews should read as website thumbnails, not tiny embedded pages. */
+@media (min-width: 901px) {
+  .public-stage .project-index-preview {
+    left: auto !important;
+    right: 24px !important;
+    width: 420px !important;
+    aspect-ratio: 16 / 10 !important;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--jp-ink) 18%, transparent);
+    background: #151616;
+  }
+
+  .public-stage .project-index-preview .project-visual-preview iframe {
+    width: 1280px !important;
+    height: 800px !important;
+    transform: scale(.328125) !important;
+    transform-origin: 0 0 !important;
+  }
+}
