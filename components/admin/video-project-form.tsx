@@ -183,7 +183,7 @@ export function VideoProjectForm({ project, media }: { project: VideoProjectEdit
         <EditorShell
           initialContent={project.content}
           recordId={project.id}
-          contentType={"video" as "project"}
+          contentType="video"
           onSave={autosaveVideoContentAction}
           onReady={editorForm.registerEditor}
           media={media}
