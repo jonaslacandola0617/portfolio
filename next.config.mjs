@@ -1,10 +1,11 @@
 const isProduction = process.env.NODE_ENV === "production";
+const allowedFrameAncestors = "'self' https://jonasl.online https://www.jonasl.online https://portfolio-git-codex-project-sho-2177ed-jonaslacandolas-projects.vercel.app";
 
 const contentSecurityPolicy = [
   "default-src 'self'",
   "base-uri 'self'",
   "form-action 'self'",
-  "frame-ancestors 'none'",
+  `frame-ancestors ${allowedFrameAncestors}`,
   "frame-src 'self' https: https://*.public.blob.vercel-storage.com",
   "object-src 'self' https://*.public.blob.vercel-storage.com",
   `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
@@ -22,7 +23,6 @@ const securityHeaders = [
   { key: "Content-Security-Policy", value: contentSecurityPolicy },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
-  { key: "X-Frame-Options", value: "DENY" },
   {
     key: "Permissions-Policy",
     value: "camera=(), microphone=(), geolocation=()",
