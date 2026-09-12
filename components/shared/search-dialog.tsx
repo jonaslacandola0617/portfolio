@@ -11,6 +11,7 @@ const typeLabel = {
   lab: "Labs",
   article: "Journal",
   certificate: "Credentials",
+  video: "Video",
 };
 
 export function SearchDialog() {
@@ -44,54 +45,30 @@ export function SearchDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent
-        overlayClassName="public-search-overlay"
-        className="public-search-dialog [&>button]:hidden"
-      >
+      <DialogContent overlayClassName="public-search-overlay" className="public-search-dialog [&>button]:hidden">
         <div className="public-search-dialog-head">
-          <div>
-            <span>SEARCH /</span>
-            <p>Find something I built, tested, or wrote about.</p>
-          </div>
-          <button type="button" onClick={() => setOpen(false)} aria-label="Close search">
-            <X size={18} />
-          </button>
+          <div><span>SEARCH /</span><p>Find something I built, tested, filmed, edited, or wrote about.</p></div>
+          <button type="button" onClick={() => setOpen(false)} aria-label="Close search"><X size={18} /></button>
         </div>
 
         <div className="public-search-input-wrap">
           <Search size={20} />
-          <input
-            autoFocus
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="network, Laravel, NIST, Linux…"
-          />
+          <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Laravel, network, video editing, cinematography…" />
           <kbd>ESC</kbd>
         </div>
 
         <div className="public-search-results">
           {groups.length === 0 ? (
-            <div className="public-search-empty">
-              <strong>No match.</strong>
-              <p>Try a project, lab, technology, or topic.</p>
-            </div>
+            <div className="public-search-empty"><strong>No match.</strong><p>Try a project, video, lab, technology, or topic.</p></div>
           ) : (
             groups.map((group) => (
               <section key={group.type} className="public-search-group">
                 <div className="public-search-group-label">{group.label}</div>
                 <div>
                   {group.items.map((item, index) => (
-                    <Link
-                      key={`${item.type}:${item.title}:${item.href}`}
-                      href={item.href}
-                      onClick={() => setOpen(false)}
-                      className="public-search-result"
-                    >
+                    <Link key={`${item.type}:${item.title}:${item.href}`} href={item.href} onClick={() => setOpen(false)} className="public-search-result">
                       <span>{String(index + 1).padStart(2, "0")}</span>
-                      <div>
-                        <strong>{item.title}</strong>
-                        <p>{item.summary}</p>
-                      </div>
+                      <div><strong>{item.title}</strong><p>{item.summary}</p></div>
                       <ArrowUpRight size={16} />
                     </Link>
                   ))}
@@ -101,10 +78,7 @@ export function SearchDialog() {
           )}
         </div>
 
-        <div className="public-search-dialog-foot">
-          <span>TYPE TO FILTER</span>
-          <span>CLICK A RESULT TO OPEN</span>
-        </div>
+        <div className="public-search-dialog-foot"><span>TYPE TO FILTER</span><span>CLICK A RESULT TO OPEN</span></div>
       </DialogContent>
     </Dialog>
   );

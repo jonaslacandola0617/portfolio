@@ -12,8 +12,10 @@ export interface SitemapData {
   projects: SitemapContentEntry[];
   labs: SitemapContentEntry[];
   articles: SitemapContentEntry[];
+  videos: SitemapContentEntry[];
   tagSlugs: string[];
   settingsUpdatedAt?: Date;
+  videoSettingsUpdatedAt?: Date;
   certificationsUpdatedAt?: Date;
 }
 
@@ -21,24 +23,17 @@ const fallback: SitemapData = {
   projects: [],
   labs: [],
   articles: [],
+  videos: [],
   tagSlugs: [],
 };
 
 export const getSitemapData = cache(async (): Promise<SitemapData> =>
   readWithPolicy("sitemap.getSitemapData", fallback, async () => {
-    const [projects, labs, articles, tags, settings, latestCertificate] = await Promise.all([
-      prisma.project.findMany({
-        where: { publishStatus: "PUBLISHED" },
-        select: { slug: true, updatedAt: true },
-      }),
-      prisma.lab.findMany({
-        where: { publishStatus: "PUBLISHED" },
-        select: { slug: true, updatedAt: true },
-      }),
-      prisma.article.findMany({
-        where: { publishStatus: "PUBLISHED" },
-        select: { slug: true, updatedAt: true },
-      }),
+    const [projects, labs, articles, videos, tags, settings, videoSettings, latestCertificate] = await Promise.all([
+      prisma.project.findMany({ where: { publishStatus: "PUBLISHED" }, select: { slug: true, updatedAt: true } }),
+      prisma.lab.findMany({ where: { publishStatus: "PUBLISHED" }, select: { slug: true, updatedAt: true } }),
+      prisma.article.findMany({ where: { publishStatus: "PUBLISHED" }, select: { slug: true, updatedAt: true } }),
+      prisma.videoProject.findMany({ where: { publishStatus: "PUBLISHED" }, select: { slug: true, updatedAt: true } }),
       prisma.tag.findMany({
         where: {
           OR: [
@@ -58,29 +53,22 @@ export const getSitemapData = cache(async (): Promise<SitemapData> =>
           },
         },
       }),
-      prisma.siteSettings.findUnique({
-        where: { id: "singleton" },
-        select: { updatedAt: true },
-      }),
-      prisma.certificate.findFirst({
-        where: { publishStatus: "PUBLISHED" },
-        orderBy: { updatedAt: "desc" },
-        select: { updatedAt: true },
-      }),
+      prisma.siteSettings.findUnique({ where: { id: "singleton" }, select: { updatedAt: true } }),
+      prisma.videoPortfolioSettings.findUnique({ where: { id: "singleton" }, select: { updatedAt: true } }),
+      prisma.certificate.findFirst({ where: { publishStatus: "PUBLISHED" }, orderBy: { updatedAt: "desc" }, select: { updatedAt: true } }),
     ]);
 
     return {
       projects,
       labs,
       articles,
+      videos,
       tagSlugs: tags
-        .filter(
-          (tag) =>
-            tag._count.projects + tag._count.labs + tag._count.articles >= 2,
-        )
+        .filter((tag) => tag._count.projects + tag._count.labs + tag._count.articles >= 2)
         .map((tag) => tag.slug),
       settingsUpdatedAt: settings?.updatedAt,
+      videoSettingsUpdatedAt: videoSettings?.updatedAt,
       certificationsUpdatedAt: latestCertificate?.updatedAt,
     };
-  })
+  }),
 );

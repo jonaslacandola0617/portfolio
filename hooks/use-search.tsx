@@ -3,7 +3,7 @@
 import * as React from "react";
 
 export interface SearchIndexItem {
-  type: "project" | "lab" | "article" | "certificate";
+  type: "project" | "lab" | "article" | "certificate" | "video";
   title: string;
   summary: string;
   href: string;
