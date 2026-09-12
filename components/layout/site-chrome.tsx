@@ -13,6 +13,7 @@ const nav = [
   { label: "Work", href: "/projects" },
   { label: "Labs", href: "/labs" },
   { label: "Journal", href: "/journal" },
+  { label: "Video", href: "/video" },
   { label: "About", href: "/about" },
 ] as const;
 
@@ -65,7 +66,7 @@ export function SiteChrome({ children, settings }: { children: React.ReactNode; 
               </Link>
             ))}
             <button type="button" onClick={() => { setMenuOpen(false); setOpen(true); }}>
-              <small>05</small>Search
+              <small>{String(nav.length + 1).padStart(2, "0")}</small>Search
             </button>
           </nav>
           <div className="public-mobile-socials">
