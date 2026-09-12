@@ -97,6 +97,12 @@
   color: #f4efe6;
 }
 
+.dark .public-stage .contact-space-form form button[type="submit"] {
+  border-color: #f4efe6 !important;
+  background: #f4efe6 !important;
+  color: #0b0c0c !important;
+}
+
 .dark .public-stage .space-project-light .space-project-visual {
   background-color: #0b0c0c;
 }
