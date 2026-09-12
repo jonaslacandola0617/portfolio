@@ -5,7 +5,9 @@ export type RevalidationContentType =
   | "certificate"
   | "skill"
   | "settings"
-  | "media";
+  | "media"
+  | "video"
+  | "videoSettings";
 
 export type RevalidationTarget = { path: string; type?: "layout" | "page" };
 
@@ -32,12 +34,26 @@ const collectionTargets: Record<RevalidationContentType, RevalidationTarget[]> =
     { path: "/resume" }, { path: "/", type: "layout" },
   ],
   media: [{ path: "/admin/media" }],
+  video: [
+    { path: "/admin/video" },
+    { path: "/admin/video/projects" },
+    { path: "/video" },
+    { path: "/video/work" },
+    { path: "/sitemap.xml" },
+    { path: "/", type: "layout" },
+  ],
+  videoSettings: [
+    { path: "/admin/video" },
+    { path: "/admin/video/homepage" },
+    { path: "/video" },
+  ],
 };
 
 const detailBase: Partial<Record<RevalidationContentType, string>> = {
   project: "/projects",
   lab: "/labs",
   article: "/journal",
+  video: "/video",
 };
 
 export function getRevalidationTargets(
