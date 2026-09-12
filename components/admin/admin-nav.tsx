@@ -10,9 +10,10 @@ const items = [
   { label: "Labs", href: "/admin/labs", idx: "02" },
   { label: "Journal", href: "/admin/journal", idx: "03" },
   { label: "Certificates", href: "/admin/certificates", idx: "04" },
-  { label: "Media", href: "/admin/media", idx: "05" },
-  { label: "About", href: "/admin/about", idx: "06" },
-  { label: "Settings", href: "/admin/settings", idx: "07" },
+  { label: "Video", href: "/admin/video", idx: "05" },
+  { label: "Media", href: "/admin/media", idx: "06" },
+  { label: "About", href: "/admin/about", idx: "07" },
+  { label: "Settings", href: "/admin/settings", idx: "08" },
 ] as const;
 
 function isActivePath(pathname: string, href: string) {
@@ -30,12 +31,7 @@ export function AdminNav({ onNavigate }: { onNavigate?: () => void }) {
           const active = isActivePath(pathname, item.href);
           return (
             <li key={item.href}>
-              <Link
-                href={item.href}
-                onClick={onNavigate}
-                aria-current={active ? "page" : undefined}
-                className={cn("admin-nav-link", active && "is-active")}
-              >
+              <Link href={item.href} onClick={onNavigate} aria-current={active ? "page" : undefined} className={cn("admin-nav-link", active && "is-active")}>
                 <span className="idx">{item.idx}</span>
                 <span className="admin-nav-link-label">{item.label}</span>
                 <span className="admin-nav-marker" aria-hidden="true" />

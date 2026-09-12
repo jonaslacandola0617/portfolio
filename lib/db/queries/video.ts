@@ -27,7 +27,7 @@ function mapVideoProject(project: VideoProjectRecord): VideoProjectData {
     title: project.title,
     slug: project.slug,
     summary: project.summary,
-    content: project.content as TipTapDoc,
+    content: project.content as unknown as TipTapDoc,
     youtubeUrl: project.youtubeUrl ?? undefined,
     youtubeVideoId: project.youtubeVideoId ?? undefined,
     disciplines: project.disciplines,

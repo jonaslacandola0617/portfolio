@@ -52,8 +52,8 @@ const settingsCreateData = {
   videoEditingDescription: defaultVideoPortfolioSettings.videoEditingDescription,
   cinematographyDescription: defaultVideoPortfolioSettings.cinematographyDescription,
   heroVideoId: null,
-  featuredVideoIds: [],
-} as const;
+  featuredVideoIds: [] as string[],
+} satisfies Prisma.VideoPortfolioSettingsCreateInput;
 
 function parseOptionalDate(value: string | undefined): Date | null {
   return value ? new Date(`${value}T00:00:00.000Z`) : null;
