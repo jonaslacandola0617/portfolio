@@ -4,59 +4,60 @@ import { siteConfig } from "@/lib/site-config";
 export const runtime = "edge";
 
 const colors = {
-  ink: "#0a0b0d",
-  surface: "#141519",
-  text: "#f2f0e8",
-  muted: "#a9aba3",
-  border: "#e8e6de",
-  cobalt: "#5c7cfa",
-  vermilion: "#ef5b41",
-  yellow: "#f2bd3d",
+  ink: "#0b0c0c",
+  surface: "#151615",
+  text: "#f4efe6",
+  muted: "#aaa49a",
+  border: "rgba(244, 239, 230, 0.24)",
+  rust: "#d45a3d",
 };
 
 function BrandMark() {
   return (
     <div
       style={{
-        position: "relative",
         width: 184,
         height: 184,
         flexShrink: 0,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         background: colors.ink,
-        border: `5px solid ${colors.border}`,
+        border: `5px solid ${colors.text}`,
       }}
     >
       <div
         style={{
-          position: "absolute",
-          left: 62,
-          top: 39,
-          width: 60,
-          height: 60,
-          borderRadius: 999,
-          background: colors.cobalt,
+          display: "flex",
+          alignItems: "baseline",
+          color: colors.text,
+          lineHeight: 1,
         }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: 31,
-          top: 112,
-          width: 122,
-          height: 37,
-          background: colors.text,
-        }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          left: 31,
-          top: 112,
-          width: 37,
-          height: 37,
-          background: colors.vermilion,
-        }}
-      />
+      >
+        <div
+          style={{
+            display: "flex",
+            fontSize: 66,
+            fontWeight: 800,
+            letterSpacing: "-0.08em",
+          }}
+        >
+          JL
+        </div>
+        <div
+          style={{
+            display: "flex",
+            marginLeft: 2,
+            color: colors.rust,
+            fontFamily: "Georgia, serif",
+            fontSize: 74,
+            fontStyle: "italic",
+            fontWeight: 500,
+          }}
+        >
+          /
+        </div>
+      </div>
     </div>
   );
 }
@@ -83,7 +84,7 @@ export async function GET() {
             height: "100%",
             alignItems: "center",
             gap: 64,
-            border: `1px solid ${colors.surface}`,
+            border: `1px solid ${colors.border}`,
             padding: "56px 64px",
             position: "relative",
           }}
@@ -98,7 +99,7 @@ export async function GET() {
                 fontSize: 18,
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
-                color: colors.cobalt,
+                color: colors.rust,
               }}
             >
               Portfolio · Web Development · IT · Networking
@@ -146,7 +147,7 @@ export async function GET() {
               width: 18,
               height: 18,
               borderRadius: 999,
-              background: colors.yellow,
+              background: colors.rust,
             }}
           />
         </div>
