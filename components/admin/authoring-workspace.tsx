@@ -46,7 +46,7 @@ export function AuthoringWorkspace({
   children,
 }: {
   enabled: boolean;
-  contentLabel: "project" | "lab" | "journal entry" | "certificate";
+  contentLabel: "project" | "lab" | "journal entry" | "certificate" | "video project";
   title?: string;
   backHref?: string;
   children: React.ReactNode;
@@ -75,7 +75,13 @@ export function AuthoringWorkspace({
       label: "Certificate Metadata",
       description: "Credential details, dates, publishing status, and related skills.",
     },
+    "video project": {
+      label: "Video Project Metadata",
+      description: "YouTube source, disciplines, credits, dates, publishing status, and poster for this video project.",
+    },
   }[contentLabel];
+
+  const usesMetadataSheetChrome = contentLabel === "project" || contentLabel === "video project";
 
   return (
     <EditorHeaderBridge.Provider value={setEditorHeader}>
@@ -120,10 +126,10 @@ export function AuthoringWorkspace({
                     <SlidersHorizontal className="h-3 w-3" /> Metadata
                   </button>
                 </SheetTrigger>
-                <SheetContent className={contentLabel === "project" ? "admin-control-metadata-sheet p-0" : "p-0"}>
-                  <SheetHeader className={contentLabel === "project" ? "admin-metadata-sheet-header text-left" : "text-left"}>
-                    {contentLabel === "project" && (
-                      <span className="admin-metadata-sheet-kicker">project / metadata</span>
+                <SheetContent className={usesMetadataSheetChrome ? "admin-control-metadata-sheet p-0" : "p-0"}>
+                  <SheetHeader className={usesMetadataSheetChrome ? "admin-metadata-sheet-header text-left" : "text-left"}>
+                    {usesMetadataSheetChrome && (
+                      <span className="admin-metadata-sheet-kicker">{contentLabel} / metadata</span>
                     )}
                     <SheetTitle>{sheetContent.label}</SheetTitle>
                     <SheetDescription>{sheetContent.description}</SheetDescription>
