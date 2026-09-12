@@ -6,15 +6,18 @@ import { upload } from "@vercel/blob/client";
 import { Camera, Loader2, Save, Trash2 } from "lucide-react";
 import { updateAboutAction, updateAboutProfileImageAction } from "@/app/admin/(dashboard)/about/actions";
 import { FormMessage } from "@/components/admin/form-message";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/toast";
 import type { AboutPageValues } from "@/lib/validations/about";
 import type { ActionResult } from "@/types/admin";
 
 const initialState: ActionResult = { success: false };
-const textareaClassName =
-  "w-full border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none focus:border-cobalt";
 const allowedProfileTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
 const maxProfileBytes = 5 * 1024 * 1024;
+
+function FieldError({ errors }: { errors?: string[] }) {
+  return errors?.length ? <p className="admin-field-error">{errors[0]}</p> : null;
+}
 
 export function AboutForm({ about }: { about: AboutPageValues }) {
   const [state, action] = useFormState(updateAboutAction, initialState);
@@ -73,75 +76,65 @@ export function AboutForm({ about }: { about: AboutPageValues }) {
   }
 
   return (
-    <form action={action} className="px-6 py-8 sm:px-10">
+    <form action={action} className="admin-control-about-form">
       <input type="hidden" name="profileImageUrl" value={profileImageUrl ?? ""} />
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="font-display text-2xl font-semibold text-text">About</h1>
-        <button type="submit" className="flex items-center gap-2 border border-border-strong bg-text px-4 py-2 text-sm font-medium text-surface">
-          <Save size={13} /> Save
-        </button>
-      </div>
 
-      <div className="max-w-2xl space-y-6">
-        <div>
-          <span className="label mb-2 block">Profile Photo</span>
-          <div className="flex items-start gap-4">
-            <div className="relative h-28 w-28 shrink-0 overflow-hidden border border-border-strong bg-surface-2">
+      <section className="admin-form-section">
+        <header><span>01</span><div><h2>Profile image</h2><p>The portrait used in the public About composition.</p></div></header>
+        <div className="admin-form-section-body">
+          <div className="admin-profile-field">
+            <div className="admin-profile-preview">
               {profileImageUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={profileImageUrl} alt="Current profile" className="h-full w-full object-cover grayscale" />
+                <img src={profileImageUrl} alt="Current profile" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-muted"><Camera size={22} /></div>
+                <Camera aria-hidden="true" />
               )}
-              <div className="pointer-events-none absolute left-2 top-2 h-5 w-5 border border-border" />
-              <div className="pointer-events-none absolute bottom-2 right-2 h-2.5 w-2.5 bg-vermilion" />
+              <i aria-hidden="true" /><b aria-hidden="true" />
             </div>
-            <div className="space-y-2">
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="sr-only"
-                disabled={uploading}
-                onChange={(event) => event.target.files?.[0] && void uploadProfile(event.target.files[0])}
-              />
-              <button
-                type="button"
-                disabled={uploading}
-                onClick={() => fileRef.current?.click()}
-                className="flex items-center gap-2 border border-border-strong bg-text px-3 py-2 text-xs font-medium text-surface disabled:opacity-50"
-              >
-                {uploading ? <Loader2 size={13} className="animate-spin" /> : <Camera size={13} />}
+            <div className="admin-profile-controls">
+              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" disabled={uploading} onChange={(event) => event.target.files?.[0] && void uploadProfile(event.target.files[0])} />
+              <button type="button" disabled={uploading} onClick={() => fileRef.current?.click()} className="admin-primary-button">
+                {uploading ? <Loader2 className="animate-spin" aria-hidden="true" /> : <Camera aria-hidden="true" />}
                 {profileImageUrl ? "Replace photo" : "Upload photo"}
               </button>
-              {profileImageUrl && (
-                <button
-                  type="button"
-                  disabled={uploading}
-                  onClick={() => void removeProfile()}
-                  className="flex items-center gap-2 px-1 py-1 text-xs text-vermilion disabled:opacity-50"
-                >
-                  <Trash2 size={12} /> Remove photo
-                </button>
-              )}
-              <p className="max-w-xs text-[11px] leading-5 text-muted">JPEG, PNG, or WebP. Up to 5 MB. Stored separately from the Media Library.</p>
+              {profileImageUrl && <button type="button" disabled={uploading} onClick={() => void removeProfile()} className="admin-text-danger"><Trash2 aria-hidden="true" /> Remove photo</button>}
+              <p>JPEG, PNG, or WebP · Maximum 5 MB</p>
             </div>
           </div>
-          {profileError && <p className="mt-2 text-xs text-vermilion">{profileError}</p>}
+          {profileError && <FormMessage variant="error" className="mt-4">{profileError}</FormMessage>}
         </div>
+      </section>
 
-        <div><label htmlFor="quote" className="label mb-2 block">Opening Quote</label><textarea id="quote" name="quote" rows={3} defaultValue={about.quote} required className={textareaClassName} /></div>
-        <div><label htmlFor="background" className="label mb-2 block">Background</label><textarea id="background" name="background" rows={5} defaultValue={about.background} required className={textareaClassName} /></div>
-        <div><label htmlFor="currentFocus" className="label mb-2 block">Current Focus</label><textarea id="currentFocus" name="currentFocus" rows={3} defaultValue={about.currentFocus} required className={textareaClassName} /></div>
-        <div>
-          <label htmlFor="focusTags" className="label mb-2 block">Current Focus Tags</label>
-          <textarea id="focusTags" name="focusTags" rows={4} defaultValue={about.focusTags.join("\n")} required className={textareaClassName} />
-          <p className="mt-1 text-[11px] text-muted">One tag per line.</p>
+      <section className="admin-form-section">
+        <header><span>02</span><div><h2>Opening statement</h2><p>The lead idea displayed beside your profile image.</p></div></header>
+        <div className="admin-form-section-body">
+          <div className="admin-field"><label htmlFor="quote">Opening Quote</label><Textarea id="quote" name="quote" rows={3} defaultValue={about.quote} required /><FieldError errors={state.errors?.quote} /></div>
         </div>
-        <div><label htmlFor="learningPhilosophy" className="label mb-2 block">Learning Philosophy</label><textarea id="learningPhilosophy" name="learningPhilosophy" rows={3} defaultValue={about.learningPhilosophy} required className={textareaClassName} /></div>
-        <div><label htmlFor="whatsNext" className="label mb-2 block">What&apos;s Next</label><textarea id="whatsNext" name="whatsNext" rows={3} defaultValue={about.whatsNext} required className={textareaClassName} /></div>
+      </section>
 
-        {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+      <section className="admin-form-section">
+        <header><span>03</span><div><h2>Story</h2><p>Background, current direction, and the way you learn.</p></div></header>
+        <div className="admin-form-section-body admin-form-grid">
+          <div className="admin-field is-full"><label htmlFor="background">Background</label><Textarea id="background" name="background" rows={6} defaultValue={about.background} required /><FieldError errors={state.errors?.background} /></div>
+          <div className="admin-field"><label htmlFor="currentFocus">Current Focus</label><Textarea id="currentFocus" name="currentFocus" rows={5} defaultValue={about.currentFocus} required /><FieldError errors={state.errors?.currentFocus} /></div>
+          <div className="admin-field"><label htmlFor="learningPhilosophy">Learning Philosophy</label><Textarea id="learningPhilosophy" name="learningPhilosophy" rows={5} defaultValue={about.learningPhilosophy} required /><FieldError errors={state.errors?.learningPhilosophy} /></div>
+        </div>
+      </section>
+
+      <section className="admin-form-section">
+        <header><span>04</span><div><h2>Focus and next step</h2><p>Short labels and the direction you are moving toward.</p></div></header>
+        <div className="admin-form-section-body admin-form-grid">
+          <div className="admin-field"><label htmlFor="focusTags">Current Focus Tags</label><Textarea id="focusTags" name="focusTags" rows={6} defaultValue={about.focusTags.join("\n")} required /><p className="admin-field-note">One focused tag per line.</p><FieldError errors={state.errors?.focusTags} /></div>
+          <div className="admin-field"><label htmlFor="whatsNext">What&apos;s Next</label><Textarea id="whatsNext" name="whatsNext" rows={6} defaultValue={about.whatsNext} required /><FieldError errors={state.errors?.whatsNext} /></div>
+        </div>
+      </section>
+
+      {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
+
+      <div className="admin-form-actions">
+        <span>Saving publishes these About details immediately.</span>
+        <button type="submit" className="admin-control-settings-save"><Save aria-hidden="true" /> Save About page</button>
       </div>
     </form>
   );

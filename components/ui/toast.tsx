@@ -1,8 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { CheckCircle2, X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Check, X } from "lucide-react";
 
 interface ToastOptions {
   id?: string;
@@ -41,31 +40,22 @@ function SuccessToast({
     <div
       role="status"
       aria-live="polite"
-      className={cn(
-        "flex w-full items-start gap-3 border border-teal/30 bg-surface-2 px-4 py-3",
-        "text-text motion-safe:animate-fade-in",
-      )}
+      className="identity-toast"
     >
-      <CheckCircle2
-        className="mt-0.5 h-4 w-4 shrink-0 text-teal"
-        aria-hidden="true"
-      />
-      <div className="min-w-0 flex-1">
-        <p className="font-mono text-[0.65rem] font-medium uppercase tracking-widest text-teal">
-          Success
-        </p>
-        <p className="mt-0.5 text-sm leading-5 text-text">
-          {toast.message}
-        </p>
+      <span className="identity-toast-index" aria-hidden="true">01</span>
+      <div className="identity-toast-copy">
+        <p><Check aria-hidden="true" /> Saved successfully</p>
+        <strong>{toast.message}</strong>
       </div>
       <button
         type="button"
         onClick={() => onDismiss(toast.id)}
-        className="p-1 text-text-dim transition-colors hover:bg-surface-3 hover:text-text focus-visible:outline-none focus-visible:border-cobalt"
+        className="identity-toast-close"
         aria-label="Dismiss notification"
       >
-        <X className="h-4 w-4" aria-hidden="true" />
+        <X aria-hidden="true" />
       </button>
+      <span className="identity-toast-rule" aria-hidden="true" />
     </div>
   );
 }
@@ -100,11 +90,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div
-        className="pointer-events-none fixed inset-x-4 top-4 z-[100] flex flex-col items-center gap-2 sm:left-auto sm:right-4 sm:w-full sm:max-w-sm"
+        className="identity-toast-region"
         aria-label="Notifications"
       >
         {toasts.map((toast) => (
-          <div key={toast.id} className="pointer-events-auto w-full">
+          <div key={toast.id} className="identity-toast-item">
             <SuccessToast toast={toast} onDismiss={dismiss} />
           </div>
         ))}

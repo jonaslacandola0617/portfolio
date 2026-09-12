@@ -3,9 +3,11 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ChevronDown, ChevronUp, GripVertical, Inbox, Loader2, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronUp, GripVertical, Inbox, Loader2, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
 import type { ActionResult, DeleteResult, HomepageShowcaseResult } from "@/types/admin";
+import { AdminCheckbox } from "@/components/admin/admin-checkbox";
 import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
+import { FormMessage } from "@/components/admin/form-message";
 import { PageHeader, PageShell } from "@/components/shared/page-header";
 
 export interface ManagementListRow {
@@ -74,6 +76,7 @@ export function ManagementList({
   }, [query, orderedRows]);
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((row) => selected.has(row.id));
+  const someFilteredSelected = filtered.some((row) => selected.has(row.id)) && !allFilteredSelected;
   const canReorder = Boolean(reorderAction) && !query.trim() && !savingOrder;
 
   function toggle(id: string) {
@@ -252,16 +255,13 @@ export function ManagementList({
         </div>
 
         {showcaseError && (
-          <div role="alert" className="admin-showcase-error mb-4 flex items-start gap-2 border px-3 py-2.5 text-sm">
-            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>{showcaseError}</span>
-          </div>
+          <FormMessage variant="error" className="mb-4">{showcaseError}</FormMessage>
         )}
 
         {filtered.length > 0 && (
           <div className="mb-4 flex items-center justify-between gap-3 sm:hidden">
             <label className="flex items-center gap-2 text-xs text-text-dim">
-              <input type="checkbox" checked={allFilteredSelected} onChange={toggleAll} aria-label="Select all" />
+              <AdminCheckbox checked={allFilteredSelected} indeterminate={someFilteredSelected} onChange={toggleAll} aria-label="Select all" />
               <span className="label">Select all</span>
             </label>
             {reorderAction && (
@@ -304,7 +304,7 @@ export function ManagementList({
           <div className="border border-border">
             <div className={`hidden items-center gap-3 border-b border-border bg-surface-2 px-4 py-2.5 sm:grid ${gridClass}`}>
               {reorderAction && <span className="label">Order</span>}
-              <input type="checkbox" checked={allFilteredSelected} onChange={toggleAll} aria-label="Select all" />
+              <AdminCheckbox checked={allFilteredSelected} indeterminate={someFilteredSelected} onChange={toggleAll} aria-label="Select all" />
               <span className="label">Title</span>
               <span className="label">Category</span>
               <span className="label">Status</span>
@@ -355,7 +355,7 @@ export function ManagementList({
                         <span className="idx w-4 text-right">{String(position).padStart(2, "0")}</span>
                       </div>
                     )}
-                    <input type="checkbox" checked={selected.has(row.id)} onChange={() => toggle(row.id)} aria-label={`Select ${row.title}`} />
+                    <AdminCheckbox checked={selected.has(row.id)} onChange={() => toggle(row.id)} aria-label={`Select ${row.title}`} />
                     <span className="truncate text-sm font-medium text-text">{row.title}</span>
                     <span className="hidden truncate text-xs text-muted sm:block">{row.meta}</span>
                     <span className="hidden items-center gap-1.5 sm:flex">

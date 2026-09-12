@@ -67,10 +67,11 @@ export async function deleteMediaAction(id: string): Promise<DeleteResult> {
   try {
     const media = await prisma.media.findUnique({ where: { id: parsed.data } });
     if (!media) return { success: false, message: "That media file no longer exists." };
-    const [downloadReferences, thumbnailReferences, certificateLogoReferences, projects, labs, articles, certificates] = await Promise.all([
+    const [downloadReferences, thumbnailReferences, certificateLogoReferences, resumeReferences, projects, labs, articles, certificates] = await Promise.all([
       prisma.download.count({ where: { mediaId: parsed.data } }),
       prisma.project.count({ where: { thumbnailId: parsed.data } }),
       prisma.certificate.count({ where: { logoMediaId: parsed.data } }),
+      prisma.siteSettings.count({ where: { resumeUrl: media.url } }),
       prisma.project.findMany({ select: { content: true } }),
       prisma.lab.findMany({ select: { content: true } }),
       prisma.article.findMany({ select: { content: true } }),
@@ -78,10 +79,10 @@ export async function deleteMediaAction(id: string): Promise<DeleteResult> {
     ]);
     const editorReferences = [...projects, ...labs, ...articles, ...certificates]
       .some((record) => referencesMedia(record.content, parsed.data));
-    if (downloadReferences > 0 || thumbnailReferences > 0 || certificateLogoReferences > 0 || editorReferences) {
+    if (downloadReferences > 0 || thumbnailReferences > 0 || certificateLogoReferences > 0 || resumeReferences > 0 || editorReferences) {
       return {
         success: false,
-        message: "Remove this file from certificate logos, thumbnails, editor content, and Lab or Project resources before deleting it.",
+        message: "Remove this file from the résumé, certificate logos, thumbnails, editor content, and content resources before deleting it.",
       };
     }
     await del(media.url);

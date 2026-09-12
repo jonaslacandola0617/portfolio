@@ -25,14 +25,3 @@ export const settingsFormSchema = z.object({
 });
 
 export type SettingsFormValues = z.infer<typeof settingsFormSchema>;
-
-export function parseLearningLines(raw: string): { label: string; href: string }[] {
-  return raw
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [label, href] = line.split("|").map((s) => s.trim());
-      return { label: label ?? "", href: href ?? "/" };
-    });
-}

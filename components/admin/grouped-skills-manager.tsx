@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { GripVertical, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { AdminCheckbox } from "@/components/admin/admin-checkbox";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
 import {
@@ -167,16 +168,12 @@ export function GroupedSkillsManager({
                 <div className="flex items-center gap-3">
                   {rows.length > 0 && (
                     <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground transition-colors hover:text-foreground">
-                      <input
-                        type="checkbox"
-                        ref={(node) => {
-                          if (node) node.indeterminate = someInGroupSelected;
-                        }}
+                      <AdminCheckbox
                         checked={allInGroupSelected}
+                        indeterminate={someInGroupSelected}
                         disabled={selectableIds.length === 0}
                         onChange={() => toggleGroup(selectableIds)}
                         aria-label={`Select all skills in ${group}`}
-                        className="h-4 w-4 border-border accent-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       />
                       Select all
                     </label>
@@ -207,13 +204,11 @@ export function GroupedSkillsManager({
                       >
                         <div className="flex flex-wrap items-center gap-3">
                           <GripVertical className="h-4 w-4 cursor-grab text-muted-foreground" aria-hidden="true" />
-                          <input
-                            type="checkbox"
+                          <AdminCheckbox
                             checked={selected.has(skill.id)}
                             disabled={pending}
                             onChange={() => toggleSelected(skill.id)}
                             aria-label={`Select ${skill.name}`}
-                            className="h-4 w-4 border-border accent-cobalt focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                           />
                           <Link href={`/admin/skills/${skill.id}`} className="min-w-40 flex-1">
                             <span className="block text-sm font-medium text-text">{skill.name}</span>
