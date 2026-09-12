@@ -94,7 +94,7 @@ export function useAIAuthenticity(
   editor: Editor | null,
   options: {
     recordId: string;
-    contentType: "project" | "lab" | "article" | "certificate";
+    contentType: "project" | "lab" | "article" | "certificate" | "video";
   },
 ) {
   const [issues, setIssues] = useState<AIAuthenticityIssue[]>([]);
@@ -149,6 +149,12 @@ export function useAIAuthenticity(
 
   const runCheck = useCallback(async () => {
     if (!editor) return;
+    if (options.contentType === "video") {
+      setStatus("error");
+      setErrorMessage("AI/voice checking is not enabled for Video case studies.");
+      setPanelOpen(false);
+      return;
+    }
 
     activeRequest.current?.abort();
     const controller = new AbortController();
@@ -246,7 +252,7 @@ export function useAIAuthenticity(
 
   const requestSuggestion = useCallback(
     async (issue: AIAuthenticityIssue) => {
-      if (!editor) return;
+      if (!editor || options.contentType === "video") return;
 
       const passage = editor.state.doc.textBetween(issue.from, issue.to, "\n").trim();
       if (!passage) {
