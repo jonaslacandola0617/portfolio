@@ -36,7 +36,7 @@ export interface EditorSaveController {
 interface EditorShellProps {
   initialContent: JSONContent;
   recordId: string;
-  contentType: "project" | "lab" | "article" | "certificate";
+  contentType: "project" | "lab" | "article" | "certificate" | "video";
   onSave: (payload: SaveContentPayload) => Promise<SaveResult>;
   onReady?: (controller: EditorSaveController | null) => void;
   media?: AdminMediaItem[];
@@ -53,6 +53,8 @@ export function EditorShell({
   documentTitle,
 }: EditorShellProps) {
   const [contextPosition, setContextPosition] = useState<EditorContextPosition | null>(null);
+  const authenticityEnabled = contentType !== "video";
+
   const invokeSave = useCallback(
     async (editorOutput: unknown, clientRevision: number): Promise<SaveResult> => {
       try {
@@ -193,12 +195,11 @@ export function EditorShell({
   );
   useAuthoringEditorHeader(headerState);
 
-  const toolbarContentType =
-    contentType === "certificate"
-      ? undefined
-      : (contentType as TemplateContentType);
-  const toolbarApplyTemplate =
-    contentType === "certificate" ? undefined : applyTemplate;
+  const toolbarContentType: TemplateContentType | undefined =
+    contentType === "project" || contentType === "lab" || contentType === "article"
+      ? contentType
+      : undefined;
+  const toolbarApplyTemplate = toolbarContentType ? applyTemplate : undefined;
 
   return (
     <div className="editor-workspace relative flex h-full min-h-0 flex-col bg-surface">
@@ -215,27 +216,29 @@ export function EditorShell({
             issueCount={proofreading.issues.length}
             panelOpen={proofreading.panelOpen}
             onCheck={() => {
-              authenticity.setPanelOpen(false);
+              if (authenticityEnabled) authenticity.setPanelOpen(false);
               void proofreading.runCheck();
             }}
             onTogglePanel={() => {
-              authenticity.setPanelOpen(false);
+              if (authenticityEnabled) authenticity.setPanelOpen(false);
               proofreading.setPanelOpen(!proofreading.panelOpen);
             }}
           />
-          <AIAuthenticityToolbarButton
-            status={authenticity.status}
-            issueCount={authenticity.issues.length}
-            panelOpen={authenticity.panelOpen}
-            onCheck={() => {
-              proofreading.setPanelOpen(false);
-              void authenticity.runCheck();
-            }}
-            onTogglePanel={() => {
-              proofreading.setPanelOpen(false);
-              authenticity.setPanelOpen(!authenticity.panelOpen);
-            }}
-          />
+          {authenticityEnabled ? (
+            <AIAuthenticityToolbarButton
+              status={authenticity.status}
+              issueCount={authenticity.issues.length}
+              panelOpen={authenticity.panelOpen}
+              onCheck={() => {
+                proofreading.setPanelOpen(false);
+                void authenticity.runCheck();
+              }}
+              onTogglePanel={() => {
+                proofreading.setPanelOpen(false);
+                authenticity.setPanelOpen(!authenticity.panelOpen);
+              }}
+            />
+          ) : null}
         </div>
       </div>
 
@@ -255,7 +258,7 @@ export function EditorShell({
             onContextMenu={openContextToolbar}
             onClickCapture={(event) => {
               proofreading.handleEditorClick(event);
-              authenticity.handleEditorClick(event);
+              if (authenticityEnabled) authenticity.handleEditorClick(event);
             }}
           >
             <EditorContent editor={editor} />
@@ -281,7 +284,7 @@ export function EditorShell({
         popoverPosition={proofreading.popoverPosition}
         canAddSelectedWord={proofreading.canAddSelectedWord}
         onCheck={() => {
-          authenticity.setPanelOpen(false);
+          if (authenticityEnabled) authenticity.setPanelOpen(false);
           void proofreading.runCheck();
         }}
         onClosePanel={() => proofreading.setPanelOpen(false)}
@@ -292,31 +295,33 @@ export function EditorShell({
         onDismissPopover={proofreading.dismissPopover}
       />
 
-      <AIAuthenticityOverlays
-        issues={authenticity.issues}
-        status={authenticity.status}
-        panelOpen={authenticity.panelOpen}
-        selectedIssue={authenticity.selectedIssue}
-        overall={authenticity.overall}
-        mode={authenticity.mode}
-        referenceSamples={authenticity.referenceSamples}
-        providerWarning={authenticity.providerWarning}
-        notice={authenticity.notice}
-        errorMessage={authenticity.errorMessage}
-        suggestions={authenticity.suggestions}
-        suggestionStatuses={authenticity.suggestionStatuses}
-        suggestionErrors={authenticity.suggestionErrors}
-        onCheck={() => {
-          proofreading.setPanelOpen(false);
-          void authenticity.runCheck();
-        }}
-        onClosePanel={() => authenticity.setPanelOpen(false)}
-        onSelectIssue={authenticity.selectIssue}
-        onRequestSuggestion={(issue) => {
-          void authenticity.requestSuggestion(issue);
-        }}
-        onReplaceSuggestion={authenticity.replaceSuggestion}
-      />
+      {authenticityEnabled ? (
+        <AIAuthenticityOverlays
+          issues={authenticity.issues}
+          status={authenticity.status}
+          panelOpen={authenticity.panelOpen}
+          selectedIssue={authenticity.selectedIssue}
+          overall={authenticity.overall}
+          mode={authenticity.mode}
+          referenceSamples={authenticity.referenceSamples}
+          providerWarning={authenticity.providerWarning}
+          notice={authenticity.notice}
+          errorMessage={authenticity.errorMessage}
+          suggestions={authenticity.suggestions}
+          suggestionStatuses={authenticity.suggestionStatuses}
+          suggestionErrors={authenticity.suggestionErrors}
+          onCheck={() => {
+            proofreading.setPanelOpen(false);
+            void authenticity.runCheck();
+          }}
+          onClosePanel={() => authenticity.setPanelOpen(false)}
+          onSelectIssue={authenticity.selectIssue}
+          onRequestSuggestion={(issue) => {
+            void authenticity.requestSuggestion(issue);
+          }}
+          onReplaceSuggestion={authenticity.replaceSuggestion}
+        />
+      ) : null}
     </div>
   );
 }
