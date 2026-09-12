@@ -97,7 +97,8 @@
   color: #f4efe6;
 }
 
-.dark .public-stage .contact-space-form form button[type="submit"] {
+.dark .public-stage .contact-space-form form button[type="submit"],
+.dark .public-stage .space-footer-form form button[type="submit"] {
   border-color: #f4efe6 !important;
   background: #f4efe6 !important;
   color: #0b0c0c !important;
