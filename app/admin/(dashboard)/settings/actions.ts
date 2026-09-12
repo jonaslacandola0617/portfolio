@@ -1,25 +1,14 @@
 "use server";
 
 import { requireAdmin } from "@/lib/services/auth-service";
-import { upsertSiteSettings } from "@/lib/services/settings-admin-service";
-import { settingsFormSchema, parseLearningLines } from "@/lib/validations/settings";
+import { isResumeMediaUrl, upsertSiteSettings } from "@/lib/services/settings-admin-service";
+import { settingsFormSchema } from "@/lib/validations/settings";
 import type { ActionResult } from "@/types/admin";
 
 export async function updateSettingsAction(_prevState: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
-
-  const primaryProjectId = typeof formData.get("homepagePrimaryProjectId") === "string"
-    ? String(formData.get("homepagePrimaryProjectId")).trim()
-    : "";
-  const secondaryProjectId = typeof formData.get("homepageSecondaryProjectId") === "string"
-    ? String(formData.get("homepageSecondaryProjectId")).trim()
-    : "";
-
-  const homepageProjectIds = secondaryProjectId
-    ? [primaryProjectId, secondaryProjectId]
-    : primaryProjectId
-      ? [primaryProjectId]
-      : [];
+  const learningLabels = formData.getAll("learningLabel").map((value) => String(value));
+  const learningHrefs = formData.getAll("learningHref").map((value) => String(value));
 
   const parsed = settingsFormSchema.safeParse({
     name: formData.get("name"),
@@ -29,12 +18,15 @@ export async function updateSettingsAction(_prevState: ActionResult, formData: F
     githubUrl: formData.get("githubUrl"),
     linkedinUrl: formData.get("linkedinUrl"),
     resumeUrl: formData.get("resumeUrl"),
-    currentlyLearning: parseLearningLines((formData.get("currentlyLearning") as string) ?? ""),
-    homepageProjectIds,
+    currentlyLearning: learningLabels.map((label, index) => ({ label, href: learningHrefs[index] ?? "" })),
   });
 
   if (!parsed.success) {
     return { success: false, errors: parsed.error.flatten().fieldErrors };
+  }
+
+  if (!(await isResumeMediaUrl(parsed.data.resumeUrl))) {
+    return { success: false, errors: { resumeUrl: ["Select a PDF from the Media Library."] } };
   }
 
   await upsertSiteSettings(parsed.data);

@@ -19,4 +19,11 @@ export const bulkDeleteSchema = z.object({
 
 export const deleteIdSchema = z.string().trim().min(1, "A valid record id is required.").max(128);
 
+export const homepageShowcaseToggleSchema = z.object({
+  projectId: deleteIdSchema,
+  showcased: z.boolean(),
+});
+
+export const adminSearchQuerySchema = z.string().trim().min(1).max(100);
+
 export type BulkDeleteInput = z.infer<typeof bulkDeleteSchema>;

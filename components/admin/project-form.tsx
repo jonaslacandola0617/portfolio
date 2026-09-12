@@ -109,7 +109,6 @@ export function ProjectForm({
   return (
     <AuthoringWorkspace
       enabled={mode === "edit"}
-      storageKey="cms:project:inspector"
       contentLabel="project"
       title={title}
       backHref="/admin/projects"
@@ -130,6 +129,7 @@ export function ProjectForm({
         )}
 
         <div
+          data-admin-metadata-scroll={mode === "edit" ? "true" : undefined}
           className={
             mode === "edit"
               ? "min-h-0 space-y-6 overflow-y-auto px-5 py-5 scrollbar-thin"
@@ -365,6 +365,7 @@ export function ProjectForm({
         </div>
 
         <div
+          data-admin-metadata-actions={mode === "edit" ? "true" : undefined}
           className={
             mode === "edit"
               ? "sticky bottom-0 space-y-2 border-t border-border bg-surface-2 px-5 py-4"

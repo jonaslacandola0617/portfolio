@@ -2,23 +2,15 @@
 
 import * as React from "react";
 import { useRouter } from "next/navigation";
-import { Search, X, FolderGit2, FlaskConical, NotebookPen, BadgeCheck } from "lucide-react";
+import { Search, X } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import { searchAdminContent, type AdminSearchResult } from "@/lib/services/admin-search-service";
 
-const typeIcon = {
-  project: FolderGit2,
-  lab: FlaskConical,
-  article: NotebookPen,
-  certificate: BadgeCheck,
-} as const;
-
-const statusVariant = {
-  DRAFT: "default",
-  PUBLISHED: "success",
-  ARCHIVED: "outline",
-  SCHEDULED: "warning",
+const typeLabel = {
+  project: "Project",
+  lab: "Lab",
+  article: "Journal",
+  certificate: "Certificate",
 } as const;
 
 export function AdminSearchDialog({ enableShortcuts = true }: { enableShortcuts?: boolean }) {
@@ -26,6 +18,8 @@ export function AdminSearchDialog({ enableShortcuts = true }: { enableShortcuts?
   const [query, setQuery] = React.useState("");
   const [results, setResults] = React.useState<AdminSearchResult[]>([]);
   const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const requestId = React.useRef(0);
   const router = useRouter();
 
   React.useEffect(() => {
@@ -47,17 +41,31 @@ export function AdminSearchDialog({ enableShortcuts = true }: { enableShortcuts?
 
   React.useEffect(() => {
     if (!query.trim()) {
+      requestId.current += 1;
       setResults([]);
       setLoading(false);
+      setError(null);
       return;
     }
+
     setLoading(true);
-    const timeout = setTimeout(async () => {
-      const found = await searchAdminContent(query);
-      setResults(found);
-      setLoading(false);
+    setError(null);
+    const currentRequest = ++requestId.current;
+    const timeout = window.setTimeout(async () => {
+      try {
+        const found = await searchAdminContent(query);
+        if (currentRequest !== requestId.current) return;
+        setResults(found);
+      } catch {
+        if (currentRequest !== requestId.current) return;
+        setResults([]);
+        setError("Search is unavailable right now. Try again.");
+      } finally {
+        if (currentRequest === requestId.current) setLoading(false);
+      }
     }, 300);
-    return () => clearTimeout(timeout);
+
+    return () => window.clearTimeout(timeout);
   }, [query]);
 
   return (
@@ -73,51 +81,59 @@ export function AdminSearchDialog({ enableShortcuts = true }: { enableShortcuts?
       </button>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="top-24 translate-y-0 max-w-xl border-border-strong bg-surface-2 p-0 sm:top-32 [&>button]:hidden">
-          <div className="flex items-center gap-2 border-b border-border px-4 py-3">
-            <Search className="h-4 w-4 text-muted" />
+        <DialogContent className="admin-control-search-dialog top-20 translate-y-0 max-w-2xl p-0 sm:top-28 [&>button]:hidden">
+          <div className="admin-search-heading">
+            <span>SEARCH / ADMIN</span>
+            <strong>Find content</strong>
+          </div>
+          <div className="admin-search-input-row">
+            <Search className="h-4 w-4" aria-hidden="true" />
             <input
               autoFocus
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(event) => setQuery(event.target.value.slice(0, 100))}
+              maxLength={100}
               placeholder="Search projects, labs, journal, certificates…"
-              className="min-w-0 flex-1 bg-transparent text-sm text-text outline-none placeholder:text-muted"
+              aria-label="Search admin content"
+              aria-busy={loading}
+              className="min-w-0 flex-1 bg-transparent outline-none"
             />
-            <kbd className="hidden border border-border px-1.5 py-0.5 font-mono text-[10px] text-muted sm:inline-block">ESC</kbd>
+            <kbd className="hidden sm:inline-block">ESC</kbd>
             <button
               type="button"
               onClick={() => setOpen(false)}
-              className="text-muted hover:text-text sm:hidden"
+              className="admin-search-close sm:hidden"
               aria-label="Close search"
             >
               <X className="h-4 w-4" />
             </button>
           </div>
-          <div className="thin-scroll max-h-96 overflow-y-auto p-2">
-            {loading && <p className="px-3 py-8 text-center text-sm text-muted">Searching…</p>}
-            {!loading && query.trim() && results.length === 0 && (
-              <p className="px-3 py-8 text-center text-sm text-muted">No results for “{query}”</p>
+          <div className="admin-search-results thin-scroll max-h-[28rem] overflow-y-auto" aria-live="polite">
+            {loading && <p className="admin-search-empty">Searching…</p>}
+            {!loading && error && <p className="admin-search-empty is-error">{error}</p>}
+            {!loading && !error && query.trim() && results.length === 0 && (
+              <p className="admin-search-empty">No results for “{query}”</p>
             )}
-            {results.map((item) => {
-              const Icon = typeIcon[item.type];
-              return (
-                <button
-                  type="button"
-                  key={`${item.type}-${item.id}`}
-                  onClick={() => {
-                    setOpen(false);
-                    router.push(item.href);
-                  }}
-                  className="flex w-full items-center gap-3 border border-transparent px-3 py-2.5 text-left text-sm transition-colors hover:border-border hover:bg-surface-3"
-                >
-                  <Icon className="h-4 w-4 shrink-0 text-cobalt" />
-                  <span className="min-w-0 flex-1 truncate text-text">{item.title}</span>
-                  <Badge variant={statusVariant[item.publishStatus as keyof typeof statusVariant]}>
-                    {item.publishStatus}
-                  </Badge>
-                </button>
-              );
-            })}
+            {!loading && !error && results.map((item, index) => (
+              <button
+                type="button"
+                key={`${item.type}-${item.id}`}
+                onClick={() => {
+                  setOpen(false);
+                  router.push(item.href);
+                }}
+                className="admin-search-result"
+              >
+                <span className="admin-search-index">{String(index + 1).padStart(2, "0")}</span>
+                <span className="admin-search-result-copy">
+                  <small>{typeLabel[item.type]}</small>
+                  <strong>{item.title}</strong>
+                </span>
+                <span className={`admin-search-status is-${item.publishStatus.toLowerCase()}`}>
+                  {item.publishStatus}
+                </span>
+              </button>
+            ))}
           </div>
         </DialogContent>
       </Dialog>

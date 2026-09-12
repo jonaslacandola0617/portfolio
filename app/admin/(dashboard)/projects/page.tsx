@@ -1,10 +1,14 @@
 import { ManagementList, type ManagementListRow } from "@/components/admin/management-list";
 import { getAllProjectsForAdmin } from "@/lib/services/project-admin-service";
+import { getSiteSettings } from "@/lib/db/queries/settings";
 import { formatDate } from "@/lib/utils";
-import { deleteProjectAction, bulkDeleteProjectsAction } from "@/app/admin/(dashboard)/projects/actions";
+import { deleteProjectAction, bulkDeleteProjectsAction, toggleHomepageProjectAction } from "@/app/admin/(dashboard)/projects/actions";
 
 export default async function AdminProjectsPage() {
-  const items = await getAllProjectsForAdmin();
+  const [items, settings] = await Promise.all([
+    getAllProjectsForAdmin(),
+    getSiteSettings(),
+  ]);
   const rows: ManagementListRow[] = items.map((p) => ({
     id: p.id,
     title: p.title,
@@ -25,6 +29,11 @@ export default async function AdminProjectsPage() {
       itemLabelPlural="projects"
       deleteOneAction={deleteProjectAction}
       deleteManyAction={bulkDeleteProjectsAction}
+      showcase={{
+        selectedIds: settings.homepageProjectIds,
+        max: 2,
+        toggleAction: toggleHomepageProjectAction,
+      }}
     />
   );
 }

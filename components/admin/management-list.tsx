@@ -3,9 +3,11 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, ChevronUp, GripVertical, Inbox, Pencil, Plus, Search, Trash2 } from "lucide-react";
-import type { ActionResult, DeleteResult } from "@/types/admin";
+import { ChevronDown, ChevronUp, GripVertical, Inbox, Loader2, Pencil, Plus, Search, Star, Trash2 } from "lucide-react";
+import type { ActionResult, DeleteResult, HomepageShowcaseResult } from "@/types/admin";
+import { AdminCheckbox } from "@/components/admin/admin-checkbox";
 import { DeleteConfirmationDialog } from "@/components/admin/delete-confirmation-dialog";
+import { FormMessage } from "@/components/admin/form-message";
 import { PageHeader, PageShell } from "@/components/shared/page-header";
 
 export interface ManagementListRow {
@@ -28,6 +30,11 @@ interface ManagementListProps {
   deleteOneAction: (id: string) => Promise<DeleteResult>;
   deleteManyAction: (ids: string[]) => Promise<DeleteResult>;
   reorderAction?: (ids: string[]) => Promise<ActionResult>;
+  showcase?: {
+    selectedIds: string[];
+    max: number;
+    toggleAction: (id: string, showcased: boolean) => Promise<HomepageShowcaseResult>;
+  };
 }
 
 function statusDot(status: string) {
@@ -46,6 +53,7 @@ export function ManagementList({
   deleteOneAction,
   deleteManyAction,
   reorderAction,
+  showcase,
 }: ManagementListProps) {
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -54,6 +62,9 @@ export function ManagementList({
   const [dropId, setDropId] = useState<string | null>(null);
   const [savingOrder, setSavingOrder] = useState(false);
   const [orderMessage, setOrderMessage] = useState<string | null>(null);
+  const [showcaseIds, setShowcaseIds] = useState(showcase?.selectedIds ?? []);
+  const [showcasePendingId, setShowcasePendingId] = useState<string | null>(null);
+  const [showcaseError, setShowcaseError] = useState<string | null>(null);
   const router = useRouter();
 
   const filtered = useMemo(() => {
@@ -65,6 +76,7 @@ export function ManagementList({
   }, [query, orderedRows]);
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((row) => selected.has(row.id));
+  const someFilteredSelected = filtered.some((row) => selected.has(row.id)) && !allFilteredSelected;
   const canReorder = Boolean(reorderAction) && !query.trim() && !savingOrder;
 
   function toggle(id: string) {
@@ -138,9 +150,69 @@ export function ManagementList({
     await saveOrder(next, previous);
   }
 
+  async function toggleShowcase(row: ManagementListRow) {
+    if (!showcase || showcasePendingId) return;
+
+    const isShowcased = showcaseIds.includes(row.id);
+    if (!isShowcased && showcaseIds.length >= showcase.max) {
+      setShowcaseError(
+        `The homepage showcase already has ${showcase.max} projects. Remove one before adding another.`,
+      );
+      return;
+    }
+
+    setShowcasePendingId(row.id);
+    setShowcaseError(null);
+    try {
+      const result = await showcase.toggleAction(row.id, !isShowcased);
+      if (!result.success) {
+        setShowcaseError(result.message);
+        return;
+      }
+      setShowcaseIds(result.selectedIds);
+      router.refresh();
+    } catch {
+      setShowcaseError("Could not update the homepage showcase. Try again.");
+    } finally {
+      setShowcasePendingId(null);
+    }
+  }
+
+  function showcaseToggle(row: ManagementListRow, mobile = false) {
+    if (!showcase) return null;
+    const position = showcaseIds.indexOf(row.id);
+    const isShowcased = position >= 0;
+    const unpublished = row.status.toUpperCase() !== "PUBLISHED";
+    const isPending = showcasePendingId === row.id;
+    const disabled = Boolean(showcasePendingId) || (unpublished && !isShowcased);
+    const label = isShowcased
+      ? `Remove ${row.title} from homepage showcase position ${position + 1}`
+      : unpublished
+        ? `Publish ${row.title} before adding it to the homepage showcase`
+        : `Add ${row.title} to the homepage showcase`;
+
+    return (
+      <button
+        type="button"
+        role="switch"
+        aria-checked={isShowcased}
+        aria-label={label}
+        title={unpublished && !isShowcased ? "Publish this project first" : label}
+        disabled={disabled}
+        onClick={() => void toggleShowcase(row)}
+        className={`admin-showcase-toggle ${isShowcased ? "is-selected" : ""} ${mobile ? "is-mobile" : ""}`}
+      >
+        {isPending ? <Loader2 className="h-3 w-3 animate-spin" /> : <Star className={`h-3 w-3 ${isShowcased ? "fill-current" : ""}`} />}
+        <span>{isShowcased ? `Showcase ${String(position + 1).padStart(2, "0")}` : unpublished ? "Publish first" : "Showcase"}</span>
+      </button>
+    );
+  }
+
   const gridClass = reorderAction
     ? "sm:grid-cols-[46px_28px_1fr_140px_110px_140px_80px]"
-    : "sm:grid-cols-[28px_1fr_140px_110px_140px_80px]";
+    : showcase
+      ? "sm:grid-cols-[28px_1fr_140px_110px_132px_140px_80px]"
+      : "sm:grid-cols-[28px_1fr_140px_110px_140px_80px]";
   const mobileGridClass = reorderAction
     ? "grid-cols-[46px_28px_1fr_auto]"
     : "grid-cols-[28px_1fr_auto]";
@@ -163,6 +235,11 @@ export function ManagementList({
             />
           </div>
           <div className="flex items-center gap-3">
+            {showcase && (
+              <span className="font-mono text-[10px] uppercase tracking-wider text-muted" aria-live="polite">
+                {showcaseIds.length} / {showcase.max} showcased
+              </span>
+            )}
             {reorderAction && (
               <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted sm:inline" aria-live="polite">
                 {query.trim() ? "Clear search to reorder" : orderMessage ?? "Drag to reorder"}
@@ -177,10 +254,14 @@ export function ManagementList({
           </div>
         </div>
 
+        {showcaseError && (
+          <FormMessage variant="error" className="mb-4">{showcaseError}</FormMessage>
+        )}
+
         {filtered.length > 0 && (
           <div className="mb-4 flex items-center justify-between gap-3 sm:hidden">
             <label className="flex items-center gap-2 text-xs text-text-dim">
-              <input type="checkbox" checked={allFilteredSelected} onChange={toggleAll} aria-label="Select all" />
+              <AdminCheckbox checked={allFilteredSelected} indeterminate={someFilteredSelected} onChange={toggleAll} aria-label="Select all" />
               <span className="label">Select all</span>
             </label>
             {reorderAction && (
@@ -223,10 +304,11 @@ export function ManagementList({
           <div className="border border-border">
             <div className={`hidden items-center gap-3 border-b border-border bg-surface-2 px-4 py-2.5 sm:grid ${gridClass}`}>
               {reorderAction && <span className="label">Order</span>}
-              <input type="checkbox" checked={allFilteredSelected} onChange={toggleAll} aria-label="Select all" />
+              <AdminCheckbox checked={allFilteredSelected} indeterminate={someFilteredSelected} onChange={toggleAll} aria-label="Select all" />
               <span className="label">Title</span>
               <span className="label">Category</span>
               <span className="label">Status</span>
+              {showcase && <span className="label">Homepage</span>}
               <span className="label">Updated</span>
               <span className="label text-right">Actions</span>
             </div>
@@ -273,15 +355,17 @@ export function ManagementList({
                         <span className="idx w-4 text-right">{String(position).padStart(2, "0")}</span>
                       </div>
                     )}
-                    <input type="checkbox" checked={selected.has(row.id)} onChange={() => toggle(row.id)} aria-label={`Select ${row.title}`} />
+                    <AdminCheckbox checked={selected.has(row.id)} onChange={() => toggle(row.id)} aria-label={`Select ${row.title}`} />
                     <span className="truncate text-sm font-medium text-text">{row.title}</span>
                     <span className="hidden truncate text-xs text-muted sm:block">{row.meta}</span>
                     <span className="hidden items-center gap-1.5 sm:flex">
                       <span className={`h-1.5 w-1.5 rounded-full ${statusDot(row.status)}`} />
                       <span className="label">{row.status}</span>
                     </span>
+                    {showcase && <div className="hidden sm:block">{showcaseToggle(row)}</div>}
                     <span className="hidden font-mono text-xs text-muted sm:block">{row.updated}</span>
                     <div className={`${reorderAction ? "col-span-4" : "col-span-3"} flex items-center justify-end gap-1 sm:col-span-1`}>
+                      {showcase && <div className="mr-auto sm:hidden">{showcaseToggle(row, true)}</div>}
                       {reorderAction && (
                         <div className="mr-auto flex items-center gap-1 sm:hidden">
                           <button

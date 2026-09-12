@@ -85,7 +85,6 @@ export function CertificateForm({
   return (
     <AuthoringWorkspace
       enabled={mode === "edit"}
-      storageKey="cms:certificate:inspector"
       contentLabel="certificate"
       title={name}
       backHref="/admin/certificates"

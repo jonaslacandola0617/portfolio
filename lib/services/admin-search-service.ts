@@ -2,6 +2,7 @@
 
 import { requireAdmin } from "@/lib/services/auth-service";
 import { prisma } from "@/lib/db";
+import { adminSearchQuerySchema } from "@/lib/validations/admin";
 
 export interface AdminSearchResult {
   id: string;
@@ -13,26 +14,28 @@ export interface AdminSearchResult {
 
 export async function searchAdminContent(query: string): Promise<AdminSearchResult[]> {
   await requireAdmin();
-  if (!query.trim()) return [];
+  const parsed = adminSearchQuerySchema.safeParse(query);
+  if (!parsed.success) return [];
+  const normalizedQuery = parsed.data;
 
   const [projects, labs, articles, certificates] = await Promise.all([
     prisma.project.findMany({
-      where: { title: { contains: query, mode: "insensitive" } },
+      where: { title: { contains: normalizedQuery, mode: "insensitive" } },
       select: { id: true, title: true, publishStatus: true },
       take: 5,
     }),
     prisma.lab.findMany({
-      where: { title: { contains: query, mode: "insensitive" } },
+      where: { title: { contains: normalizedQuery, mode: "insensitive" } },
       select: { id: true, title: true, publishStatus: true },
       take: 5,
     }),
     prisma.article.findMany({
-      where: { title: { contains: query, mode: "insensitive" } },
+      where: { title: { contains: normalizedQuery, mode: "insensitive" } },
       select: { id: true, title: true, publishStatus: true },
       take: 5,
     }),
     prisma.certificate.findMany({
-      where: { name: { contains: query, mode: "insensitive" } },
+      where: { name: { contains: normalizedQuery, mode: "insensitive" } },
       select: { id: true, name: true, publishStatus: true },
       take: 5,
     }),

@@ -53,6 +53,10 @@
 .dark .public-stage .space-journal,
 .dark .public-stage .space-about,
 .dark .public-stage .space-footer,
+.dark .public-stage .about-space,
+.dark .public-stage .about-space-hero,
+.dark .public-stage .about-space-philosophy,
+.dark .public-stage .about-space-grid,
 .dark .public-stage .public-page-shell,
 .dark .public-stage .public-page-header,
 .dark .public-stage .public-about-page,
@@ -70,6 +74,16 @@
   background-color: #0b0c0c !important;
 }
 
+.dark .public-stage .about-space-hero,
+.dark .public-stage .about-space-philosophy,
+.dark .public-stage .about-space-grid {
+  color: #f4efe6;
+}
+
+.dark .public-stage .about-space-grid article > p {
+  color: #c2bcb3;
+}
+
 .dark .public-stage .public-nav {
   background: rgba(11, 12, 12, .92) !important;
   border-bottom-color: rgba(244, 239, 230, .16);
@@ -81,6 +95,13 @@
 .dark .public-stage .public-mobile-menu,
 .dark .public-stage .contact-space-hero {
   color: #f4efe6;
+}
+
+.dark .public-stage .contact-space-form form button[type="submit"],
+.dark .public-stage .space-footer-form form button[type="submit"] {
+  border-color: #f4efe6 !important;
+  background: #f4efe6 !important;
+  color: #0b0c0c !important;
 }
 
 .dark .public-stage .space-project-light .space-project-visual {

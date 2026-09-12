@@ -46,7 +46,6 @@ export function AuthoringWorkspace({
   children,
 }: {
   enabled: boolean;
-  storageKey: string;
   contentLabel: "project" | "lab" | "journal entry" | "certificate";
   title?: string;
   backHref?: string;
@@ -121,8 +120,11 @@ export function AuthoringWorkspace({
                     <SlidersHorizontal className="h-3 w-3" /> Metadata
                   </button>
                 </SheetTrigger>
-                <SheetContent className="p-0">
-                  <SheetHeader className="text-left">
+                <SheetContent className={contentLabel === "project" ? "admin-control-metadata-sheet p-0" : "p-0"}>
+                  <SheetHeader className={contentLabel === "project" ? "admin-metadata-sheet-header text-left" : "text-left"}>
+                    {contentLabel === "project" && (
+                      <span className="admin-metadata-sheet-kicker">project / metadata</span>
+                    )}
                     <SheetTitle>{sheetContent.label}</SheetTitle>
                     <SheetDescription>{sheetContent.description}</SheetDescription>
                   </SheetHeader>

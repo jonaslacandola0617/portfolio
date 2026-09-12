@@ -22,28 +22,6 @@ export const settingsFormSchema = z.object({
     )
     .max(50)
     .default([]),
-  homepageProjectIds: z
-    .array(z.string().trim())
-    .max(2, "Choose at most two homepage projects")
-    .refine(
-      (ids) => {
-        const chosen = ids.filter(Boolean);
-        return new Set(chosen).size === chosen.length;
-      },
-      "Choose two different projects",
-    )
-    .default([]),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsFormSchema>;
-
-export function parseLearningLines(raw: string): { label: string; href: string }[] {
-  return raw
-    .split("\n")
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [label, href] = line.split("|").map((s) => s.trim());
-      return { label: label ?? "", href: href ?? "/" };
-    });
-}

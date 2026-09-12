@@ -91,7 +91,6 @@ export function ArticleForm({
   return (
     <AuthoringWorkspace
       enabled={mode === "edit"}
-      storageKey="cms:article:inspector"
       contentLabel="journal entry"
       title={title}
       backHref="/admin/journal"

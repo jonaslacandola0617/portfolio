@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2, AlertTriangle } from "lucide-react";
+import { Check, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
@@ -27,17 +27,16 @@ export function FormMessage({ variant, children, className }: FormMessageProps) 
       role={isSuccess ? "status" : "alert"}
       aria-live="polite"
       className={cn(
-        "flex items-start gap-2 border px-3 py-2 text-sm",
-        isSuccess
-          ? "border-teal/30 bg-success/10 text-teal"
-          : "border-vermilion/30 bg-vermilion-dim text-vermilion",
+        "admin-notice",
+        isSuccess ? "is-success" : "is-error",
         className
       )}
     >
+      <span className="admin-notice-index" aria-hidden="true">{isSuccess ? "OK" : "!"}</span>
       {isSuccess ? (
-        <CheckCircle2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
+        <Check className="admin-notice-icon" aria-hidden="true" />
       ) : (
-        <AlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0" />
+        <AlertTriangle className="admin-notice-icon" aria-hidden="true" />
       )}
       <span>{children}</span>
     </div>
