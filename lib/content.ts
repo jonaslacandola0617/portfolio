@@ -16,6 +16,8 @@ import {
 } from "@/lib/db/queries/articles";
 import { getAllCertificates } from "@/lib/db/queries/certificates";
 import { getAllPublishedTags } from "@/lib/db/queries/tags";
+import { getPublishedVideoProjects } from "@/lib/db/queries/video";
+import { videoDisciplineLabel } from "@/lib/video-format";
 
 export async function getAllProjects() {
   return dbGetAllProjects();
@@ -59,11 +61,12 @@ export async function getAllTags(): Promise<{ tag: string; count: number }[]> {
 }
 
 export async function getSearchIndex() {
-  const [allProjects, allLabs, allArticles, allCertificates] = await Promise.all([
+  const [allProjects, allLabs, allArticles, allCertificates, allVideos] = await Promise.all([
     getAllProjects(),
     getAllLabs(),
     getAllArticles(),
     getAllCertificates(),
+    getPublishedVideoProjects(),
   ]);
 
   const projects = allProjects.map((p) => ({
@@ -94,6 +97,17 @@ export async function getSearchIndex() {
     href: "/certifications",
     tags: certificate.skills,
   }));
+  const videos = allVideos.map((video) => ({
+    type: "video" as const,
+    title: video.title,
+    summary: video.summary,
+    href: `/video/${video.slug}`,
+    tags: [
+      ...video.disciplines.map(videoDisciplineLabel),
+      ...video.roles,
+      ...video.tools,
+    ],
+  }));
 
-  return [...projects, ...labs, ...articles, ...certificates];
+  return [...projects, ...labs, ...articles, ...certificates, ...videos];
 }

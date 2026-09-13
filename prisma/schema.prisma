@@ -42,6 +42,11 @@ enum MediaType {
   OTHER
 }
 
+enum VideoDiscipline {
+  VIDEO_EDITING
+  CINEMATOGRAPHY
+}
+
 model Tag {
   id        String    @id @default(cuid())
   name      String    @unique
@@ -71,15 +76,16 @@ model Skill {
 }
 
 model Media {
-  id               String        @id @default(cuid())
+  id               String         @id @default(cuid())
   url              String
   filename         String
   type             MediaType
   size             Int
-  uploadedAt       DateTime      @default(now())
-  usedAsThumb      Project[]     @relation("ProjectThumbnail")
+  uploadedAt       DateTime       @default(now())
+  usedAsThumb      Project[]      @relation("ProjectThumbnail")
+  videoPosters     VideoProject[] @relation("VideoProjectPoster")
   downloads        Download[]
-  certificateLogos Certificate[] @relation("CertificateLogo")
+  certificateLogos Certificate[]  @relation("CertificateLogo")
 }
 
 model Download {
@@ -203,6 +209,47 @@ model Certificate {
 
   @@index([logoMediaId])
   @@index([sortOrder])
+}
+
+model VideoProject {
+  id              String            @id @default(cuid())
+  title           String
+  slug            String            @unique
+  summary         String
+  content         Json
+  youtubeUrl      String?
+  youtubeVideoId  String?
+  disciplines     VideoDiscipline[] @default([])
+  roles           String[]          @default([])
+  tools           String[]          @default([])
+  client          String?
+  runtime         String?
+  customPoster    Media?            @relation("VideoProjectPoster", fields: [customPosterId], references: [id], onDelete: SetNull)
+  customPosterId  String?
+  completionDate  DateTime?
+  publishStatus   PublishStatus     @default(DRAFT)
+  publishedAt     DateTime?
+  scheduledFor    DateTime?
+  sortOrder       Int               @default(0)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([publishStatus, sortOrder])
+  @@index([customPosterId])
+}
+
+model VideoPortfolioSettings {
+  id                         String   @id @default("singleton")
+  eyebrow                    String
+  headline                   String
+  intro                      String
+  aboutHeading               String
+  aboutBody                  String
+  videoEditingDescription    String
+  cinematographyDescription  String
+  heroVideoId                String?
+  featuredVideoIds           String[] @default([])
+  updatedAt                  DateTime @updatedAt
 }
 
 model SiteSettings {

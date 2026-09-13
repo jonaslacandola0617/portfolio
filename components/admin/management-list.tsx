@@ -209,10 +209,12 @@ export function ManagementList({
   }
 
   const gridClass = reorderAction
-    ? "sm:grid-cols-[46px_28px_1fr_140px_110px_140px_80px]"
+    ? showcase
+      ? "sm:grid-cols-[46px_28px_minmax(0,1fr)_140px_110px_140px_120px_80px]"
+      : "sm:grid-cols-[46px_28px_minmax(0,1fr)_140px_110px_140px_80px]"
     : showcase
-      ? "sm:grid-cols-[28px_1fr_140px_110px_132px_140px_80px]"
-      : "sm:grid-cols-[28px_1fr_140px_110px_140px_80px]";
+      ? "sm:grid-cols-[28px_minmax(0,1fr)_140px_110px_132px_140px_80px]"
+      : "sm:grid-cols-[28px_minmax(0,1fr)_140px_110px_140px_80px]";
   const mobileGridClass = reorderAction
     ? "grid-cols-[46px_28px_1fr_auto]"
     : "grid-cols-[28px_1fr_auto]";
@@ -356,7 +358,7 @@ export function ManagementList({
                       </div>
                     )}
                     <AdminCheckbox checked={selected.has(row.id)} onChange={() => toggle(row.id)} aria-label={`Select ${row.title}`} />
-                    <span className="truncate text-sm font-medium text-text">{row.title}</span>
+                    <span className="min-w-0 truncate text-sm font-medium text-text">{row.title}</span>
                     <span className="hidden truncate text-xs text-muted sm:block">{row.meta}</span>
                     <span className="hidden items-center gap-1.5 sm:flex">
                       <span className={`h-1.5 w-1.5 rounded-full ${statusDot(row.status)}`} />

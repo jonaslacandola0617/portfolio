@@ -8,7 +8,7 @@ import type { SaveContentPayload, SaveResult } from "@/types/admin";
 import type { TipTapDoc } from "@/types/tiptap";
 import { validateContentMediaReferences } from "@/lib/services/content-media-service";
 
-type ContentType = "project" | "lab" | "article" | "certificate";
+type ContentType = "project" | "lab" | "article" | "certificate" | "video";
 
 function canonicalJson(value: unknown): string {
   if (value === null || typeof value !== "object") return JSON.stringify(value);

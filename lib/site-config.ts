@@ -26,27 +26,12 @@ export const siteConfig = {
   currentlyLearning: [
     { label: "CCNA — Module 8: Subnetting", href: "/certifications" },
     { label: "Google Cybersecurity — Course 2", href: "/certifications" },
-    {
-      label: "Static & Default Routing",
-      href: "/labs/static-routing-configuration",
-    },
+    { label: "Static & Default Routing", href: "/labs/static-routing-configuration" },
     { label: "VLANs & Trunking", href: "/labs/vlan-trunking-lab" },
-    {
-      label: "Linux command line fundamentals",
-      href: "/labs/linux-file-permissions-practice",
-    },
+    { label: "Linux command line fundamentals", href: "/labs/linux-file-permissions-practice" },
   ],
 
-  currentFocusStack: [
-    "Laravel",
-    "PHP",
-    "React",
-    "Next.js",
-    "TypeScript",
-    "SQL",
-    "Networking",
-    "Cybersecurity",
-  ],
+  currentFocusStack: ["Laravel", "PHP", "React", "Next.js", "TypeScript", "SQL", "Networking", "Cybersecurity"],
 } as const;
 
 export const navItems = [
@@ -55,6 +40,7 @@ export const navItems = [
   { label: "Projects", href: "/projects", icon: "FolderGit2" },
   { label: "Labs", href: "/labs", icon: "FlaskConical" },
   { label: "Journal", href: "/journal", icon: "NotebookPen" },
+  { label: "Video", href: "/video", icon: "Film" },
   { label: "Certifications", href: "/certifications", icon: "BadgeCheck" },
   { label: "Resume", href: "/resume", icon: "FileText" },
   { label: "Contact", href: "/contact", icon: "Mail" },

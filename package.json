@@ -19,6 +19,7 @@
     "verify:build-data": "tsx scripts/verify-build-data.ts",
     "verify:revalidation": "tsx scripts/verify-revalidation.ts",
     "verify:save-pipeline": "tsx scripts/verify-save-pipeline.ts",
+    "verify:video": "tsx scripts/verify-youtube.ts && npm run verify:revalidation",
     "verify:site": "tsx scripts/verify-running-site.ts"
   },
   "dependencies": {
@@ -84,7 +85,5 @@
     "undici": "6.28.0",
     "deepmerge-ts": "8.0.0"
   },
-  "prisma": {
-    "seed": "tsx prisma/seed/index.ts"
-  }
+  "prisma": { "seed": "tsx prisma/seed/index.ts" }
 }

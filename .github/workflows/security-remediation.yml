@@ -32,5 +32,8 @@ jobs:
       - name: Type-check application
         run: npx tsc --noEmit
 
+      - name: Verify Video helpers and revalidation
+        run: npm run verify:video
+
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high

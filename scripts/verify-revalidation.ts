@@ -8,6 +8,8 @@ const expectations: Record<RevalidationContentType, string[]> = {
   skill: ["/admin", "/admin/skills", "/projects"],
   settings: ["/admin/settings", "/admin/about", "/", "/about", "/contact", "/resume"],
   media: ["/admin/media"],
+  video: ["/admin/video", "/admin/video/projects", "/video", "/video/work", "/video/old", "/video/new", "/sitemap.xml", "/"],
+  videoSettings: ["/admin/video", "/admin/video/homepage", "/video"],
 };
 
 for (const contentType of Object.keys(expectations) as RevalidationContentType[]) {
