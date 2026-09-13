@@ -5,28 +5,17 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ContentTemplate, TemplateContentType } from "@/lib/editor/templates";
 import { getEditorExtensions } from "@/lib/editor/extensions";
 import { EditorToolbar } from "@/components/editor/toolbar";
-import {
-  EditorContextToolbar,
-  type EditorContextPosition,
-} from "@/components/editor/editor-context-toolbar";
-import {
-  ProofreadingOverlays,
-  ProofreadingToolbarButton,
-} from "@/components/editor/proofreading-ui";
-import {
-  AIAuthenticityOverlays,
-  AIAuthenticityToolbarButton,
-} from "@/components/editor/ai-authenticity-ui";
+import { EditorContextToolbar, type EditorContextPosition } from "@/components/editor/editor-context-toolbar";
+import { ProofreadingOverlays, ProofreadingToolbarButton } from "@/components/editor/proofreading-ui";
+import { AIAuthenticityOverlays, AIAuthenticityToolbarButton } from "@/components/editor/ai-authenticity-ui";
 import { useAutosave } from "@/hooks/use-autosave";
 import { useProofreading } from "@/hooks/use-proofreading";
 import { useAIAuthenticity } from "@/hooks/use-ai-authenticity";
-import {
-  serializeTipTapDocument,
-  TipTapSerializationError,
-} from "@/lib/editor/serialize-content";
+import { serializeTipTapDocument, TipTapSerializationError } from "@/lib/editor/serialize-content";
 import type { SaveContentPayload, SaveResult } from "@/types/admin";
 import type { AdminMediaItem } from "@/lib/services/media-admin-service";
 import { useAuthoringEditorHeader } from "@/components/admin/authoring-workspace";
+import { SaveStatusIndicator } from "@/components/editor/save-status";
 
 export interface EditorSaveController {
   flush: () => Promise<SaveResult>;
@@ -41,17 +30,10 @@ interface EditorShellProps {
   onReady?: (controller: EditorSaveController | null) => void;
   media?: AdminMediaItem[];
   documentTitle?: string;
+  standalone?: boolean;
 }
 
-export function EditorShell({
-  initialContent,
-  recordId,
-  contentType,
-  onSave,
-  onReady,
-  media = [],
-  documentTitle,
-}: EditorShellProps) {
+export function EditorShell({ initialContent, recordId, contentType, onSave, onReady, media = [], documentTitle, standalone = false }: EditorShellProps) {
   const [contextPosition, setContextPosition] = useState<EditorContextPosition | null>(null);
   const authenticityEnabled = contentType !== "video";
 
@@ -61,13 +43,7 @@ export function EditorShell({
         const content = serializeTipTapDocument(editorOutput);
         return await onSave({ id: recordId, content, clientRevision });
       } catch (error) {
-        const serializationError =
-          error instanceof TipTapSerializationError
-            ? error
-            : new TipTapSerializationError(
-                "The editor output could not be serialized.",
-                "content",
-              );
+        const serializationError = error instanceof TipTapSerializationError ? error : new TipTapSerializationError("The editor output could not be serialized.", "content");
         console.error(`[editor:${contentType}:autosave] serialization failed`, {
           contentType,
           recordId,
@@ -87,15 +63,7 @@ export function EditorShell({
     [contentType, onSave, recordId],
   );
 
-  const {
-    status,
-    errorMessage,
-    notifyChange,
-    flush,
-    retry,
-    isSaving,
-    hasUnsavedChanges,
-  } = useAutosave<unknown>(invokeSave, 2000, `cms:${contentType}:${recordId}:content`);
+  const { status, errorMessage, notifyChange, flush, retry, isSaving, hasUnsavedChanges } = useAutosave<unknown>(invokeSave, 2000, `cms:${contentType}:${recordId}:content`);
 
   const editor = useEditor({
     extensions: getEditorExtensions(),
@@ -195,22 +163,20 @@ export function EditorShell({
   );
   useAuthoringEditorHeader(headerState);
 
-  const toolbarContentType: TemplateContentType | undefined =
-    contentType === "project" || contentType === "lab" || contentType === "article"
-      ? contentType
-      : undefined;
+  const toolbarContentType: TemplateContentType | undefined = contentType === "project" || contentType === "lab" || contentType === "article" ? contentType : undefined;
   const toolbarApplyTemplate = toolbarContentType ? applyTemplate : undefined;
 
   return (
     <div className="editor-workspace relative flex h-full min-h-0 flex-col bg-surface">
       <div className="z-10 shrink-0 border-b border-border bg-surface/95 backdrop-blur">
+        {standalone ? (
+          <div className="flex items-center justify-between gap-4 border-b border-border px-5 py-2">
+            <span className="font-mono text-[9px] uppercase tracking-wider text-muted">Case study editor · autosave</span>
+            <SaveStatusIndicator status={status} errorMessage={errorMessage} onRetry={retry} />
+          </div>
+        ) : null}
         <div className="thin-scroll flex items-center gap-1 overflow-x-auto px-5 pb-2.5">
-          <EditorToolbar
-            editor={editor}
-            media={media}
-            contentType={toolbarContentType}
-            onApplyTemplate={toolbarApplyTemplate}
-          />
+          <EditorToolbar editor={editor} media={media} contentType={toolbarContentType} onApplyTemplate={toolbarApplyTemplate} />
           <ProofreadingToolbarButton
             status={proofreading.status}
             issueCount={proofreading.issues.length}
@@ -250,9 +216,7 @@ export function EditorShell({
         }}
       >
         <div className="mx-auto max-w-3xl">
-          <h1 className="font-display text-3xl font-semibold text-text sm:text-4xl">
-            {documentTitle || "Untitled Draft"}
-          </h1>
+          <h1 className="font-display text-3xl font-semibold text-text sm:text-4xl">{documentTitle || "Untitled Draft"}</h1>
           <div
             className="mt-8"
             onContextMenu={openContextToolbar}
@@ -266,14 +230,7 @@ export function EditorShell({
         </div>
       </div>
 
-      <EditorContextToolbar
-        editor={editor}
-        position={contextPosition}
-        media={media}
-        contentType={toolbarContentType}
-        onApplyTemplate={toolbarApplyTemplate}
-        onDismiss={dismissContextToolbar}
-      />
+      <EditorContextToolbar editor={editor} position={contextPosition} media={media} contentType={toolbarContentType} onApplyTemplate={toolbarApplyTemplate} onDismiss={dismissContextToolbar} />
 
       <ProofreadingOverlays
         issues={proofreading.issues}

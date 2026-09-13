@@ -75,10 +75,7 @@ async function validatePoster(mediaId: string | undefined) {
   return media.id;
 }
 
-async function cleanVideoFromSettings(
-  videoId: string,
-  client: Prisma.TransactionClient | typeof prisma = prisma,
-) {
+async function cleanVideoFromSettings(videoId: string, client: Prisma.TransactionClient | typeof prisma = prisma) {
   const settings = await client.videoPortfolioSettings.findUnique({
     where: { id: "singleton" },
     select: { heroVideoId: true, featuredVideoIds: true },
@@ -87,10 +84,7 @@ async function cleanVideoFromSettings(
 
   const featuredVideoIds = settings.featuredVideoIds.filter((id) => id !== videoId);
   const heroVideoId = settings.heroVideoId === videoId ? null : settings.heroVideoId;
-  if (
-    heroVideoId !== settings.heroVideoId ||
-    featuredVideoIds.length !== settings.featuredVideoIds.length
-  ) {
+  if (heroVideoId !== settings.heroVideoId || featuredVideoIds.length !== settings.featuredVideoIds.length) {
     await client.videoPortfolioSettings.update({
       where: { id: "singleton" },
       data: { heroVideoId, featuredVideoIds },
@@ -136,7 +130,9 @@ export async function getAllVideoProjectsForAdmin(): Promise<AdminVideoProjectLi
 }
 
 export async function getVideoProjectForEdit(id: string): Promise<AdminVideoProjectDetail | null> {
-  return prisma.videoProject.findUnique({ where: { id } }) as Promise<AdminVideoProjectDetail | null>;
+  return prisma.videoProject.findUnique({
+    where: { id },
+  }) as Promise<AdminVideoProjectDetail | null>;
 }
 
 export async function getPublishedVideoChoices() {
@@ -154,33 +150,38 @@ export async function getPublishedVideoChoices() {
 }
 
 export async function getVideoHomepageSettingsForAdmin() {
-  const [settings, publishedVideos] = await Promise.all([
-    prisma.videoPortfolioSettings.findUnique({ where: { id: "singleton" } }),
-    getPublishedVideoChoices(),
-  ]);
+  const [settings, publishedVideos] = await Promise.all([prisma.videoPortfolioSettings.findUnique({ where: { id: "singleton" } }), getPublishedVideoChoices()]);
   return {
     settings: settings ?? settingsCreateData,
     publishedVideos,
   };
 }
 
-export async function createVideoDraft() {
-  const maxSort = await prisma.videoProject.aggregate({ _max: { sortOrder: true } });
-  const suffix = Date.now().toString(36);
+export async function createVideoProject(values: VideoProjectFormValues) {
+  const youtube = values.youtubeUrl ? parseYouTubeUrl(values.youtubeUrl) : null;
+  const [maxSort, customPosterId] = await Promise.all([prisma.videoProject.aggregate({ _max: { sortOrder: true } }), validatePoster(values.customPosterId || undefined)]);
   const project = await prisma.videoProject.create({
     data: {
-      title: "Untitled video",
-      slug: `untitled-video-${suffix}`,
-      summary: "",
+      title: values.title,
+      slug: values.slug,
+      summary: values.summary,
       content: toPrismaJson(emptyTemplate),
-      disciplines: [],
-      roles: [],
-      tools: [],
-      publishStatus: "DRAFT",
+      youtubeUrl: youtube?.watchUrl ?? null,
+      youtubeVideoId: youtube?.videoId ?? null,
+      disciplines: values.disciplines,
+      roles: values.roles,
+      tools: values.tools,
+      client: values.client || null,
+      runtime: values.runtime || null,
+      customPosterId,
+      completionDate: parseOptionalDate(values.completionDate || undefined),
+      publishStatus: values.publishStatus,
+      scheduledFor: parseOptionalDateTime(values.scheduledFor || undefined),
+      publishedAt: values.publishStatus === "PUBLISHED" ? new Date() : null,
       sortOrder: (maxSort._max.sortOrder ?? -1) + 1,
     },
   });
-  revalidateContent("video");
+  revalidateContent("video", [project.slug]);
   return project;
 }
 
@@ -211,9 +212,7 @@ export async function updateVideoProjectMetadata(id: string, values: VideoProjec
       completionDate: parseOptionalDate(values.completionDate || undefined),
       publishStatus: values.publishStatus,
       scheduledFor: parseOptionalDateTime(values.scheduledFor || undefined),
-      ...(values.publishStatus === "PUBLISHED" && existing.publishStatus !== "PUBLISHED"
-        ? { publishedAt: new Date() }
-        : {}),
+      ...(values.publishStatus === "PUBLISHED" && existing.publishStatus !== "PUBLISHED" ? { publishedAt: new Date() } : {}),
     },
   });
 
@@ -233,13 +232,19 @@ export async function updateVideoProjectContent(id: string, content: TipTapDoc) 
     select: { slug: true, publishStatus: true },
   });
   if (project.publishStatus === "PUBLISHED") revalidateContent("video", [project.slug]);
-  const readBack = await prisma.videoProject.findUnique({ where: { id }, select: { content: true } });
+  const readBack = await prisma.videoProject.findUnique({
+    where: { id },
+    select: { content: true },
+  });
   return readBack?.content;
 }
 
 export async function deleteVideoProject(id: string) {
   const project = await prisma.$transaction(async (tx) => {
-    const deleted = await tx.videoProject.delete({ where: { id }, select: { slug: true } });
+    const deleted = await tx.videoProject.delete({
+      where: { id },
+      select: { slug: true },
+    });
     await cleanVideoFromSettings(id, tx);
     return deleted;
   });
@@ -249,7 +254,10 @@ export async function deleteVideoProject(id: string) {
 
 export async function deleteVideoProjects(ids: string[]): Promise<number> {
   const slugs = await prisma.$transaction(async (tx) => {
-    const records = await tx.videoProject.findMany({ where: { id: { in: ids } }, select: { id: true, slug: true } });
+    const records = await tx.videoProject.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, slug: true },
+    });
     await tx.videoProject.deleteMany({ where: { id: { in: ids } } });
     for (const record of records) await cleanVideoFromSettings(record.id, tx);
     return records.map((record) => record.slug);
@@ -269,16 +277,11 @@ export async function reorderVideoProjects(ids: string[]) {
     throw new Error("Video order must include every current video project exactly once.");
   }
 
-  await prisma.$transaction(
-    unique.map((id, sortOrder) => prisma.videoProject.update({ where: { id }, data: { sortOrder } })),
-  );
+  await prisma.$transaction(unique.map((id, sortOrder) => prisma.videoProject.update({ where: { id }, data: { sortOrder } })));
   revalidateContent("video");
 }
 
-export async function setVideoHomepageFeature(
-  projectId: string,
-  showcased: boolean,
-): Promise<HomepageShowcaseResult> {
+export async function setVideoHomepageFeature(projectId: string, showcased: boolean): Promise<HomepageShowcaseResult> {
   return prisma.$transaction(
     async (tx) => {
       await tx.videoPortfolioSettings.upsert({
@@ -292,14 +295,31 @@ export async function setVideoHomepageFeature(
       `;
 
       const [project, settings] = await Promise.all([
-        tx.videoProject.findUnique({ where: { id: projectId }, select: { id: true, publishStatus: true } }),
-        tx.videoPortfolioSettings.findUnique({ where: { id: "singleton" }, select: { featuredVideoIds: true } }),
+        tx.videoProject.findUnique({
+          where: { id: projectId },
+          select: { id: true, publishStatus: true },
+        }),
+        tx.videoPortfolioSettings.findUnique({
+          where: { id: "singleton" },
+          select: { featuredVideoIds: true },
+        }),
       ]);
-      if (!project) return { success: false, message: "This video project no longer exists." };
-      if (!settings) return { success: false, message: "Video homepage settings are unavailable." };
+      if (!project)
+        return {
+          success: false,
+          message: "This video project no longer exists.",
+        };
+      if (!settings)
+        return {
+          success: false,
+          message: "Video homepage settings are unavailable.",
+        };
 
       const published = await tx.videoProject.findMany({
-        where: { id: { in: settings.featuredVideoIds }, publishStatus: "PUBLISHED" },
+        where: {
+          id: { in: settings.featuredVideoIds },
+          publishStatus: "PUBLISHED",
+        },
         select: { id: true },
       });
       const validIds = new Set(published.map((item) => item.id));
@@ -307,10 +327,16 @@ export async function setVideoHomepageFeature(
 
       if (showcased) {
         if (project.publishStatus !== "PUBLISHED") {
-          return { success: false, message: "Publish this video before featuring it on the Video homepage." };
+          return {
+            success: false,
+            message: "Publish this video before featuring it on the Video homepage.",
+          };
         }
         if (!selectedIds.includes(projectId) && selectedIds.length >= 3) {
-          return { success: false, message: "The Video homepage already has three featured projects. Remove one first." };
+          return {
+            success: false,
+            message: "The Video homepage already has three featured projects. Remove one first.",
+          };
         }
         if (!selectedIds.includes(projectId)) selectedIds.push(projectId);
       } else {
@@ -333,10 +359,7 @@ export async function setVideoHomepageFeature(
 }
 
 export async function updateVideoHomepageSettings(values: VideoHomepageSettingsValues) {
-  const requestedIds = [...new Set([
-    ...values.featuredVideoIds,
-    ...(values.heroVideoId ? [values.heroVideoId] : []),
-  ])];
+  const requestedIds = [...new Set([...values.featuredVideoIds, ...(values.heroVideoId ? [values.heroVideoId] : [])])];
   const published = requestedIds.length
     ? await prisma.videoProject.findMany({
         where: { id: { in: requestedIds }, publishStatus: "PUBLISHED" },

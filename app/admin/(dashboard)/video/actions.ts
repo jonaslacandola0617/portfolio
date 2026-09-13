@@ -1,33 +1,19 @@
 "use server";
 
-import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/services/auth-service";
-import {
-  createVideoDraft,
-  deleteVideoProject,
-  deleteVideoProjects,
-  reorderVideoProjects,
-  setVideoHomepageFeature,
-  updateVideoHomepageSettings,
-  updateVideoProjectContent,
-  updateVideoProjectMetadata,
-} from "@/lib/services/video-admin-service";
+import { createVideoProject, deleteVideoProject, deleteVideoProjects, reorderVideoProjects, setVideoHomepageFeature, updateVideoHomepageSettings, updateVideoProjectContent, updateVideoProjectMetadata } from "@/lib/services/video-admin-service";
 import { saveEditorContent } from "@/lib/services/content-save-service";
 import { classifyServiceError, isNextControlFlowError } from "@/lib/services/action-errors";
 import { bulkDeleteSchema, deleteIdSchema } from "@/lib/validations/admin";
 import { videoHomepageSettingsSchema, videoProjectFormSchema } from "@/lib/validations/video";
-import type {
-  ActionResult,
-  BulkDeleteResult,
-  DeleteResult,
-  HomepageShowcaseResult,
-  SaveContentPayload,
-  SaveResult,
-} from "@/types/admin";
+import type { ActionResult, BulkDeleteResult, DeleteResult, HomepageShowcaseResult, SaveContentPayload, SaveResult } from "@/types/admin";
 
 function csvValues(value: FormDataEntryValue | null) {
   return typeof value === "string"
-    ? value.split(",").map((item) => item.trim()).filter(Boolean)
+    ? value
+        .split(",")
+        .map((item) => item.trim())
+        .filter(Boolean)
     : [];
 }
 
@@ -49,17 +35,30 @@ function parseProjectFormData(formData: FormData) {
   };
 }
 
-export async function createVideoDraftAction(): Promise<never> {
+export async function createVideoProjectAction(_previous: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
-  const project = await createVideoDraft();
-  redirect(`/admin/video/projects/${project.id}?created=1`);
+  const parsed = videoProjectFormSchema.safeParse(parseProjectFormData(formData));
+  if (!parsed.success) {
+    return { success: false, errors: parsed.error.flatten().fieldErrors };
+  }
+
+  try {
+    const project = await createVideoProject(parsed.data);
+    return {
+      success: true,
+      recordId: project.id,
+      message: "Video project created.",
+    };
+  } catch (error) {
+    if (isNextControlFlowError(error)) throw error;
+    return classifyServiceError(error, {
+      operation: "create",
+      contentType: "video",
+    });
+  }
 }
 
-export async function updateVideoProjectAction(
-  id: string,
-  _previous: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
+export async function updateVideoProjectAction(id: string, _previous: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
   const parsed = videoProjectFormSchema.safeParse(parseProjectFormData(formData));
   if (!parsed.success) {
@@ -71,7 +70,11 @@ export async function updateVideoProjectAction(
     return { success: true, recordId: id, message: "Video metadata saved." };
   } catch (error) {
     if (isNextControlFlowError(error)) throw error;
-    return classifyServiceError(error, { operation: "update", contentType: "video", recordId: id });
+    return classifyServiceError(error, {
+      operation: "update",
+      contentType: "video",
+      recordId: id,
+    });
   }
 }
 
@@ -88,7 +91,11 @@ export async function deleteVideoProjectAction(id: string): Promise<DeleteResult
     return { success: true };
   } catch (error) {
     if (isNextControlFlowError(error)) throw error;
-    return classifyServiceError(error, { operation: "delete", contentType: "video", recordId: parsed.data });
+    return classifyServiceError(error, {
+      operation: "delete",
+      contentType: "video",
+      recordId: parsed.data,
+    });
   }
 }
 
@@ -101,7 +108,10 @@ export async function bulkDeleteVideoProjectsAction(ids: string[]): Promise<Bulk
     return { success: true, deletedCount };
   } catch (error) {
     if (isNextControlFlowError(error)) throw error;
-    return classifyServiceError(error, { operation: "bulkDelete", contentType: "video" });
+    return classifyServiceError(error, {
+      operation: "bulkDelete",
+      contentType: "video",
+    });
   }
 }
 
@@ -113,27 +123,31 @@ export async function reorderVideoProjectsAction(ids: string[]): Promise<ActionR
     await reorderVideoProjects(parsed.data.ids);
     return { success: true, message: "Video order saved." };
   } catch (error) {
-    return classifyServiceError(error, { operation: "reorder", contentType: "video" });
+    return classifyServiceError(error, {
+      operation: "reorder",
+      contentType: "video",
+    });
   }
 }
 
-export async function toggleFeaturedVideoAction(
-  id: string,
-  showcased: boolean,
-): Promise<HomepageShowcaseResult> {
+export async function toggleFeaturedVideoAction(id: string, showcased: boolean): Promise<HomepageShowcaseResult> {
   await requireAdmin();
   try {
     const result = await setVideoHomepageFeature(id, showcased);
     return result;
   } catch (error) {
-    return { success: false, message: classifyServiceError(error, { operation: "feature", contentType: "video", recordId: id }).message };
+    return {
+      success: false,
+      message: classifyServiceError(error, {
+        operation: "feature",
+        contentType: "video",
+        recordId: id,
+      }).message,
+    };
   }
 }
 
-export async function updateVideoHomepageAction(
-  _previous: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
+export async function updateVideoHomepageAction(_previous: ActionResult, formData: FormData): Promise<ActionResult> {
   await requireAdmin();
   const parsed = videoHomepageSettingsSchema.safeParse({
     eyebrow: formData.get("eyebrow"),
@@ -152,6 +166,9 @@ export async function updateVideoHomepageAction(
     await updateVideoHomepageSettings(parsed.data);
     return { success: true, message: "Video homepage saved." };
   } catch (error) {
-    return classifyServiceError(error, { operation: "homepage-save", contentType: "video" });
+    return classifyServiceError(error, {
+      operation: "homepage-save",
+      contentType: "video",
+    });
   }
 }
