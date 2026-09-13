@@ -213,14 +213,17 @@ export function VideoProjectForm({ project, media }: { project: VideoProjectEdit
           <div className="admin-form-section-body">
             <div className="admin-field">
               <Label htmlFor="customPosterId">Media Library image</Label>
-              <select id="customPosterId" name="customPosterId" defaultValue={project.customPosterId}>
-                <option value="">Use YouTube thumbnail</option>
-                {imageMedia.map((item) => (
-                  <option key={item.id} value={item.id}>
-                    {item.filename}
-                  </option>
-                ))}
-              </select>
+              <div className="admin-select-wrap">
+                <select id="customPosterId" name="customPosterId" defaultValue={project.customPosterId}>
+                  <option value="">Use YouTube thumbnail</option>
+                  {imageMedia.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {item.filename}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown aria-hidden="true" />
+              </div>
               <p className="admin-field-note">Upload new poster images through Media, then select one here.</p>
               <FieldError errors={state.errors?.customPosterId} />
             </div>

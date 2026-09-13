@@ -213,7 +213,9 @@
 .admin-field-label-row a { display:inline-flex; align-items:center; gap:5px; color:var(--cobalt); font-family:var(--font-ibm-plex-mono),monospace; font-size:8px; letter-spacing:.07em; text-transform:uppercase; }
 .admin-field-label-row a svg { width:10px; height:10px; }
 .admin-select-wrap { position:relative; }
-.admin-select-wrap select { appearance:none; padding-right:28px !important; }
+.admin-select-wrap select { appearance:none; color-scheme:light; padding-right:28px !important; }
+.dark .admin-select-wrap select { color-scheme:dark; }
+.admin-select-wrap select option { background:var(--surface); color:var(--text); }
 .admin-select-wrap > svg { position:absolute; right:0; top:14px; width:13px; height:13px; color:var(--muted); pointer-events:none; }
 .admin-selected-media { display:grid; grid-template-columns:34px minmax(0,1fr) auto; gap:12px; align-items:center; margin-top:16px; padding:13px 0; border-block:1px solid var(--border); }
 .admin-selected-media > svg { width:18px; height:18px; color:var(--cobalt); }

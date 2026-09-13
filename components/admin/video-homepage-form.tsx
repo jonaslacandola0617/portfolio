@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { GripVertical, Plus, X } from "lucide-react";
+import { ChevronDown, GripVertical, Plus, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -69,33 +69,23 @@ export function VideoHomepageForm({ settings, videos }: { settings: HomepageValu
           <div><Label htmlFor="intro">Introduction</Label><Textarea id="intro" name="intro" defaultValue={settings.intro} rows={4} required /></div>
           <div>
             <Label htmlFor="heroVideoId">Hero video</Label>
-            <select id="heroVideoId" name="heroVideoId" defaultValue={settings.heroVideoId ?? ""} className="flex h-10 w-full border border-border bg-surface px-3 text-sm text-text">
-              <option value="">No hero video yet</option>
-              {videos.map((video) => <option key={video.id} value={video.id}>{video.title}</option>)}
-            </select>
+            <div className="admin-select-wrap">
+              <select id="heroVideoId" name="heroVideoId" defaultValue={settings.heroVideoId ?? ""} className="flex h-10 w-full border border-border bg-surface px-3 text-sm text-text">
+                <option value="">No hero video yet</option>
+                {videos.map((video) => <option key={video.id} value={video.id}>{video.title}</option>)}
+              </select>
+              <ChevronDown aria-hidden="true" />
+            </div>
           </div>
         </div>
       </section>
 
-      <section className="border border-border bg-surface p-5 sm:p-6">
-        <p className="idx mb-3">02 / ABOUT</p>
-        <div className="grid gap-4">
-          <div><Label htmlFor="aboutHeading">Heading</Label><Input id="aboutHeading" name="aboutHeading" defaultValue={settings.aboutHeading} required /></div>
-          <div><Label htmlFor="aboutBody">Body</Label><Textarea id="aboutBody" name="aboutBody" defaultValue={settings.aboutBody} rows={6} required /></div>
-        </div>
-      </section>
-
-      <section className="border border-border bg-surface p-5 sm:p-6">
-        <p className="idx mb-3">03 / DISCIPLINES</p>
-        <div className="grid gap-5 lg:grid-cols-2">
-          <div><p className="label mb-2">01 / VIDEO EDITING</p><Textarea name="videoEditingDescription" defaultValue={settings.videoEditingDescription} rows={5} required /></div>
-          <div><p className="label mb-2">02 / CINEMATOGRAPHY</p><Textarea name="cinematographyDescription" defaultValue={settings.cinematographyDescription} rows={5} required /></div>
-        </div>
-      </section>
+      <input type="hidden" name="aboutHeading" value={settings.aboutHeading} />
+      <input type="hidden" name="aboutBody" value={settings.aboutBody} />
 
       <section className="border border-border bg-surface p-5 sm:p-6">
         <div className="mb-4 flex items-end justify-between gap-4">
-          <div><p className="idx">04 / FEATURED WORK</p><p className="mt-2 text-sm text-text-dim">Up to three published projects. Drag selected rows to reorder them.</p></div>
+          <div><p className="idx">02 / FEATURED WORK</p><p className="mt-2 text-sm text-text-dim">Up to three published projects. Drag selected rows to reorder them.</p></div>
           <span className="font-mono text-[10px] uppercase tracking-wider text-muted">{featured.length} / 3</span>
         </div>
         <div className="space-y-2">
@@ -130,6 +120,14 @@ export function VideoHomepageForm({ settings, videos }: { settings: HomepageValu
           </div>
         )}
         {selectionError && <FormMessage variant="error" className="mt-4">{selectionError}</FormMessage>}
+      </section>
+
+      <section className="border border-border bg-surface p-5 sm:p-6">
+        <p className="idx mb-3">03 / DISCIPLINES</p>
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div><p className="label mb-2">01 / VIDEO EDITING</p><Textarea name="videoEditingDescription" defaultValue={settings.videoEditingDescription} rows={5} required /></div>
+          <div><p className="label mb-2">02 / CINEMATOGRAPHY</p><Textarea name="cinematographyDescription" defaultValue={settings.cinematographyDescription} rows={5} required /></div>
+        </div>
       </section>
 
       {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
