@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { parseYouTubeUrl, youtubeEmbedUrl, youtubeThumbnailUrl } from "@/lib/youtube";
 import { runtimeToIso8601 } from "@/lib/video-format";
+import { hasMeaningfulTipTapContent } from "@/lib/editor/content-presence";
 
 const id = "abc123XYZ01";
 const supported = [
@@ -34,4 +35,9 @@ assert.equal(runtimeToIso8601("03:42"), "PT3M42S");
 assert.equal(runtimeToIso8601("1:02:03"), "PT1H2M3S");
 assert.equal(runtimeToIso8601("3:99"), undefined);
 
-console.log("[video] youtube parsing and runtime helpers=ok");
+assert.equal(hasMeaningfulTipTapContent({ type: "doc", content: [{ type: "paragraph" }] }), false);
+assert.equal(hasMeaningfulTipTapContent({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "  " }] }] }), false);
+assert.equal(hasMeaningfulTipTapContent({ type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: "Editing process" }] }] }), true);
+assert.equal(hasMeaningfulTipTapContent({ type: "doc", content: [{ type: "mediaImage", attrs: { src: "https://example.com/frame.jpg" } }] }), true);
+
+console.log("[video] youtube, runtime, and optional case-study helpers=ok");

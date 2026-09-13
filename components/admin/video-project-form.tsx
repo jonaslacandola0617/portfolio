@@ -241,7 +241,7 @@ export function VideoProjectForm({ project, media }: { project: VideoProjectEdit
             {!isNew ? (
               <div className="border border-vermilion/30 p-4">
                 <p className="label mb-1 text-vermilion">Danger zone</p>
-                <p className="text-xs text-text-dim">Deleting this project removes only its CMS record and homepage references—not its YouTube video or Media Library poster.</p>
+                <p className="text-xs text-text-dim">Deleting this project removes only its admin record and homepage references—not its YouTube video or Media Library poster.</p>
               </div>
             ) : null}
           </div>

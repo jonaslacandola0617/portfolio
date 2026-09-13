@@ -3,11 +3,12 @@ import { ArrowRight } from "lucide-react";
 import { VideoPlayer } from "@/components/video/video-player";
 import { getPublishedVideoProjects, getVideoPortfolioSettings } from "@/lib/db/queries/video";
 import { buildStaticPageMetadata } from "@/lib/metadata";
+import { hasMeaningfulTipTapContent } from "@/lib/editor/content-presence";
 import { videoDisciplineLine, videoYear } from "@/lib/video-format";
 
 export const metadata = buildStaticPageMetadata({
   title: "Video Editing & Cinematography",
-  description: "Video editing and cinematography portfolio by Jonas Lacandola — selected work, visual storytelling, editing decisions, process, and case studies.",
+  description: "Video editing and cinematography portfolio by Jonas Lacandola — selected work, visual storytelling, editing decisions, and optional process case studies.",
   path: "/video",
   keywords: ["video editor portfolio", "cinematography portfolio", "video editing", "cinematography", "visual storytelling"],
 });
@@ -47,23 +48,24 @@ export default async function VideoHomepage() {
         <section className="mx-auto max-w-[1500px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
           <div className="mb-10 flex items-end justify-between gap-6"><div><p className="idx">04 / FEATURED WORK</p><h2 className="mt-3 font-display text-4xl text-text sm:text-6xl">Selected video work</h2></div><Link href="/video/work" className="label hidden items-center gap-2 text-[10px] text-text-dim hover:text-text sm:flex">View all <ArrowRight className="h-3 w-3" /></Link></div>
           <div className="space-y-16 sm:space-y-24">
-            {featured.map((project, index) => (
-              <article key={project.id} className="grid items-center gap-7 lg:grid-cols-2 lg:gap-12">
+            {featured.map((project, index) => {
+              const hasCaseStudy = hasMeaningfulTipTapContent(project.content);
+              return <article key={project.id} className="grid items-center gap-7 lg:grid-cols-2 lg:gap-12">
                 <div className={index % 2 ? "lg:order-2" : undefined}><VideoPlayer videoId={project.youtubeVideoId} posterUrl={project.customPosterUrl} title={project.title} /></div>
                 <div className={index % 2 ? "lg:order-1" : undefined}>
                   <p className="idx text-vermilion">{String(index + 1).padStart(2, "0")} / {videoDisciplineLine(project.disciplines).toUpperCase()}</p>
                   <h3 className="mt-4 font-display text-4xl leading-tight text-text sm:text-5xl">{project.title}</h3>
                   <p className="mt-4 max-w-xl text-sm leading-6 text-text-dim sm:text-base">{project.summary}</p>
-                  <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{[videoYear(project.completionDate), project.runtime].filter(Boolean).join(" · ") || "CASE STUDY"}</p>
-                  <Link href={`/video/${project.slug}`} className="label mt-6 inline-flex items-center gap-2 border-b border-border-strong pb-1 text-xs text-text">View case study <ArrowRight className="h-3 w-3" /></Link>
+                  <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{[videoYear(project.completionDate), project.runtime].filter(Boolean).join(" · ") || (hasCaseStudy ? "CASE STUDY" : "VIDEO PROJECT")}</p>
+                  <Link href={`/video/${project.slug}`} className="label mt-6 inline-flex items-center gap-2 border-b border-border-strong pb-1 text-xs text-text">{hasCaseStudy ? "View case study" : "View project"} <ArrowRight className="h-3 w-3" /></Link>
                 </div>
-              </article>
-            ))}
+              </article>;
+            })}
           </div>
           <Link href="/video/work" className="label mt-12 inline-flex items-center gap-2 border border-border-strong px-4 py-3 text-xs text-text sm:hidden">View all work <ArrowRight className="h-3 w-3" /></Link>
         </section>
       ) : (
-        <section className="mx-auto max-w-[1500px] px-5 py-14 sm:px-8 lg:px-12"><div className="border-t border-border pt-8"><p className="idx">04 / FEATURED WORK</p><p className="mt-4 max-w-xl text-sm leading-6 text-text-dim">Published case studies will appear here once they are selected in the Video homepage editor.</p><Link href="/video/work" className="label mt-5 inline-flex items-center gap-2 text-xs text-text">View work archive <ArrowRight className="h-3 w-3" /></Link></div></section>
+        <section className="mx-auto max-w-[1500px] px-5 py-14 sm:px-8 lg:px-12"><div className="border-t border-border pt-8"><p className="idx">04 / FEATURED WORK</p><p className="mt-4 max-w-xl text-sm leading-6 text-text-dim">Published video projects will appear here once they are selected in the Video homepage editor.</p><Link href="/video/work" className="label mt-5 inline-flex items-center gap-2 text-xs text-text">View work archive <ArrowRight className="h-3 w-3" /></Link></div></section>
       )}
     </div>
   );
