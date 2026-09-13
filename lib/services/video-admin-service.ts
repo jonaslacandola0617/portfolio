@@ -282,8 +282,8 @@ export async function reorderVideoProjects(ids: string[]) {
 }
 
 export async function setVideoHomepageFeature(projectId: string, showcased: boolean): Promise<HomepageShowcaseResult> {
-  return prisma.$transaction(
-    async (tx) => {
+  const result = await prisma.$transaction(
+    async (tx): Promise<HomepageShowcaseResult> => {
       await tx.videoPortfolioSettings.upsert({
         where: { id: "singleton" },
         create: settingsCreateData,
@@ -356,6 +356,9 @@ export async function setVideoHomepageFeature(projectId: string, showcased: bool
     },
     { isolationLevel: "Serializable" },
   );
+
+  if (result.success) revalidateContent("videoSettings");
+  return result;
 }
 
 export async function updateVideoHomepageSettings(values: VideoHomepageSettingsValues) {
