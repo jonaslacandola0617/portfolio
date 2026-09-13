@@ -46,7 +46,7 @@ export default async function VideoHomepage() {
 
       {featured.length ? (
         <section className="mx-auto max-w-[1500px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
-          <div className="mb-10 flex items-end justify-between gap-6"><div><p className="idx">04 / FEATURED WORK</p><h2 className="mt-3 font-display text-4xl text-text sm:text-6xl">Selected video work</h2></div><Link href="/video/work" className="label hidden items-center gap-2 text-[10px] text-text-dim hover:text-text sm:flex">View all <ArrowRight className="h-3 w-3" /></Link></div>
+          <div className="mb-10 flex items-end justify-between gap-6"><div><p className="idx">04 / FEATURED WORK</p><h2 className="mt-3 font-display text-4xl text-text sm:text-6xl">Featured Video Work</h2></div><Link href="/video/work" className="label hidden items-center gap-2 text-[10px] text-text-dim hover:text-text sm:flex">View all <ArrowRight className="h-3 w-3" /></Link></div>
           <div className="space-y-16 sm:space-y-24">
             {featured.map((project, index) => {
               const hasCaseStudy = hasMeaningfulTipTapContent(project.content);
