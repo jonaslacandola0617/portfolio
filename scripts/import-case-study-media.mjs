@@ -1,11 +1,6 @@
 import { put } from '@vercel/blob';
 import { PrismaClient } from '@prisma/client';
 
-if (process.env.VERCEL_ENV !== 'preview') {
-  console.log('[case-study-import] skipped outside preview');
-  process.exit(0);
-}
-
 const prisma = new PrismaClient();
 const items = [
   ['tuklas-overview.png', 'Tuklas overview'],
@@ -21,9 +16,8 @@ const items = [
 
 try {
   for (const [filename, displayName] of items) {
-    const already = await prisma.media.findFirst({
-      where: { filename: `Case Study — ${displayName}` },
-    });
+    const libraryName = `Case Study — ${displayName}`;
+    const already = await prisma.media.findFirst({ where: { filename: libraryName } });
     if (already) {
       console.log('[case-study-import] exists', filename, already.id);
       continue;
@@ -41,7 +35,7 @@ try {
     const media = await prisma.media.create({
       data: {
         url: blob.url,
-        filename: `Case Study — ${displayName}`,
+        filename: libraryName,
         type: 'IMAGE',
         size: bytes.byteLength,
       },
