@@ -35,7 +35,7 @@ jobs:
         run: |
           mkdir -p public/case-studies
           node <<'NODE'
-          const { chromium } = require('playwright');
+          const { chromium } = await import('playwright');
 
           const targets = [
             ['tuklas-overview', 'https://learn.jonasl.online/'],
