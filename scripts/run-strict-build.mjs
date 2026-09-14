@@ -15,7 +15,6 @@ function run(label, entrypoint, args) {
   if (result.status !== 0) process.exit(result.status ?? 1);
 }
 
-run("importing case study screenshots into Media Library", "scripts/import-case-study-media.mjs", []);
 run("verifying database content and public counts", require.resolve("tsx/cli"), [
   "scripts/verify-build-data.ts",
 ]);
