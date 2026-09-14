@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/repo-cleanup-audit.mjs",
+    "prebuild": "node scripts/repo-cleanup-audit.mjs && (npx --yes knip || true)",
     "build": "node scripts/run-strict-build.mjs",
     "start": "next start",
     "lint": "next lint",
