@@ -2,7 +2,8 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import { slugify } from "@/lib/utils";
-import { createProject, getProjectForEdit, updateProjectMetadata } from "@/lib/services/project-admin-service";
+import { createProject } from "@/lib/services/project-admin-service";
+import { revalidateContent } from "@/lib/services/content-revalidation";
 import {
   getGitHubRepositoryDetails,
   getGitHubRepositorySource,
@@ -173,7 +174,17 @@ export async function importGitHubRepository(fullName: string) {
 }
 
 export async function syncGitHubProject(projectId: string) {
-  const project = await getProjectForEdit(projectId);
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: {
+      id: true,
+      slug: true,
+      githubUrl: true,
+      liveSiteUrl: true,
+      technologies: true,
+      category: { select: { name: true } },
+    },
+  });
   if (!project) throw new Error("Project not found.");
 
   const normalized = normalizeGitHubRepositoryUrl(project.githubUrl);
@@ -181,42 +192,34 @@ export async function syncGitHubProject(projectId: string) {
 
   const fullName = new URL(normalized).pathname.split("/").filter(Boolean).slice(0, 2).join("/");
   const { repository, languages } = await getGitHubRepositoryDetails(fullName);
-
   const mergedTechnologies = Array.from(new Set([
     ...project.technologies,
     ...languages,
     ...(repository.primaryLanguage ? [repository.primaryLanguage] : []),
   ]));
-  const mergedTags = Array.from(new Set([
-    ...project.tags.map((tag) => tag.name),
-    ...repository.topics,
-  ]));
-
+  const homepage = validHttpsUrl(repository.homepage);
   const category = project.category?.name ?? inferCategory(repository, languages);
-  const formValues: ProjectFormValues = projectFormSchema.parse({
-    title: project.title,
-    slug: project.slug,
-    summary: project.summary,
-    category,
-    difficulty: project.difficulty,
-    progressStatus: project.progressStatus,
-    publishStatus: project.publishStatus,
-    tags: mergedTags,
-    skills: project.skills.map((skill) => skill.name),
-    technologies: mergedTechnologies,
-    estimatedTime: project.estimatedTime ?? "",
-    completionDate: project.completionDate.toISOString().slice(0, 10),
-    githubUrl: repository.htmlUrl,
-    liveSiteUrl:
-      project.liveSiteUrl || (category === "Web Development" ? validHttpsUrl(repository.homepage) : ""),
-    demoUrl: project.demoUrl ?? "",
-    scheduledFor: project.scheduledFor?.toISOString() ?? "",
-    templateId: "project-blank",
+
+  await prisma.project.update({
+    where: { id: projectId },
+    data: {
+      githubUrl: repository.htmlUrl,
+      technologies: mergedTechnologies,
+      ...(!project.liveSiteUrl && category === "Web Development" && homepage
+        ? { liveSiteUrl: homepage }
+        : {}),
+      tags: {
+        connectOrCreate: repository.topics.map((topic) => ({
+          where: { slug: slugify(topic) },
+          create: { name: topic, slug: slugify(topic) },
+        })),
+      },
+    },
   });
 
-  await updateProjectMetadata(projectId, formValues);
+  revalidateContent("project", [project.slug]);
   return {
     projectId,
-    message: `${repository.fullName} metadata was synced without changing your project documentation.`,
+    message: `${repository.fullName} metadata was synced without changing your title, summary, status, or documentation.`,
   };
 }
