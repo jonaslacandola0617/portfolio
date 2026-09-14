@@ -64,9 +64,9 @@ export function DeleteConfirmationDialog({
     <Dialog.Root open={open} onOpenChange={handleOpenChange}>
       <Dialog.Trigger asChild>{trigger}</Dialog.Trigger>
       <Dialog.Portal>
-        <Dialog.Overlay className="fixed inset-0 z-50 bg-ink/70 data-[state=open]:animate-fade-in" />
+        <Dialog.Overlay className="fixed inset-0 z-50 bg-ink/80 backdrop-blur-[2px] data-[state=open]:animate-fade-in" />
         <Dialog.Content
-          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 border border-border-strong bg-surface-2 outline-none data-[state=open]:animate-fade-up"
+          className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-[560px] -translate-x-1/2 -translate-y-1/2 overflow-hidden border border-border bg-surface outline-none data-[state=open]:animate-fade-up"
           onEscapeKeyDown={(event) => pending && event.preventDefault()}
           onPointerDownOutside={(event) => pending && event.preventDefault()}
           onOpenAutoFocus={(event) => {
@@ -74,33 +74,71 @@ export function DeleteConfirmationDialog({
             cancelRef.current?.focus();
           }}
         >
-          <div className="flex items-start justify-between gap-4 border-b border-border px-5 py-4">
-            <div>
-              <Dialog.Title className="font-display text-base font-semibold text-text">{heading}</Dialog.Title>
-              <Dialog.Description className="sr-only">{description}</Dialog.Description>
+          <div className="relative px-6 pb-6 pt-7 sm:px-7">
+            <div className="mb-3 flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.18em] text-vermilion">
+              <span>Danger</span>
+              <span className="h-px w-7 bg-vermilion" aria-hidden="true" />
+              <span>Delete</span>
             </div>
-            <Dialog.Close disabled={pending} aria-label="Close dialog" className="shrink-0 text-muted hover:text-text disabled:opacity-40">
+
+            <Dialog.Title
+              className="max-w-[460px] text-[26px] font-medium leading-[1.15] text-text sm:text-[30px]"
+              style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
+            >
+              {heading}
+            </Dialog.Title>
+            <Dialog.Description className="mt-2 max-w-[460px] text-sm leading-6 text-text-dim">
+              This action permanently removes this {count && count > 1 ? "selection" : contentType} from the portfolio.
+            </Dialog.Description>
+
+            <Dialog.Close
+              disabled={pending}
+              aria-label="Close dialog"
+              className="absolute right-5 top-5 flex h-8 w-8 items-center justify-center text-muted transition-colors hover:bg-surface-3 hover:text-text disabled:opacity-40"
+            >
               <X className="h-4 w-4" />
             </Dialog.Close>
           </div>
 
-          <div className="px-5 py-4">
-            <div className="flex items-start gap-3 border border-vermilion/30 bg-vermilion/10 px-3.5 py-3">
-              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-vermilion" />
-              <p className="text-sm text-text-dim">{description}</p>
+          <div className="border-y border-border px-6 py-5 sm:px-7">
+            <div className="grid grid-cols-[24px_minmax(0,1fr)] gap-3 border border-border bg-surface-2 p-4">
+              <AlertTriangle className="mt-0.5 h-4 w-4 text-vermilion" />
+              <div>
+                <p className="mb-1 font-mono text-[10px] uppercase tracking-[0.15em] text-vermilion">
+                  Permanent action
+                </p>
+                <p className="text-sm leading-6 text-text-dim">{description}</p>
+              </div>
             </div>
-            {error && <p role="alert" className="mt-3 border border-vermilion/30 px-3 py-2 text-sm text-vermilion">{error}</p>}
+
+            {error && (
+              <div role="alert" className="mt-3 border-l-2 border-vermilion bg-vermilion-dim px-4 py-3">
+                <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-vermilion">Delete failed</p>
+                <p className="mt-1 text-sm text-text">{error}</p>
+              </div>
+            )}
           </div>
 
-          <div className="flex justify-end gap-2 border-t border-border px-5 py-4">
+          <div className="flex flex-col-reverse gap-2 px-6 py-5 sm:flex-row sm:justify-end sm:px-7">
             <Dialog.Close asChild>
-              <button ref={cancelRef} type="button" disabled={pending} className="border border-border px-4 py-2 text-sm text-text-dim hover:text-text disabled:opacity-50">
+              <button
+                ref={cancelRef}
+                type="button"
+                disabled={pending}
+                className="min-w-[104px] border border-border bg-transparent px-4 py-2.5 text-sm font-medium text-text-dim transition-colors hover:border-border-strong hover:text-text disabled:opacity-50"
+              >
                 Cancel
               </button>
             </Dialog.Close>
-            <button type="button" onClick={confirm} disabled={pending} aria-label={confirmLabel} className="flex items-center gap-2 border border-vermilion bg-vermilion px-4 py-2 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60">
+            <button
+              type="button"
+              onClick={confirm}
+              disabled={pending}
+              aria-label={confirmLabel}
+              className="flex min-w-[132px] items-center justify-center gap-2 border border-vermilion bg-transparent px-4 py-2.5 text-sm font-medium text-vermilion transition-colors hover:bg-vermilion hover:text-white disabled:opacity-60"
+            >
               {pending && <Loader2 className="h-4 w-4 animate-spin" />}
-              {pending ? "Deleting…" : "Delete"}
+              {pending ? "Deleting…" : confirmLabel}
             </button>
           </div>
         </Dialog.Content>
