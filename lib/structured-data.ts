@@ -83,6 +83,57 @@ export function buildProfilePageJsonLd({
   };
 }
 
+/**
+ * Full Person profile for the homepage: who you are, where, what you know,
+ * and verifiable credentials. Helps search engines connect name searches,
+ * LinkedIn and GitHub to this site.
+ */
+export function buildPersonJsonLd({
+  name,
+  role,
+  description,
+  githubUrl,
+  linkedinUrl,
+  profileImageUrl,
+  knowsAbout,
+  credentials,
+  region = "Pampanga",
+  country = "PH",
+}: {
+  name: string;
+  role: string;
+  description: string;
+  githubUrl: string;
+  linkedinUrl: string;
+  profileImageUrl?: string | null;
+  knowsAbout: string[];
+  credentials: { name: string; issuer: string; url?: string; dateCompleted?: string }[];
+  region?: string;
+  country?: string;
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": personId,
+    name,
+    url: siteConfig.siteUrl,
+    jobTitle: role,
+    description,
+    ...(profileImageUrl ? { image: profileImageUrl } : {}),
+    address: { "@type": "PostalAddress", addressRegion: region, addressCountry: country },
+    sameAs: [githubUrl, linkedinUrl].filter(Boolean),
+    knowsAbout: Array.from(new Set(knowsAbout.filter(Boolean))).slice(0, 30),
+    hasCredential: credentials.map((credential) => ({
+      "@type": "EducationalOccupationalCredential",
+      name: credential.name,
+      credentialCategory: "certificate",
+      recognizedBy: { "@type": "Organization", name: credential.issuer },
+      ...(credential.url ? { url: credential.url } : {}),
+      ...(credential.dateCompleted ? { dateCreated: credential.dateCompleted } : {}),
+    })),
+  };
+}
+
 export function buildArticleJsonLd({
   type = "BlogPosting",
   title,

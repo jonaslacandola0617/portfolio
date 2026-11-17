@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowDown, ArrowUpRight, FileText } from "lucide-react";
 import { NetworkField } from "@/components/site/network-field";
@@ -47,8 +48,7 @@ export function HomeHero({
 
         <p className="hero-hello">
           {profileImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={profileImageUrl} alt="" className="hero-avatar" width={44} height={44} />
+            <Image src={profileImageUrl} alt="" className="hero-avatar" width={44} height={44} sizes="44px" priority />
           ) : null}
           <span>Hi, I&apos;m {firstName}.</span>
         </p>
@@ -73,17 +73,19 @@ export function HomeHero({
         </div>
       </div>
 
-      <dl className="hero-stats">
-        {stats.map((item) => (
-          <div key={item.label}>
-            <dt>{item.label}</dt>
-            <dd>{item.value}</dd>
-          </div>
-        ))}
+      <div className="hero-stats">
+        <dl className="hero-stats-list">
+          {stats.map((item) => (
+            <div key={item.label}>
+              <dt>{item.label}</dt>
+              <dd>{item.value}</dd>
+            </div>
+          ))}
+        </dl>
         <div className="hero-stats-link">
           <Link href="/certifications">View certificates <ArrowUpRight size={15} /></Link>
         </div>
-      </dl>
+      </div>
     </section>
   );
 }

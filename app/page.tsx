@@ -8,7 +8,7 @@ import { getAllCertificates } from "@/lib/db/queries/certificates";
 import { getHomepageContent } from "@/lib/db/queries/homepage";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
-import { buildWebsiteJsonLd } from "@/lib/structured-data";
+import { buildPersonJsonLd, buildWebsiteJsonLd } from "@/lib/structured-data";
 
 const FEATURED_LIMIT = 2;
 
@@ -65,10 +65,21 @@ export default async function HomePage() {
   );
 
   const websiteJsonLd = buildWebsiteJsonLd({ name: settings.name, description: siteConfig.description });
+  const personJsonLd = buildPersonJsonLd({
+    name: settings.name,
+    role: settings.role,
+    description: settings.tagline,
+    githubUrl: settings.githubUrl,
+    linkedinUrl: settings.linkedinUrl,
+    profileImageUrl: about.profileImageUrl,
+    knowsAbout: [...about.focusTags, ...content.experience.flatMap((entry) => entry.skills), ...certificates.flatMap((cert) => cert.skills)],
+    credentials: itFirst.map((cert) => ({ name: cert.name, issuer: cert.issuer, url: cert.credentialUrl, dateCompleted: cert.dateCompleted })),
+  });
 
   return (
     <div className="home">
       <JsonLd data={websiteJsonLd} />
+      <JsonLd data={personJsonLd} />
       <HomeHero settings={settings} content={content} certificationCount={certificates.length} profileImageUrl={about.profileImageUrl} />
       <HomeSections
         content={content}

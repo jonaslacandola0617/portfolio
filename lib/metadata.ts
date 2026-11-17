@@ -5,20 +5,17 @@ export const DEFAULT_SOCIAL_IMAGE = new URL("/api/og", siteConfig.siteUrl).toStr
 
 const BASE_PORTFOLIO_KEYWORDS = [
   "Jonas Lacandola",
-  "web developer portfolio",
-  "Laravel developer",
-  "PHP developer",
-  "React developer",
-  "Next.js developer",
-  "TypeScript developer",
-  "full stack web development",
-  "web application development",
-  "API development",
-  "SQL",
   "IT support",
+  "IT help desk",
   "technical support",
+  "desktop support",
+  "network technician",
   "networking portfolio",
   "cybersecurity portfolio",
+  "Cisco",
+  "Linux",
+  "Pampanga",
+  "Philippines",
 ] as const;
 
 function cleanDescription(value: string) {
