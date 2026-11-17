@@ -91,6 +91,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {children}
       <div
         className="identity-toast-region"
+        role="region"
         aria-label="Notifications"
       >
         {toasts.map((toast) => (

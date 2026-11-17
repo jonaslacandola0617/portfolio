@@ -7,7 +7,7 @@
 export const siteConfig = {
   name: "Jonas Lacandola",
   initials: "JL",
-  role: "IT Support · Network Administration · Cybersecurity",
+  role: "IT Support · Networking · Cybersecurity",
   tagline:
     "I troubleshoot systems, configure and secure networks, and document every fix — with enough development experience to build the tools a team is missing.",
   location:

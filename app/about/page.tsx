@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight, FileText } from "lucide-react";
 import { JsonLd } from "@/components/shared/json-ld";
@@ -55,8 +56,7 @@ export default async function AboutPage() {
         </div>
         <figure className="about-portrait">
           {about.profileImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={about.profileImageUrl} alt={`Portrait of ${settings.name}`} />
+            <Image src={about.profileImageUrl} alt={`Portrait of ${settings.name}`} fill sizes="(max-width: 860px) 360px, 480px" priority />
           ) : (
             <span aria-hidden="true">{initials}</span>
           )}

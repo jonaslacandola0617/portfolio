@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 type ProjectVisualPreviewProps = {
@@ -7,6 +8,8 @@ type ProjectVisualPreviewProps = {
   className?: string;
   /** Load the image eagerly (above-the-fold usage). */
   priority?: boolean;
+  /** Rendered width hint for the optimizer; defaults to a half-width card. */
+  sizes?: string;
 };
 
 function hostOf(url?: string | null) {
@@ -23,7 +26,7 @@ function hostOf(url?: string | null) {
  * thumbnail; only falls back to a lazy live iframe when no image exists, so
  * index pages no longer boot several full websites at once.
  */
-export function ProjectVisualPreview({ title, liveSiteUrl, thumbnail, className, priority }: ProjectVisualPreviewProps) {
+export function ProjectVisualPreview({ title, liveSiteUrl, thumbnail, className, priority, sizes = "(max-width: 860px) 100vw, 640px" }: ProjectVisualPreviewProps) {
   const host = hostOf(liveSiteUrl);
 
   return (
@@ -34,8 +37,7 @@ export function ProjectVisualPreview({ title, liveSiteUrl, thumbnail, className,
       </div>
       <div className="browser-viewport">
         {thumbnail ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={thumbnail} alt="" loading={priority ? "eager" : "lazy"} decoding="async" />
+          <Image src={thumbnail} alt="" fill sizes={sizes} priority={priority} />
         ) : liveSiteUrl ? (
           <iframe
             src={liveSiteUrl}

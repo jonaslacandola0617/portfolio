@@ -11,7 +11,7 @@ export function LabCard({ lab, index=1 }: { lab: LabFrontmatter; index?: number 
       <div className="lab-index-marker" aria-hidden="true"><span /><i /></div>
       <div className="lab-index-copy">
         <div className="lab-index-meta"><span>{lab.category}</span><StatusBadge status={lab.status}/><span>{formatDate(lab.date)}</span></div>
-        <h3>{lab.title}</h3>
+        <h2>{lab.title}</h2>
         <p>{lab.purpose}</p>
         <div className="lab-index-tags">{lab.tags.slice(0,5).map((tag)=><span key={tag}>{tag}</span>)}</div>
       </div>

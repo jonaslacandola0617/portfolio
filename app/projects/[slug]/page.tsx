@@ -112,7 +112,7 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
       {projectImage ? (
         <div className="case-media">
           <TiltFrame>
-            <ProjectVisualPreview title={frontmatter.title} liveSiteUrl={frontmatter.liveSiteUrl} thumbnail={projectImage} priority />
+            <ProjectVisualPreview title={frontmatter.title} liveSiteUrl={frontmatter.liveSiteUrl} thumbnail={projectImage} priority sizes="(max-width: 1300px) 100vw, 1240px" />
           </TiltFrame>
         </div>
       ) : null}
