@@ -353,10 +353,10 @@ html.dark .public-stage.site .border-border { border-color: var(--line) !importa
   padding: clamp(28px, 6vh, 72px) 0 clamp(28px, 5vh, 56px);
 }
 .hero-status { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 20px; }
-.hero-hello { margin: clamp(24px, 4vh, 40px) 0 12px; font-size: clamp(17px, 1.5vw, 20px); color: var(--fg-2); }
+.hero-hello { display: flex; align-items: center; gap: 14px; margin: clamp(24px, 4vh, 40px) 0 14px; font-size: clamp(17px, 1.5vw, 20px); color: var(--fg-2); }
 .hero-title {
   max-width: 19ch; margin: 0;
-  font-family: var(--font-display), sans-serif; font-size: clamp(40px, 5.8vw, 86px); font-weight: 600;
+  font-family: var(--font-display), sans-serif; font-size: clamp(38px, 5.2vw, 76px); font-weight: 600;
   letter-spacing: -.05em; line-height: .94; text-wrap: balance;
 }
 .hero-title em {
@@ -505,7 +505,8 @@ html.dark .public-stage.site .border-border { border-color: var(--line) !importa
 }
 
 /* Capabilities */
-.cap-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.cap-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 1100px) { .cap-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .cap-card {
   position: relative; display: flex; flex-direction: column; gap: 14px; padding: 28px;
   border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2);
@@ -729,3 +730,68 @@ html .public-stage.site .public-page-shell { width: min(100% - 2 * var(--gutter)
 /* Long-form reading size across Labs, Writing and case studies. */
 .public-stage.site .prose-docs { font-size: 17px !important; line-height: 1.75 !important; }
 .public-stage.site .prose-docs :is(p, li) { font-size: inherit !important; }
+
+/* ── IT-first homepage additions ─────────────────────────────────────────── */
+.hero-avatar {
+  width: 44px; height: 44px; flex: none; border-radius: 50%; object-fit: cover;
+  border: 1px solid var(--line-2); box-shadow: 0 0 0 4px var(--bg);
+}
+
+/* Lab cards with generated topologies */
+.lab-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.lab-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); overflow: hidden; transition: border-color .3s, transform .45s var(--ease); }
+.lab-card:hover { border-color: var(--line-2); transform: translateY(-4px); }
+.lab-card-link { display: flex; flex-direction: column; height: 100%; }
+.lab-card-visual {
+  position: relative; border-bottom: 1px solid var(--line); padding: 18px 18px 10px;
+  background:
+    repeating-linear-gradient(90deg, var(--line) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(0deg, var(--line) 0 1px, transparent 1px 24px),
+    var(--bg);
+  background-blend-mode: normal;
+}
+.lab-card-index { position: absolute; left: 16px; top: 14px; font-family: var(--font-mono), monospace; font-size: 11.5px; letter-spacing: .06em; color: var(--accent); }
+.lab-topology { display: block; width: 100%; height: auto; max-height: 160px; overflow: visible; }
+.topo-edge { stroke: var(--line-2); stroke-width: 1.2; stroke-dasharray: 4 5; }
+.lab-card:hover .topo-edge { stroke: var(--accent); animation: topo-flow 1.2s linear infinite; }
+@keyframes topo-flow { to { stroke-dashoffset: -18; } }
+.topo-router circle:first-child { fill: var(--bg); stroke: var(--accent); stroke-width: 1.5; }
+.topo-router circle:last-child { fill: var(--accent); }
+.topo-switch { fill: var(--bg-3); stroke: var(--fg-2); stroke-width: 1.2; }
+.topo-host { fill: var(--fg-2); transition: fill .3s; }
+.lab-card:hover .topo-host { fill: var(--fg); }
+.lab-card-body { display: flex; flex-direction: column; gap: 12px; flex: 1; padding: 22px 24px 24px; }
+.lab-card-body .work-meta { margin: 0; }
+.lab-card-body h3 { margin: 0; font-family: var(--font-display), sans-serif; font-size: clamp(22px, 2.2vw, 28px); font-weight: 600; letter-spacing: -.03em; line-height: 1.1; }
+.lab-card-body > p { margin: 0; color: var(--fg-2); }
+.lab-card-body .text-link { margin-top: auto; padding-top: 6px; }
+.lab-card:hover .text-link { color: var(--accent); background-size: 100% 1px; }
+@media (max-width: 760px) { .lab-grid { grid-template-columns: 1fr; } }
+@media (prefers-reduced-motion: reduce) { .lab-card:hover .topo-edge { animation: none; } }
+
+/* Credentials */
+.cert-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line-2); }
+.cert-row {
+  display: grid; grid-template-columns: 44px minmax(0, 1fr) auto auto; align-items: center; gap: 20px;
+  padding: 18px 4px; border-bottom: 1px solid var(--line); transition: background-color .25s;
+}
+.cert-row:hover { background: var(--bg-2); }
+.cert-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line-2); background: var(--bg-2); color: var(--accent); overflow: hidden; }
+.cert-mark img { width: 100%; height: 100%; object-fit: contain; padding: 6px; background: #fff; }
+.cert-copy { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cert-copy small { font-family: var(--font-mono), monospace; font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--fg-3); }
+.cert-copy strong { font-family: var(--font-display), sans-serif; font-size: clamp(18px, 1.8vw, 22px); font-weight: 600; letter-spacing: -.02em; }
+.cert-status { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--accent); white-space: nowrap; }
+.cert-status::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+.cert-status.is-done { color: var(--ok); }
+@media (max-width: 720px) {
+  .cert-row { grid-template-columns: 44px minmax(0, 1fr); row-gap: 10px; }
+  .cert-status { grid-column: 2; }
+  .cert-row > :last-child:not(.cert-status) { grid-column: 2; justify-self: start; }
+}
+
+/* Evidence kinds in the skills explorer */
+.kind-tag { padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line-2); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; }
+.kind-lab { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+.kind-certification { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+@media (min-width: 761px) { .lab-grid > .lab-card:last-child:nth-child(odd) { grid-column: 1 / -1; } }

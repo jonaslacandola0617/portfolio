@@ -5,25 +5,37 @@ import { CopyEmail, LocalTime } from "@/components/site/interactive";
 import type { SiteSettingsData } from "@/lib/db/queries/settings";
 
 export type HeroStats = {
-  live: number;
-  projects: number;
   labs: number;
   certifications: number;
+  projects: number;
+  live: number;
 };
 
+const WEB_DISCIPLINE = /web|developer|software|front|back|full.?stack/i;
+
+/** IT, networking and security disciplines lead; development follows as a supporting skill. */
 function disciplinesOf(role: string) {
-  return role.split(/\s*[·|,]\s*/).map((item) => item.trim()).filter(Boolean);
+  const items = role.split(/\s*[·|,]\s*/).map((item) => item.trim()).filter(Boolean);
+  return [...items.filter((item) => !WEB_DISCIPLINE.test(item)), ...items.filter((item) => WEB_DISCIPLINE.test(item))];
 }
 
-export function HomeHero({ settings, stats }: { settings: SiteSettingsData; stats: HeroStats }) {
-  const [primary = "Web developer", ...secondary] = disciplinesOf(settings.role);
-  const primaryLabel = primary.charAt(0).toUpperCase() + primary.slice(1).toLowerCase();
+export function HomeHero({
+  settings,
+  stats,
+  profileImageUrl,
+}: {
+  settings: SiteSettingsData;
+  stats: HeroStats;
+  profileImageUrl?: string | null;
+}) {
+  const [firstName] = settings.name.split(" ");
+  const disciplines = disciplinesOf(settings.role);
 
   const statItems = [
-    { value: stats.live, label: stats.live === 1 ? "Product live in production" : "Products live in production" },
-    { value: stats.projects, label: "Documented case studies" },
-    { value: stats.labs, label: "Networking & security labs" },
-    { value: stats.certifications, label: "Certifications & tracks" },
+    { value: stats.labs, label: "Documented networking & security labs" },
+    { value: stats.certifications, label: "Certifications & training tracks" },
+    { value: stats.projects, label: "Technical projects" },
+    { value: stats.live, label: stats.live === 1 ? "Tool I built that's live" : "Tools I built that are live" },
   ].filter((item) => item.value > 0);
 
   return (
@@ -33,27 +45,32 @@ export function HomeHero({ settings, stats }: { settings: SiteSettingsData; stat
 
       <div className="hero-inner">
         <div className="hero-status">
-          <span className="status-pill"><span className="pulse-dot" aria-hidden="true" /> Available for work</span>
+          <span className="status-pill"><span className="pulse-dot" aria-hidden="true" /> Open to IT, network &amp; security roles</span>
           <LocalTime />
         </div>
 
-        <p className="hero-hello">Hi, I&apos;m {settings.name}.</p>
+        <p className="hero-hello">
+          {profileImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={profileImageUrl} alt="" className="hero-avatar" width={44} height={44} />
+          ) : null}
+          <span>Hi, I&apos;m {firstName} — IT support, networking &amp; cybersecurity.</span>
+        </p>
         <h1 id="hero-title" className="hero-title">
-          {primaryLabel} who <em>ships</em> real products
-          <span className="hero-title-soft"> — and keeps the systems behind them running.</span>
+          I keep networks <em>up</em>, users unblocked, and systems secure
+          <span className="hero-title-soft"> — and I document every fix.</span>
         </h1>
 
         <p className="hero-lede">{settings.tagline}</p>
 
-        {secondary.length ? (
+        {disciplines.length ? (
           <ul className="hero-disciplines" aria-label="Disciplines">
-            <li className="is-primary">{primary}</li>
-            {secondary.map((item) => <li key={item}>{item}</li>)}
+            {disciplines.map((item, index) => <li key={item} className={index === 0 ? "is-primary" : undefined}>{item}</li>)}
           </ul>
         ) : null}
 
         <div className="hero-actions">
-          <Link href="#work" className="btn btn-solid btn-lg">See selected work <ArrowDown size={16} /></Link>
+          <Link href="#labs" className="btn btn-solid btn-lg">See my labs <ArrowDown size={16} /></Link>
           <Link href="/resume" className="btn btn-ghost btn-lg"><FileText size={16} /> Résumé</Link>
           <CopyEmail email={settings.email} label="Copy email" className="btn btn-link" />
         </div>
@@ -68,7 +85,7 @@ export function HomeHero({ settings, stats }: { settings: SiteSettingsData; stat
             </div>
           ))}
           <div className="hero-stats-link">
-            <Link href="/projects">Browse everything <ArrowUpRight size={15} /></Link>
+            <Link href="/certifications">View credentials <ArrowUpRight size={15} /></Link>
           </div>
         </dl>
       ) : null}

@@ -6,7 +6,7 @@ import { buildStaticPageMetadata } from "@/lib/metadata";
 import { formatDate } from "@/lib/utils";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Web Development, IT & Networking Learning Journal",
+  title: "IT, Networking & Security Learning Journal",
   description:
     "A practical technical learning journal covering web development, PHP, Laravel, React, Next.js, networking, CCNA, cybersecurity, Linux, and hands-on problem solving.",
   path: "/journal",

@@ -4,20 +4,19 @@ import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Jonas Lacandola Resume | Web Development, IT & Networking",
+  title: "Jonas Lacandola Resume | IT Support, Networking & Cybersecurity",
   description:
-    "Review Jonas Lacandola's resume covering web development, IT support, technical support, networking, cybersecurity training, certifications, and hands-on software projects.",
+    "Review Jonas Lacandola's resume covering IT support, technical support, networking, cybersecurity training, certifications, hands-on labs, and software projects.",
   path: "/resume",
   keywords: [
     "Jonas Lacandola resume",
-    "web developer resume",
-    "Laravel developer resume",
-    "PHP developer resume",
-    "React developer resume",
     "IT support resume",
     "technical support resume",
+    "help desk resume",
+    "network administrator resume",
     "networking resume",
     "cybersecurity resume",
+    "SOC analyst resume",
   ],
 });
 
@@ -69,8 +68,8 @@ export default async function ResumePage() {
           </section>
           <section>
             <p className="footer-label">Proof of work</p>
-            <p>Every project on the résumé has a case study with live links and source.</p>
-            <Link href="/projects" className="btn btn-ghost btn-sm">Browse projects</Link>
+            <p>The labs and certifications on my résumé are documented here, step by step.</p>
+            <Link href="/labs" className="btn btn-ghost btn-sm">Browse labs</Link>
           </section>
         </aside>
       </section>

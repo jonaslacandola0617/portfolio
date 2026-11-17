@@ -12,8 +12,9 @@ import type { SiteSettingsData } from "@/lib/db/queries/settings";
 import { cn } from "@/lib/utils";
 
 const nav = [
-  { label: "Work", href: "/projects" },
   { label: "Labs", href: "/labs" },
+  { label: "Projects", href: "/projects" },
+  { label: "Certifications", href: "/certifications" },
   { label: "Writing", href: "/journal" },
   { label: "Video", href: "/video" },
   { label: "About", href: "/about" },
@@ -148,9 +149,9 @@ function SiteFooter({ settings, showCta }: { settings: SiteSettingsData; showCta
     <footer className="site-footer">
       {showCta ? (
       <div className="site-footer-cta">
-        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to new roles</p>
+        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to IT support, network &amp; security roles</p>
         <h2>
-          Have a role or a project in mind?
+          Hiring for IT, networking or security?
           <span> Let&apos;s talk.</span>
         </h2>
         <div className="site-footer-actions">
@@ -169,10 +170,10 @@ function SiteFooter({ settings, showCta }: { settings: SiteSettingsData; showCta
         </div>
         <div>
           <p className="footer-label">Explore</p>
-          <Link href="/projects">Work</Link>
           <Link href="/labs">Labs</Link>
-          <Link href="/journal">Writing</Link>
           <Link href="/certifications">Certifications</Link>
+          <Link href="/projects">Projects</Link>
+          <Link href="/journal">Writing</Link>
         </div>
         <div>
           <p className="footer-label">Local time</p>
@@ -183,7 +184,7 @@ function SiteFooter({ settings, showCta }: { settings: SiteSettingsData; showCta
 
       <div className="site-footer-base">
         <span>© {year} {settings.name}</span>
-        <span>Designed &amp; built by hand — Next.js, TypeScript, PostgreSQL.</span>
+        <span>Designed &amp; built by me — self-managed CMS, PostgreSQL, Vercel.</span>
       </div>
     </footer>
   );

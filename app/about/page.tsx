@@ -7,18 +7,18 @@ import { buildStaticPageMetadata } from "@/lib/metadata";
 import { buildProfilePageJsonLd } from "@/lib/structured-data";
 
 export const metadata = buildStaticPageMetadata({
-  title: "About | Web Development, IT & Networking",
+  title: "About | IT Support, Networking & Cybersecurity",
   description:
-    "Learn about Jonas Lacandola's work across web development, IT support, networking, and cybersecurity, including full-stack applications, APIs, technical projects, and hands-on labs.",
+    "Learn about Jonas Lacandola's work across IT support, networking, and cybersecurity, including hands-on Cisco and Linux labs, certifications, and technical projects.",
   path: "/about",
   keywords: [
     "Jonas Lacandola",
-    "web developer portfolio",
-    "Laravel developer",
-    "PHP developer",
-    "React developer",
-    "Next.js developer",
     "IT support",
+    "network administrator",
+    "cybersecurity",
+    "technical support",
+    "CCNA",
+    "Linux",
     "networking portfolio",
     "cybersecurity portfolio",
   ],
@@ -45,12 +45,12 @@ export default async function AboutPage() {
       <section className="about-hero">
         <div>
           <p className="eyebrow"><span className="eyebrow-index">About</span>{settings.role}</p>
-          <h1>I like <em>understanding</em> how things work — then making them work better.</h1>
+          <h1>I like <em>understanding</em> how systems work — and fixing them when they don&apos;t.</h1>
           <p className="hero-lede">{settings.tagline}</p>
           <div className="hero-actions">
             <Link href="/resume" className="btn btn-solid"><FileText size={15} /> Résumé</Link>
             <Link href="/contact" className="btn btn-ghost">Get in touch <ArrowUpRight size={15} /></Link>
-            <Link href="/projects" className="btn btn-link">See my work <ArrowUpRight size={15} /></Link>
+            <Link href="/labs" className="btn btn-link">See my labs <ArrowUpRight size={15} /></Link>
           </div>
         </div>
         <figure className="about-portrait">

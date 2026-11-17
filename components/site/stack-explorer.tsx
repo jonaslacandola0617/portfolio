@@ -5,57 +5,67 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type StackProject = {
+export type EvidenceItem = {
   title: string;
-  slug: string;
-  category: string;
-  year: number;
-  technologies: string[];
-  live: boolean;
+  href: string;
+  kind: "Lab" | "Project" | "Certification";
+  year?: number;
+  /** Skills, tools and topics this item demonstrates. */
+  keys: string[];
+  live?: boolean;
 };
 
+const KIND_ORDER: EvidenceItem["kind"][] = ["Lab", "Certification", "Project"];
+
 /**
- * Lets a reviewer pick a technology and see exactly which shipped work uses it,
- * so every skill claim is one click from its evidence.
+ * Lets a reviewer pick a skill and see exactly which labs, credentials and
+ * projects demonstrate it, so every claim is one click from its evidence.
  */
-export function StackExplorer({ projects }: { projects: StackProject[] }) {
-  const technologies = useMemo(() => {
+export function StackExplorer({ items, preferred = [] }: { items: EvidenceItem[]; preferred?: string[] }) {
+  const sorted = useMemo(
+    () => [...items].sort((a, b) => KIND_ORDER.indexOf(a.kind) - KIND_ORDER.indexOf(b.kind)),
+    [items],
+  );
+
+  const skills = useMemo(() => {
     const counts = new Map<string, { label: string; count: number }>();
-    for (const project of projects) {
-      for (const technology of project.technologies) {
-        const key = technology.trim().toLowerCase();
-        if (!key) continue;
+    for (const item of items) {
+      const seen = new Set<string>();
+      for (const raw of item.keys) {
+        const key = raw.trim().toLowerCase();
+        if (!key || seen.has(key)) continue;
+        seen.add(key);
         const current = counts.get(key);
-        counts.set(key, { label: current?.label ?? technology.trim(), count: (current?.count ?? 0) + 1 });
+        counts.set(key, { label: current?.label ?? raw.trim(), count: (current?.count ?? 0) + 1 });
       }
     }
+    const boost = new Set(preferred.map((value) => value.toLowerCase()));
     return [...counts.entries()]
-      .map(([key, value]) => ({ key, ...value }))
-      .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
-      .slice(0, 18);
-  }, [projects]);
+      .map(([key, value]) => ({ key, ...value, boosted: boost.has(key) }))
+      .sort((a, b) => Number(b.boosted) - Number(a.boosted) || b.count - a.count || a.label.localeCompare(b.label))
+      .slice(0, 20);
+  }, [items, preferred]);
 
-  const [active, setActive] = useState<string | null>(technologies[0]?.key ?? null);
-  const matches = (project: StackProject) =>
-    active ? project.technologies.some((technology) => technology.trim().toLowerCase() === active) : true;
-  const matchCount = projects.filter(matches).length;
-  const activeLabel = technologies.find((technology) => technology.key === active)?.label;
+  const [active, setActive] = useState<string | null>(skills[0]?.key ?? null);
+  const matches = (item: EvidenceItem) => (active ? item.keys.some((key) => key.trim().toLowerCase() === active) : true);
+  const matchCount = items.filter(matches).length;
+  const activeLabel = skills.find((skill) => skill.key === active)?.label;
 
-  if (!technologies.length) return null;
+  if (!skills.length) return null;
 
   return (
     <div className="stack-explorer">
-      <div className="stack-chips" role="group" aria-label="Filter work by technology">
-        {technologies.map((technology) => (
+      <div className="stack-chips" role="group" aria-label="Filter evidence by skill">
+        {skills.map((skill) => (
           <button
-            key={technology.key}
+            key={skill.key}
             type="button"
-            aria-pressed={active === technology.key}
-            onClick={() => setActive(active === technology.key ? null : technology.key)}
-            className={cn("stack-chip", active === technology.key && "is-active")}
+            aria-pressed={active === skill.key}
+            onClick={() => setActive(active === skill.key ? null : skill.key)}
+            className={cn("stack-chip", active === skill.key && "is-active")}
           >
-            {technology.label}
-            <span>{technology.count}</span>
+            {skill.label}
+            <span>{skill.count}</span>
           </button>
         ))}
       </div>
@@ -63,21 +73,22 @@ export function StackExplorer({ projects }: { projects: StackProject[] }) {
       <div className="stack-results">
         <p className="stack-results-head" aria-live="polite">
           {activeLabel ? (
-            <><b>{activeLabel}</b> appears in {matchCount} of {projects.length} projects</>
+            <><b>{activeLabel}</b> shows up in {matchCount} of {items.length} labs, credentials and projects</>
           ) : (
-            <>All {projects.length} projects</>
+            <>Everything — {items.length} items</>
           )}
         </p>
         <ul>
-          {projects.map((project) => {
-            const on = matches(project);
+          {sorted.map((item) => {
+            const on = matches(item);
             return (
-              <li key={project.slug} className={cn("stack-row", !on && "is-dim")}>
-                <Link href={`/projects/${project.slug}`} tabIndex={on ? 0 : -1}>
-                  <span className="stack-row-title">{project.title}</span>
+              <li key={`${item.kind}:${item.href}:${item.title}`} className={cn("stack-row", !on && "is-dim")}>
+                <Link href={item.href} tabIndex={on ? 0 : -1}>
+                  <span className="stack-row-title">{item.title}</span>
                   <span className="stack-row-meta">
-                    {project.live ? <i className="live-dot" title="Live in production" /> : null}
-                    {project.category} · {project.year}
+                    {item.live ? <i className="live-dot" title="Live in production" /> : null}
+                    <span className={cn("kind-tag", `kind-${item.kind.toLowerCase()}`)}>{item.kind}</span>
+                    {item.year ? <span>{item.year}</span> : null}
                   </span>
                   <ArrowUpRight size={15} aria-hidden="true" />
                 </Link>

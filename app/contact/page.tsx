@@ -5,18 +5,15 @@ import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Contact Jonas Lacandola | Web Development, IT & Technical Roles",
+  title: "Contact Jonas Lacandola | IT Support, Networking & Cybersecurity Roles",
   description:
-    "Contact Jonas Lacandola about web development, PHP and Laravel, React and Next.js, IT support, technical support, networking, cybersecurity, and other technical opportunities in the Philippines or remote.",
+    "Contact Jonas Lacandola about IT support, help desk, network administration, cybersecurity, and other technical roles in the Philippines or remote.",
   path: "/contact",
   keywords: [
-    "web developer Philippines",
-    "Laravel developer Philippines",
-    "PHP developer Philippines",
-    "React developer Philippines",
-    "Next.js developer Philippines",
     "IT support Philippines",
     "technical support Philippines",
+    "help desk Philippines",
+    "network administrator Philippines",
     "networking Philippines",
     "cybersecurity Philippines",
     "Jonas Lacandola contact",
@@ -28,11 +25,11 @@ export default async function ContactPage() {
   return (
     <div className="contact-wrap">
       <section>
-        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to new roles · remote or on-site</p>
+        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to IT, network &amp; security roles · remote or on-site</p>
         <h1>Let&apos;s work <span>together.</span></h1>
         <p className="hero-lede">
-          Hiring for web development, IT support, or a broader technical role? Have a project that needs building?
-          Send a message — I read every one.
+          Hiring for IT support, help desk, network administration, or a security role?
+          Send a message — I read every one and reply quickly.
         </p>
 
         <div className="contact-direct">
