@@ -6,7 +6,7 @@ import { buildStaticPageMetadata } from "@/lib/metadata";
 import { formatDate } from "@/lib/utils";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Web Development, IT & Networking Learning Journal",
+  title: "IT, Networking & Security Learning Journal",
   description:
     "A practical technical learning journal covering web development, PHP, Laravel, React, Next.js, networking, CCNA, cybersecurity, Linux, and hands-on problem solving.",
   path: "/journal",
@@ -28,9 +28,9 @@ export default async function JournalPage() {
   return (
     <div>
       <PageHeader
-        index="04"
-        eyebrow="Thought Space"
-        title="Journal"
+        index="Writing"
+        eyebrow="Journal"
+        title="Notes from the work."
         description="Notes from web development, networking, security, and broader technical learning — practical, dated, and tied back to hands-on work."
       />
       <PageShell>

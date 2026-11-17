@@ -7,11 +7,11 @@
 export const siteConfig = {
   name: "Jonas Lacandola",
   initials: "JL",
-  role: "Web Developer · IT Support · Networking & Cybersecurity",
+  role: "IT Support · Network Administration · Cybersecurity",
   tagline:
-    "I build practical web applications, troubleshoot systems, and document what I learn across software, networking, and security.",
+    "I troubleshoot systems, configure and secure networks, and document every fix — with enough development experience to build the tools a team is missing.",
   location:
-    "Based in the Philippines · open to remote & on-site web development, IT support, and technical roles",
+    "Based in the Philippines · open to remote & on-site IT support, network administration, and cybersecurity roles",
   email: "jonas.lacandola.sec@protonmail.com",
   social: {
     github: "https://github.com/jonaslacandola-sec",
@@ -21,7 +21,7 @@ export const siteConfig = {
   resumeUrl: "/resume.pdf",
   siteUrl: "https://www.jonasl.online",
   description:
-    "Web development, IT support, networking, and cybersecurity portfolio by Jonas Lacandola — full-stack applications, APIs, technical projects, labs, and documented learning.",
+    "IT support, networking, and cybersecurity portfolio by Jonas Lacandola — documented Cisco and Linux labs, certifications, troubleshooting notes, and technical projects.",
 
   currentlyLearning: [
     { label: "CCNA — Module 8: Subnetting", href: "/certifications" },

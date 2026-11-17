@@ -1,64 +1,87 @@
-import { ArrowDown } from "lucide-react";
+import Link from "next/link";
+import { ArrowDown, ArrowUpRight, FileText } from "lucide-react";
+import { NetworkField } from "@/components/site/network-field";
+import { CopyEmail, LocalTime } from "@/components/site/interactive";
 import type { SiteSettingsData } from "@/lib/db/queries/settings";
+import { availability, headlineStats } from "@/lib/profile";
 
-function splitName(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return {
-    first: parts[0] ?? name,
-    rest: parts.slice(1).join(" "),
-  };
-}
+const WEB_DISCIPLINE = /web|developer|software|front|back|full.?stack/i;
 
-function firstSentence(value: string) {
-  const sentence = value.trim().match(/^.*?[.!?](?:\s|$)/)?.[0]?.trim();
-  return sentence || value.trim();
+/** IT, networking and security disciplines lead; development follows. */
+function disciplinesOf(role: string) {
+  const items = role.split(/\s*[·|,]\s*/).map((item) => item.trim()).filter(Boolean);
+  return [...items.filter((item) => !WEB_DISCIPLINE.test(item)), ...items.filter((item) => WEB_DISCIPLINE.test(item))];
 }
 
 export function HomeHero({
   settings,
-  learningPhilosophy,
-  currentYear,
+  certificationCount,
+  profileImageUrl,
 }: {
   settings: SiteSettingsData;
-  learningPhilosophy: string;
-  currentYear: number;
+  certificationCount: number;
+  profileImageUrl?: string | null;
 }) {
-  const name = splitName(settings.name);
-  const focusItems = settings.currentlyLearning.slice(0, 3);
-  const disciplines = settings.role.split(/\s*[·|]\s*/).map((item) => item.trim()).filter(Boolean).slice(0, 3);
+  const [firstName] = settings.name.split(" ");
+  const disciplines = disciplinesOf(settings.role);
+  const stats = [
+    ...headlineStats,
+    ...(certificationCount ? [{ value: String(certificationCount), label: certificationCount === 1 ? "Certificate completed" : "Certificates & training paths" }] : []),
+  ];
 
   return (
-    <section className="spatial-hero">
-      <div className="spatial-coordinate">PH / {currentYear}</div>
-      <div className="spatial-orbit" aria-hidden="true"><span /><i /><b /></div>
+    <section className="hero" aria-labelledby="hero-title">
+      <NetworkField className="hero-field" />
+      <div className="hero-grain" aria-hidden="true" />
 
-      <div className="spatial-name-wrap">
-        <div className="spatial-line" aria-hidden="true"><span /></div>
-        <h1 className="spatial-name">
-          <span>{name.first}</span>
-          {name.rest ? <span>{name.rest}</span> : null}
+      <div className="hero-inner">
+        <div className="hero-status">
+          <span className="status-pill"><span className="pulse-dot" aria-hidden="true" /> Open to {availability.roles}</span>
+          <span className="hero-availability">{availability.where} · {availability.shifts}</span>
+          <LocalTime />
+        </div>
+
+        <p className="hero-hello">
+          {profileImageUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={profileImageUrl} alt="" className="hero-avatar" width={44} height={44} />
+          ) : null}
+          <span>Hi, I&apos;m {firstName}.</span>
+        </p>
+        <h1 id="hero-title" className="hero-title">
+          <em>IT support</em> with a networking and security foundation.
         </h1>
+
+        <p className="hero-lede">
+          I spent seven months handling up to 40 healthcare cases a day at about 98% accuracy, under hard deadlines and
+          strict privacy rules. I build and fix PCs and printers, and I&apos;ve trained in Cisco networking and Google
+          cybersecurity. Now I want to do that work on an IT team.
+        </p>
+
+        {disciplines.length ? (
+          <ul className="hero-disciplines" aria-label="Disciplines">
+            {disciplines.map((item, index) => <li key={item} className={index === 0 ? "is-primary" : undefined}>{item}</li>)}
+          </ul>
+        ) : null}
+
+        <div className="hero-actions">
+          <Link href="#experience" className="btn btn-solid btn-lg">See my experience <ArrowDown size={16} /></Link>
+          <Link href="/resume" className="btn btn-ghost btn-lg"><FileText size={16} /> Résumé</Link>
+          <CopyEmail email={settings.email} label="Copy email" className="btn btn-link" />
+        </div>
       </div>
 
-      <div className="spatial-role">{settings.role.toUpperCase()}</div>
-      <div className="spatial-statement">
-        <p>{settings.tagline}</p>
-        <p className="serif">{firstSentence(learningPhilosophy)}</p>
-      </div>
-
-      {focusItems.length ? (
-        <div className="spatial-focus">
-          <small>NOW / 01</small>
-          {focusItems.map((item) => <span key={`${item.label}:${item.href}`}>{item.label}</span>)}
+      <dl className="hero-stats">
+        {stats.map((item) => (
+          <div key={item.label}>
+            <dt>{item.label}</dt>
+            <dd>{item.value}</dd>
+          </div>
+        ))}
+        <div className="hero-stats-link">
+          <Link href="/certifications">View certificates <ArrowUpRight size={15} /></Link>
         </div>
-      ) : null}
-
-      {disciplines.length ? (
-        <div className="spatial-disciplines">
-          {disciplines.map((discipline) => <span key={discipline}>{discipline.toUpperCase()}</span>)}
-        </div>
-      ) : null}
-      <a href="#selected-work" className="spatial-scroll" aria-label="Scroll to selected work"><ArrowDown size={17} /></a>
+      </dl>
     </section>
   );
 }

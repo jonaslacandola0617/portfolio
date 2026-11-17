@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk, Manrope, Playfair_Display, IBM_Plex_Mono } from "next/font/google";
+import { Bricolage_Grotesque, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import "./public-redesign.css";
 import "./public-pages.css";
 import "./public-components.css";
-import "./public-about.css";
 import "./public-finishing.css";
 import "./public-tokens.css";
 import "./public-tweaks.css";
 import "./public-modal-layer.css";
 import "./public-theme.css";
+import "./site.css";
 import "./admin-clean.css";
 import { cn } from "@/lib/utils";
 import { siteConfig } from "@/lib/site-config";
@@ -20,11 +20,10 @@ import { ToastProvider } from "@/components/ui/toast";
 import { getSearchIndex } from "@/lib/content";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
-const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], variable: "--font-space-grotesk", display: "swap" });
-const manrope = Manrope({ subsets: ["latin"], variable: "--font-manrope", display: "swap" });
-const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair", display: "swap" });
-const ibmPlexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-ibm-plex-mono", display: "swap" });
+// Three families only: a characterful display face, a neutral reading face, and a mono for data.
+const display = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display", display: "swap" });
+const sans = Geist({ subsets: ["latin"], variable: "--font-sans", display: "swap" });
+const mono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono", display: "swap" });
 
 export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
@@ -36,20 +35,18 @@ export async function generateMetadata(): Promise<Metadata> {
     description: siteConfig.description,
     keywords: [
       "Jonas Lacandola",
-      "web developer portfolio",
-      "Laravel developer",
-      "PHP developer",
-      "React developer",
-      "Next.js developer",
-      "TypeScript developer",
-      "full stack web development",
       "IT support",
       "technical support",
+      "help desk",
+      "network administrator",
       "networking portfolio",
       "cybersecurity portfolio",
-      "SQL",
-      "Linux",
+      "SOC analyst",
       "CCNA",
+      "Cisco",
+      "Linux",
+      "Google Cybersecurity Certificate",
+      "IT Philippines",
     ],
     authors: [{ name: settings.name }],
     creator: settings.name,
@@ -88,7 +85,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const [searchIndex, settings] = await Promise.all([getSearchIndex(), getSiteSettings()]);
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={cn(inter.variable, spaceGrotesk.variable, manrope.variable, playfair.variable, ibmPlexMono.variable, "font-body")}>
+      <body className={cn(display.variable, sans.variable, mono.variable, "font-body")}>
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <ToastProvider>
             <SearchProvider index={searchIndex}>

@@ -4,9 +4,12 @@ import { JsonLd } from "@/components/shared/json-ld";
 import { siteConfig } from "@/lib/site-config";
 import { getAllProjects, getAllArticles, getAllLabs } from "@/lib/content";
 import { getAboutPage } from "@/lib/db/queries/about";
+import { getAllCertificates } from "@/lib/db/queries/certificates";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 import { buildWebsiteJsonLd } from "@/lib/structured-data";
+
+const FEATURED_LIMIT = 2;
 
 export async function generateMetadata() {
   const settings = await getSiteSettings();
@@ -16,51 +19,62 @@ export async function generateMetadata() {
     path: "/",
     keywords: [
       settings.name,
-      "web developer portfolio",
-      "Laravel developer",
-      "PHP developer",
-      "React developer",
-      "Next.js developer",
-      "TypeScript developer",
-      "full stack web development",
       "IT support portfolio",
-      "technical support",
-      "networking portfolio",
+      "IT help desk",
+      "desktop support",
+      "network technician",
       "cybersecurity portfolio",
+      "SOC analyst portfolio",
+      "technical support",
+      "help desk",
+      "CCNA",
+      "Cisco networking labs",
+      "Linux",
+      "IT Philippines",
     ],
   });
 }
 
 export default async function HomePage() {
-  const [projects, articles, labs, settings, about] = await Promise.all([
+  const [projects, articles, labs, settings, certificates, about] = await Promise.all([
     getAllProjects(),
     getAllArticles(),
     getAllLabs(),
     getSiteSettings(),
+    getAllCertificates(),
     getAboutPage(),
   ]);
 
+  // Projects are the supporting act: CMS-selected showcase first, then live tools.
   const projectById = new Map(projects.map((project) => [project.recordId, project]));
-  const showcasedProjects = settings.homepageProjectIds
-    .slice(0, 2)
+  const pinned = settings.homepageProjectIds
     .map((id) => projectById.get(id))
     .filter((project) => project !== undefined);
-  const [primaryProject, secondaryProject] = showcasedProjects;
+  const pinnedIds = new Set(pinned.map((project) => project.recordId));
+  const remaining = projects
+    .filter((project) => !pinnedIds.has(project.recordId))
+    .sort((a, b) => Number(Boolean(b.frontmatter.liveSiteUrl)) - Number(Boolean(a.frontmatter.liveSiteUrl)));
+  const featured = [...pinned, ...remaining].slice(0, FEATURED_LIMIT);
 
-  const currentYear = new Date().getFullYear();
+  // IT, networking and security credentials first; general web-development courses after.
+  const isWebCourse = (issuer: string, name: string) => /udemy/i.test(issuer) || /react|node\.?js|express|javascript/i.test(name);
+  const itFirst = [...certificates].sort(
+    (a, b) => Number(isWebCourse(a.issuer, a.name)) - Number(isWebCourse(b.issuer, b.name)),
+  );
+
   const websiteJsonLd = buildWebsiteJsonLd({ name: settings.name, description: siteConfig.description });
 
   return (
-    <div className="public-home">
+    <div className="home">
       <JsonLd data={websiteJsonLd} />
-      <HomeHero settings={settings} learningPhilosophy={about.learningPhilosophy} currentYear={currentYear} />
+      <HomeHero settings={settings} certificationCount={certificates.length} profileImageUrl={about.profileImageUrl} />
       <HomeSections
-        primaryProject={primaryProject}
-        secondaryProject={secondaryProject}
-        featuredLab={labs[0]}
+        featuredProjects={featured}
+        projects={projects}
+        labs={labs}
+        certificates={itFirst}
         articles={articles}
         settings={settings}
-        currentYear={currentYear}
       />
     </div>
   );

@@ -1,25 +1,24 @@
 import Link from "next/link";
-import { ArrowUpRight, Download } from "lucide-react";
+import { ArrowUpRight, FileText } from "lucide-react";
 import { JsonLd } from "@/components/shared/json-ld";
-import { Tag } from "@/components/shared/tag";
 import { getAboutPage } from "@/lib/db/queries/about";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 import { buildProfilePageJsonLd } from "@/lib/structured-data";
 
 export const metadata = buildStaticPageMetadata({
-  title: "About | Web Development, IT & Networking",
+  title: "About | IT Support, Networking & Cybersecurity",
   description:
-    "Learn about Jonas Lacandola's work across web development, IT support, networking, and cybersecurity, including full-stack applications, APIs, technical projects, and hands-on labs.",
+    "Learn about Jonas Lacandola's work across IT support, networking, and cybersecurity, including hands-on Cisco and Linux labs, certifications, and technical projects.",
   path: "/about",
   keywords: [
     "Jonas Lacandola",
-    "web developer portfolio",
-    "Laravel developer",
-    "PHP developer",
-    "React developer",
-    "Next.js developer",
     "IT support",
+    "network administrator",
+    "cybersecurity",
+    "technical support",
+    "CCNA",
+    "Linux",
     "networking portfolio",
     "cybersecurity portfolio",
   ],
@@ -40,52 +39,55 @@ export default async function AboutPage() {
   });
 
   return (
-    <div className="about-space">
+    <div className="about">
       <JsonLd data={profileJsonLd} />
 
-      <section className="about-space-hero">
-        <div className="about-space-number">01 / ABOUT</div>
-        <div className="about-space-copy">
-          <p className="about-space-kicker">WEB DEVELOPER / TECHNICAL PROBLEM SOLVER</p>
-          <h1>I like <em>understanding</em> how things work.</h1>
-          <p>{settings.tagline}</p>
-          <div className="about-space-actions">
-            <Link href="/resume"><Download size={14}/> Résumé</Link>
-            <Link href="/contact">Contact <ArrowUpRight size={14}/></Link>
+      <section className="about-hero">
+        <div>
+          <p className="eyebrow"><span className="eyebrow-index">About</span>{settings.role}</p>
+          <h1>I like <em>understanding</em> how systems work — and fixing them when they don&apos;t.</h1>
+          <p className="hero-lede">{settings.tagline}</p>
+          <div className="hero-actions">
+            <Link href="/resume" className="btn btn-solid"><FileText size={15} /> Résumé</Link>
+            <Link href="/contact" className="btn btn-ghost">Get in touch <ArrowUpRight size={15} /></Link>
+            <Link href="/labs" className="btn btn-link">See my labs <ArrowUpRight size={15} /></Link>
           </div>
         </div>
-        <div className="about-space-profile">
+        <figure className="about-portrait">
           {about.profileImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={about.profileImageUrl} alt={`${settings.name} profile`} />
+            <img src={about.profileImageUrl} alt={`Portrait of ${settings.name}`} />
           ) : (
-            <span>{initials}</span>
+            <span aria-hidden="true">{initials}</span>
           )}
-          <i aria-hidden="true" /><b aria-hidden="true" />
-        </div>
+          <figcaption><span className="status-pill"><span className="pulse-dot" aria-hidden="true" /> Open to work</span></figcaption>
+        </figure>
       </section>
 
-      <section className="about-space-philosophy">
-        <div className="about-philosophy-label">HOW I LEARN</div>
-        <div className="about-philosophy-words"><span>Build.</span><span>Break.</span><span>Rebuild.</span></div>
-        <p>{about.learningPhilosophy}</p>
-      </section>
+      <blockquote className="about-quote">{about.quote}</blockquote>
 
-      <section className="about-space-grid">
+      <section className="about-grid">
         <article>
-          <small>01 / BACKGROUND</small>
+          <p className="eyebrow"><span className="eyebrow-index">01</span>Background</p>
+          <h2>Where I&apos;m coming from</h2>
           <p>{about.background}</p>
         </article>
         <article>
-          <small>02 / CURRENT FOCUS</small>
+          <p className="eyebrow"><span className="eyebrow-index">02</span>Focus</p>
+          <h2>What I work with</h2>
           <p>{about.currentFocus}</p>
-          <div className="about-focus-tags">{about.focusTags.map((item) => <Tag key={item}>{item}</Tag>)}</div>
+          {about.focusTags.length ? <ul className="chip-list">{about.focusTags.map((item) => <li key={item}>{item}</li>)}</ul> : null}
         </article>
         <article>
-          <small>03 / WHAT&apos;S NEXT</small>
+          <p className="eyebrow"><span className="eyebrow-index">03</span>How I work</p>
+          <h2>Build, break, rebuild</h2>
+          <p>{about.learningPhilosophy}</p>
+        </article>
+        <article>
+          <p className="eyebrow"><span className="eyebrow-index">04</span>Next</p>
+          <h2>What I&apos;m looking for</h2>
           <p>{about.whatsNext}</p>
         </article>
-        <blockquote>“{about.quote}”</blockquote>
       </section>
     </div>
   );

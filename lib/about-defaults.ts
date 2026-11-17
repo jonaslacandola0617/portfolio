@@ -26,5 +26,5 @@ export const defaultAboutPage: AboutPageValues = {
   learningPhilosophy:
     "I learn fastest by building. When I pick up a technology, I want to use it in a real project, run into the problems that come with it, troubleshoot them, and understand the decisions behind the solution. This portfolio documents both what I've built and what I learned while building it.",
   whatsNext:
-    "I'm looking for opportunities where I can contribute in web development, IT support, or broader technical roles while continuing to build stronger applications and deepen my networking and cybersecurity skills.",
+    "I'm looking for opportunities where I can contribute in IT support, network administration, or cybersecurity roles while continuing to deepen my networking and security skills.",
 };

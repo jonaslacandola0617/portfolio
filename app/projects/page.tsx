@@ -1,24 +1,22 @@
 import { PageHeader, PageShell } from "@/components/shared/page-header";
 import { ProjectIndex } from "@/components/shared/project-index";
 import { getAllProjects } from "@/lib/content";
+import { aiAssistedNote } from "@/lib/profile";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
-  title: "Web Development, IT & Networking Projects",
+  title: "IT, Networking & Software Projects",
   description:
     "Explore web applications, APIs, software projects, networking labs, and cybersecurity work by Jonas Lacandola, documented with objectives, implementation details, evidence, and lessons learned.",
   path: "/projects",
   keywords: [
-    "web development projects",
-    "Laravel projects",
-    "PHP projects",
-    "React projects",
-    "Next.js projects",
-    "full stack projects",
-    "API projects",
-    "IT portfolio projects",
+    "IT projects",
     "networking projects",
+    "network configuration projects",
     "cybersecurity projects",
+    "IT portfolio projects",
+    "web application projects",
+    "automation tools",
   ],
 });
 
@@ -27,10 +25,10 @@ export default async function ProjectsPage() {
   return (
     <div>
       <PageHeader
-        index="02"
-        eyebrow="Index"
-        title="Projects"
-        description="Applied work across web development, IT, networking, and security — each entry documented as a self-contained case study: objective, process, and evidence."
+        index="Projects"
+        eyebrow={`${projects.length} projects`}
+        title="Things I've set up and shipped."
+        description={aiAssistedNote.long}
       />
       <PageShell>
         {projects.length ? (
