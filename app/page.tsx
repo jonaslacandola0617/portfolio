@@ -56,6 +56,12 @@ export default async function HomePage() {
     .sort((a, b) => Number(Boolean(b.frontmatter.liveSiteUrl)) - Number(Boolean(a.frontmatter.liveSiteUrl)));
   const featured = [...pinned, ...remaining].slice(0, FEATURED_LIMIT);
 
+  // IT, networking and security credentials first; general web-development courses after.
+  const isWebCourse = (issuer: string, name: string) => /udemy/i.test(issuer) || /react|node\.?js|express|javascript/i.test(name);
+  const itFirst = [...certificates].sort(
+    (a, b) => Number(isWebCourse(a.issuer, a.name)) - Number(isWebCourse(b.issuer, b.name)),
+  );
+
   const websiteJsonLd = buildWebsiteJsonLd({ name: settings.name, description: siteConfig.description });
 
   return (
@@ -66,7 +72,7 @@ export default async function HomePage() {
         featuredProjects={featured}
         projects={projects}
         labs={labs}
-        certificates={certificates}
+        certificates={itFirst}
         articles={articles}
         settings={settings}
       />
