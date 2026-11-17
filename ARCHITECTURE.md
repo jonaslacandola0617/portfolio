@@ -50,6 +50,12 @@ The CMS lives under `/admin` and includes management for Projects, Labs, Journal
 
 GitHub OAuth protects the admin area. `ADMIN_EMAIL` is the single-admin allowlist. Protected layouts and mutations perform the actual session verification; middleware only provides an early redirect when no session cookie is present.
 
+## Homepage content
+
+The public homepage (hero, availability, numbers, experience, "What I bring" cards, Outside IT, section titles and visibility, and the AI-assisted wording) is stored as JSON in `SiteSettings.homepage` and edited at `/admin/homepage`. `lib/validations/homepage.ts` defines the shape; `lib/db/queries/homepage.ts` validates each part separately and falls back to `lib/homepage-defaults.ts` for anything missing or invalid. Projects carry an `aiAssisted` flag, set per project in the project editor.
+
+The admin dashboard runs content-health checks (`lib/services/content-health-service.ts`) for things employers notice: résumé, photo, certificate verify links, project screenshots, lab tags and drafts.
+
 ## Editor and rendering
 
 Long-form content is stored as TipTap/ProseMirror JSON. The admin editor uses `@tiptap/react`, while the public site renders the stored JSON with server-safe React components.

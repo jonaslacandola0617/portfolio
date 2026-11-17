@@ -28,6 +28,8 @@ export interface ProjectFrontmatter {
   githubUrl?: string;
   liveSiteUrl?: string;
   demoUrl?: string;
+  /** Shown publicly as an "AI-assisted build" badge. */
+  aiAssisted: boolean;
   downloads?: DownloadLink[];
 }
 

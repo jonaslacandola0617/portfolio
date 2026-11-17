@@ -5,6 +5,7 @@ import { siteConfig } from "@/lib/site-config";
 import { getAllProjects, getAllArticles, getAllLabs } from "@/lib/content";
 import { getAboutPage } from "@/lib/db/queries/about";
 import { getAllCertificates } from "@/lib/db/queries/certificates";
+import { getHomepageContent } from "@/lib/db/queries/homepage";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 import { buildWebsiteJsonLd } from "@/lib/structured-data";
@@ -36,13 +37,14 @@ export async function generateMetadata() {
 }
 
 export default async function HomePage() {
-  const [projects, articles, labs, settings, certificates, about] = await Promise.all([
+  const [projects, articles, labs, settings, certificates, about, content] = await Promise.all([
     getAllProjects(),
     getAllArticles(),
     getAllLabs(),
     getSiteSettings(),
     getAllCertificates(),
     getAboutPage(),
+    getHomepageContent(),
   ]);
 
   // Projects are the supporting act: CMS-selected showcase first, then live tools.
@@ -67,14 +69,14 @@ export default async function HomePage() {
   return (
     <div className="home">
       <JsonLd data={websiteJsonLd} />
-      <HomeHero settings={settings} certificationCount={certificates.length} profileImageUrl={about.profileImageUrl} />
+      <HomeHero settings={settings} content={content} certificationCount={certificates.length} profileImageUrl={about.profileImageUrl} />
       <HomeSections
+        content={content}
         featuredProjects={featured}
         projects={projects}
         labs={labs}
         certificates={itFirst}
         articles={articles}
-        settings={settings}
       />
     </div>
   );

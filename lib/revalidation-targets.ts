@@ -5,6 +5,7 @@ export type RevalidationContentType =
   | "certificate"
   | "skill"
   | "settings"
+  | "homepage"
   | "media"
   | "video"
   | "videoSettings";
@@ -32,6 +33,10 @@ const collectionTargets: Record<RevalidationContentType, RevalidationTarget[]> =
   settings: [
     { path: "/admin/settings" }, { path: "/admin/about" }, { path: "/" }, { path: "/about" }, { path: "/contact" },
     { path: "/resume" }, { path: "/", type: "layout" },
+  ],
+  homepage: [
+    { path: "/admin/homepage" }, { path: "/admin" }, { path: "/" },
+    { path: "/projects" }, { path: "/projects/[slug]", type: "page" },
   ],
   media: [{ path: "/admin/media" }],
   video: [

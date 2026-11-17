@@ -12,6 +12,8 @@ import { SubmitButton } from "@/components/admin/submit-button";
 import { FormMessage } from "@/components/admin/form-message";
 import { DeleteButton } from "@/components/admin/delete-button";
 import { SegmentedStatusField } from "@/components/admin/segmented-status-field";
+import { AdminCheckbox } from "@/components/admin/admin-checkbox";
+import Link from "next/link";
 import { slugify } from "@/lib/utils";
 import { useEditorFormCoordination } from "@/hooks/use-editor-form-coordination";
 import { useMetadataAction } from "@/hooks/use-metadata-action";
@@ -52,6 +54,7 @@ interface ProjectFormProps {
     githubUrl: string;
     liveSiteUrl: string;
     demoUrl: string;
+    aiAssisted: boolean;
     scheduledFor: string;
     content: JSONContent;
   };
@@ -301,12 +304,11 @@ export function ProjectForm({
                 </div>
               </div>
 
-              {isWebDevelopment && (
-                <div className="border border-cobalt/30 bg-cobalt/5 p-4">
+              <div className="border border-cobalt/30 bg-cobalt/5 p-4">
                   <div className="mb-4">
-                    <p className="label text-cobalt">Web Project Links</p>
+                    <p className="label text-cobalt">Public links</p>
                     <p className="mt-1 text-xs leading-5 text-text-dim">
-                      These links appear prominently in the public project sidebar for employers.
+                      Shown as buttons at the top of the public project page{isWebDevelopment ? " and on project cards" : ""}. Leave empty to hide.
                     </p>
                   </div>
                   <div className={mode === "edit" ? "grid gap-4" : "grid gap-4 sm:grid-cols-2"}>
@@ -333,8 +335,17 @@ export function ProjectForm({
                       <FieldError errors={state.errors?.demoUrl} />
                     </div>
                   </div>
+                  <label className="admin-check-row mt-4 flex cursor-pointer items-start gap-3 border-t border-cobalt/20 pt-4">
+                    <AdminCheckbox name="aiAssisted" defaultChecked={project?.aiAssisted ?? false} />
+                    <span>
+                      <span className="block text-sm font-medium text-text">AI-assisted build</span>
+                      <span className="mt-1 block text-xs leading-5 text-text-dim">
+                        Adds the &ldquo;AI-assisted build&rdquo; badge and your explanation to this project.
+                        Edit that wording in <Link href="/admin/homepage#projects" className="underline">Homepage › Projects</Link>.
+                      </span>
+                    </span>
+                  </label>
                 </div>
-              )}
 
               <SegmentedStatusField
                 name="publishStatus"

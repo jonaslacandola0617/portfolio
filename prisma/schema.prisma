@@ -131,6 +131,8 @@ model Project {
   githubUrl      String?
   liveSiteUrl    String?
   demoUrl        String?
+  /// Shown publicly as "AI-assisted build" with the homepage explanation.
+  aiAssisted     Boolean        @default(false)
   estimatedTime  String?
   completionDate DateTime
   publishedAt    DateTime?
@@ -264,5 +266,7 @@ model SiteSettings {
   currentlyLearning  Json
   aboutPage          Json?
   homepageProjectIds String[] @default([])
+  /// Editable homepage content (hero, experience, sections). Null = built-in defaults.
+  homepage           Json?
   updatedAt          DateTime @updatedAt
 }

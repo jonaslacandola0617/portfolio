@@ -14,7 +14,7 @@ import { getFirstContentImage, buildContentMetadata } from "@/lib/metadata";
 import { getRelatedContent } from "@/lib/related-content";
 import { buildArticleJsonLd } from "@/lib/structured-data";
 import { formatDateShort } from "@/lib/utils";
-import { AI_ASSISTED_CATEGORY, aiAssistedNote } from "@/lib/profile";
+import { getHomepageContent } from "@/lib/db/queries/homepage";
 
 type ProjectParams = Promise<{ slug: string }>;
 
@@ -47,11 +47,13 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
 
   const { frontmatter, content } = project;
   const currentPath = `/projects/${frontmatter.slug}`;
-  const [certifications, allProjects, related] = await Promise.all([
+  const [certifications, allProjects, related, homepage] = await Promise.all([
     getAllCertificates(),
     getAllProjects(),
     getRelatedContent({ currentPath, tags: frontmatter.tags, category: frontmatter.category }),
+    getHomepageContent(),
   ]);
+  const aiNote = homepage.aiNote;
   const cert = certifications.find((certificate) => certificate.id === frontmatter.relatedCertification);
   const idx = allProjects.findIndex((entry) => entry.frontmatter.slug === frontmatter.slug);
   const prev = idx > 0 ? allProjects[idx - 1] : undefined;
@@ -89,7 +91,7 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
           <span>{frontmatter.category}</span>
           <span>{year}</span>
           {frontmatter.liveSiteUrl ? <span className="work-live"><i className="live-dot" /> Live</span> : null}
-          {AI_ASSISTED_CATEGORY.test(frontmatter.category) ? <span>{aiAssistedNote.short}</span> : null}
+          {frontmatter.aiAssisted ? <span>{aiNote.short}</span> : null}
         </p>
         <h1>{frontmatter.title}</h1>
         <p className="case-summary">{frontmatter.summary}</p>
@@ -135,10 +137,10 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
         </article>
 
         <aside className="case-aside">
-          {AI_ASSISTED_CATEGORY.test(frontmatter.category) ? (
+          {frontmatter.aiAssisted ? (
             <section>
               <p className="footer-label">How this was built</p>
-              <p className="ai-note">{aiAssistedNote.long}</p>
+              <p className="ai-note">{aiNote.long}</p>
             </section>
           ) : null}
 

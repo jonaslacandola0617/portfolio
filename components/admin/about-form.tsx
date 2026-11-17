@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useFormState } from "react-dom";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { upload } from "@vercel/blob/client";
 import { Camera, Loader2, Save, Trash2 } from "lucide-react";
 import { updateAboutAction, updateAboutProfileImageAction } from "@/app/admin/(dashboard)/about/actions";
@@ -20,7 +19,7 @@ function FieldError({ errors }: { errors?: string[] }) {
 }
 
 export function AboutForm({ about }: { about: AboutPageValues }) {
-  const [state, action] = useFormState(updateAboutAction, initialState);
+  const [state, action] = useActionState(updateAboutAction, initialState);
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(about.profileImageUrl);
   const [uploading, setUploading] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -80,7 +79,7 @@ export function AboutForm({ about }: { about: AboutPageValues }) {
       <input type="hidden" name="profileImageUrl" value={profileImageUrl ?? ""} />
 
       <section className="admin-form-section">
-        <header><span>01</span><div><h2>Profile image</h2><p>The portrait used in the public About composition.</p></div></header>
+        <header><span>01</span><div><h2>Profile photo</h2><p>Shown on About and as a small round photo in the homepage hero. A clear, friendly headshot works best.</p></div></header>
         <div className="admin-form-section-body">
           <div className="admin-profile-field">
             <div className="admin-profile-preview">
@@ -107,33 +106,27 @@ export function AboutForm({ about }: { about: AboutPageValues }) {
       </section>
 
       <section className="admin-form-section">
-        <header><span>02</span><div><h2>Opening statement</h2><p>The lead idea displayed beside your profile image.</p></div></header>
+        <header><span>02</span><div><h2>Big quote</h2><p>The large line between the About header and the four cards. One or two sentences in your own voice.</p></div></header>
         <div className="admin-form-section-body">
-          <div className="admin-field"><label htmlFor="quote">Opening Quote</label><Textarea id="quote" name="quote" rows={3} defaultValue={about.quote} required /><FieldError errors={state.errors?.quote} /></div>
+          <div className="admin-field"><label htmlFor="quote">Quote</label><Textarea id="quote" name="quote" rows={3} defaultValue={about.quote} required /><FieldError errors={state.errors?.quote} /></div>
         </div>
       </section>
 
       <section className="admin-form-section">
-        <header><span>03</span><div><h2>Story</h2><p>Background, current direction, and the way you learn.</p></div></header>
+        <header><span>03</span><div><h2>The four cards</h2><p>Each box below is one card on the About page, in the same order.</p></div></header>
         <div className="admin-form-section-body admin-form-grid">
-          <div className="admin-field is-full"><label htmlFor="background">Background</label><Textarea id="background" name="background" rows={6} defaultValue={about.background} required /><FieldError errors={state.errors?.background} /></div>
-          <div className="admin-field"><label htmlFor="currentFocus">Current Focus</label><Textarea id="currentFocus" name="currentFocus" rows={5} defaultValue={about.currentFocus} required /><FieldError errors={state.errors?.currentFocus} /></div>
-          <div className="admin-field"><label htmlFor="learningPhilosophy">Learning Philosophy</label><Textarea id="learningPhilosophy" name="learningPhilosophy" rows={5} defaultValue={about.learningPhilosophy} required /><FieldError errors={state.errors?.learningPhilosophy} /></div>
-        </div>
-      </section>
-
-      <section className="admin-form-section">
-        <header><span>04</span><div><h2>Focus and next step</h2><p>Short labels and the direction you are moving toward.</p></div></header>
-        <div className="admin-form-section-body admin-form-grid">
-          <div className="admin-field"><label htmlFor="focusTags">Current Focus Tags</label><Textarea id="focusTags" name="focusTags" rows={6} defaultValue={about.focusTags.join("\n")} required /><p className="admin-field-note">One focused tag per line.</p><FieldError errors={state.errors?.focusTags} /></div>
-          <div className="admin-field"><label htmlFor="whatsNext">What&apos;s Next</label><Textarea id="whatsNext" name="whatsNext" rows={6} defaultValue={about.whatsNext} required /><FieldError errors={state.errors?.whatsNext} /></div>
+          <div className="admin-field"><label htmlFor="background">01 · Where I&apos;m coming from</label><Textarea id="background" name="background" rows={7} defaultValue={about.background} required /><p className="admin-field-note">Your background: work so far and how you got into IT.</p><FieldError errors={state.errors?.background} /></div>
+          <div className="admin-field"><label htmlFor="currentFocus">02 · What I work with</label><Textarea id="currentFocus" name="currentFocus" rows={7} defaultValue={about.currentFocus} required /><p className="admin-field-note">What you&apos;re focused on now: training, tools, labs.</p><FieldError errors={state.errors?.currentFocus} /></div>
+          <div className="admin-field is-full"><label htmlFor="focusTags">Tags under card 02</label><Textarea id="focusTags" name="focusTags" rows={4} defaultValue={about.focusTags.join("\n")} required /><p className="admin-field-note">One per line, up to 20. Shown as small chips.</p><FieldError errors={state.errors?.focusTags} /></div>
+          <div className="admin-field"><label htmlFor="learningPhilosophy">03 · How I work</label><Textarea id="learningPhilosophy" name="learningPhilosophy" rows={6} defaultValue={about.learningPhilosophy} required /><p className="admin-field-note">How you learn and solve problems.</p><FieldError errors={state.errors?.learningPhilosophy} /></div>
+          <div className="admin-field"><label htmlFor="whatsNext">04 · What I&apos;m looking for</label><Textarea id="whatsNext" name="whatsNext" rows={6} defaultValue={about.whatsNext} required /><p className="admin-field-note">The roles you want, where, and shifts. Be specific.</p><FieldError errors={state.errors?.whatsNext} /></div>
         </div>
       </section>
 
       {!state.success && state.message && <FormMessage variant="error">{state.message}</FormMessage>}
 
       <div className="admin-form-actions">
-        <span>Saving publishes these About details immediately.</span>
+        <span>Saving updates the live About page right away.</span>
         <button type="submit" className="admin-control-settings-save"><Save aria-hidden="true" /> Save About page</button>
       </div>
     </form>

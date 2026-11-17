@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useFormState, useFormStatus } from "react-dom";
+import { useActionState, useState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Check, FileQuestion, Globe, Code2, Network, ShieldCheck, GitMerge, BookOpen, GraduationCap, RefreshCcw, ClipboardList, Wrench, ScanSearch } from "lucide-react";
 import { createDraftFromTemplateAction, type CreateDraftState } from "@/app/admin/(dashboard)/draft-actions";
@@ -51,7 +51,7 @@ export function TemplateStart({
   cancelHref: string;
 }) {
   const [selected, setSelected] = useState(templates[1]?.id ?? templates[0]?.id ?? "");
-  const [state, action] = useFormState(createDraftFromTemplateAction, initialState);
+  const [state, action] = useActionState(createDraftFromTemplateAction, initialState);
   const selectedTemplate = templates.find((template) => template.id === selected) ?? templates[0];
 
   return (
