@@ -1,19 +1,5 @@
 /* Public theme layer: dark is deliberately flat; light keeps tonal separation. */
 
-.public-nav-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.public-theme-toggle > button {
-  width: 34px;
-  height: 34px;
-  border-color: color-mix(in srgb, var(--jp-ink) 22%, transparent) !important;
-  color: var(--jp-ink) !important;
-  background: transparent !important;
-}
-
 /* Dark mode uses one continuous dark canvas. Light text, rules and media are
    allowed; only UI/background surfaces are flattened to a single tone. */
 .dark .public-stage {
@@ -43,83 +29,21 @@
   color: #f4efe6;
 }
 
-.dark .public-stage .public-nav,
-.dark .public-stage .public-mobile-menu,
-.dark .public-stage .spatial-hero,
-.dark .public-stage .space-project,
-.dark .public-stage .space-project-dark,
-.dark .public-stage .space-project-light,
-.dark .public-stage .space-lab,
-.dark .public-stage .space-journal,
-.dark .public-stage .space-about,
-.dark .public-stage .space-footer,
-.dark .public-stage .about-space,
-.dark .public-stage .about-space-hero,
-.dark .public-stage .about-space-philosophy,
-.dark .public-stage .about-space-grid,
 .dark .public-stage .public-page-shell,
 .dark .public-stage .public-page-header,
-.dark .public-stage .public-about-page,
-.dark .public-stage .public-resume,
-.dark .public-stage .public-contact,
-.dark .public-stage .public-search-page,
 .dark .public-stage .public-not-found,
-.dark .public-stage .contact-space,
-.dark .public-stage .contact-space-hero,
-.dark .public-stage .resume-space,
-.dark .public-stage .resume-space-hero,
 .dark .public-stage .bg-surface,
 .dark .public-stage .bg-surface-2,
 .dark .public-stage .bg-surface-3 {
   background-color: #0b0c0c !important;
 }
 
-.dark .public-stage .about-space-hero,
-.dark .public-stage .about-space-philosophy,
-.dark .public-stage .about-space-grid {
-  color: #f4efe6;
-}
-
-.dark .public-stage .about-space-grid article > p {
-  color: #c2bcb3;
-}
-
-.dark .public-stage .public-nav {
-  background: rgba(11, 12, 12, .92) !important;
-  border-bottom-color: rgba(244, 239, 230, .16);
-}
-
-.dark .public-stage .space-project-dark,
-.dark .public-stage .space-project-light,
-.dark .public-stage .space-about,
-.dark .public-stage .public-mobile-menu,
-.dark .public-stage .contact-space-hero {
-  color: #f4efe6;
-}
-
-.dark .public-stage .contact-space-form form button[type="submit"],
-.dark .public-stage .space-footer-form form button[type="submit"] {
-  border-color: #f4efe6 !important;
-  background: #f4efe6 !important;
-  color: #0b0c0c !important;
-}
-
-.dark .public-stage .space-project-light .space-project-visual {
-  background-color: #0b0c0c;
-}
-
-.dark .public-stage .space-lab-tags span,
 .dark .public-stage input,
 .dark .public-stage textarea,
 .dark .public-stage select,
 .dark .public-stage button,
 .dark .public-stage [role="dialog"] {
   border-color: rgba(244, 239, 230, .2);
-}
-
-.dark .public-stage .space-journal-row:hover,
-.dark .public-stage .project-index-row:hover {
-  background: rgba(255,255,255,.025) !important;
 }
 
 .dark .public-stage .prose-docs {
@@ -132,25 +56,15 @@
   border-color: rgba(244,239,230,.18);
 }
 
-.dark .public-stage .public-not-found-code,
-.dark .public-stage .space-lab-number {
+.dark .public-stage .public-not-found-code {
   color: rgba(244,239,230,.055);
 }
 
-.dark .public-stage .public-not-found-line,
-.dark .public-stage .space-lab-grid .edge {
+.dark .public-stage .public-not-found-line {
   background: rgba(244,239,230,.42);
 }
 
 .dark .public-stage .public-not-found-line span {
-  box-shadow: 0 0 0 7px #0b0c0c;
-}
-
-.dark .public-stage .spatial-line span {
-  box-shadow: 0 0 0 8px #0b0c0c;
-}
-
-.dark .public-stage .contact-space-line span {
   box-shadow: 0 0 0 7px #0b0c0c;
 }
 
@@ -185,7 +99,3 @@
 .dark .public-search-input-wrap input { color:#f4efe6 !important; }
 .dark .public-search-input-wrap input::placeholder { color:#77736c !important; }
 .dark .public-search-overlay { background:rgba(0,0,0,.78) !important; }
-
-@media (max-width: 900px) {
-  .public-nav-actions { margin-left: auto; }
-}

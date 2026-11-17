@@ -28,9 +28,9 @@ export default async function JournalPage() {
   return (
     <div>
       <PageHeader
-        index="04"
-        eyebrow="Thought Space"
-        title="Journal"
+        index="Writing"
+        eyebrow="Journal"
+        title="Notes from the work."
         description="Notes from web development, networking, security, and broader technical learning — practical, dated, and tied back to hands-on work."
       />
       <PageShell>

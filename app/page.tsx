@@ -3,10 +3,12 @@ import { HomeSections } from "@/components/home/home-sections";
 import { JsonLd } from "@/components/shared/json-ld";
 import { siteConfig } from "@/lib/site-config";
 import { getAllProjects, getAllArticles, getAllLabs } from "@/lib/content";
-import { getAboutPage } from "@/lib/db/queries/about";
+import { getAllCertificates } from "@/lib/db/queries/certificates";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 import { buildWebsiteJsonLd } from "@/lib/structured-data";
+
+const FEATURED_LIMIT = 4;
 
 export async function generateMetadata() {
   const settings = await getSiteSettings();
@@ -32,35 +34,45 @@ export async function generateMetadata() {
 }
 
 export default async function HomePage() {
-  const [projects, articles, labs, settings, about] = await Promise.all([
+  const [projects, articles, labs, settings, certificates] = await Promise.all([
     getAllProjects(),
     getAllArticles(),
     getAllLabs(),
     getSiteSettings(),
-    getAboutPage(),
+    getAllCertificates(),
   ]);
 
+  // CMS-selected showcase first, then the most recent live products, then the rest.
   const projectById = new Map(projects.map((project) => [project.recordId, project]));
-  const showcasedProjects = settings.homepageProjectIds
-    .slice(0, 2)
+  const pinned = settings.homepageProjectIds
     .map((id) => projectById.get(id))
     .filter((project) => project !== undefined);
-  const [primaryProject, secondaryProject] = showcasedProjects;
+  const pinnedIds = new Set(pinned.map((project) => project.recordId));
+  const remaining = projects
+    .filter((project) => !pinnedIds.has(project.recordId))
+    .sort((a, b) => Number(Boolean(b.frontmatter.liveSiteUrl)) - Number(Boolean(a.frontmatter.liveSiteUrl)));
+  const featured = [...pinned, ...remaining].slice(0, FEATURED_LIMIT);
 
-  const currentYear = new Date().getFullYear();
+  const stats = {
+    live: projects.filter((project) => project.frontmatter.liveSiteUrl).length,
+    projects: projects.length,
+    labs: labs.length,
+    certifications: certificates.length,
+  };
+
   const websiteJsonLd = buildWebsiteJsonLd({ name: settings.name, description: siteConfig.description });
 
   return (
-    <div className="public-home">
+    <div className="home">
       <JsonLd data={websiteJsonLd} />
-      <HomeHero settings={settings} learningPhilosophy={about.learningPhilosophy} currentYear={currentYear} />
+      <HomeHero settings={settings} stats={stats} />
       <HomeSections
-        primaryProject={primaryProject}
-        secondaryProject={secondaryProject}
-        featuredLab={labs[0]}
+        featured={featured}
+        projects={projects}
+        labs={labs}
         articles={articles}
         settings={settings}
-        currentYear={currentYear}
+        certificationCount={certificates.length}
       />
     </div>
   );

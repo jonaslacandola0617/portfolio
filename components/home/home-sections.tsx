@@ -1,157 +1,193 @@
 import Link from "next/link";
-import { ArrowUpRight, Github, Linkedin } from "lucide-react";
-import { ContactForm } from "@/components/shared/contact-form";
+import { ArrowRight, ArrowUpRight, Code2, Github, LifeBuoy, ShieldCheck } from "lucide-react";
 import { ProjectVisualPreview } from "@/components/shared/project-visual-preview";
+import { Reveal, TiltFrame } from "@/components/site/interactive";
+import { StackExplorer, type StackProject } from "@/components/site/stack-explorer";
 import type { SiteSettingsData } from "@/lib/db/queries/settings";
-import { formatDate } from "@/lib/utils";
+import { formatDateShort } from "@/lib/utils";
 import type { ArticleFrontmatter, DbContentItem, LabFrontmatter, ProjectFrontmatter } from "@/types";
 
 type ProjectItem = DbContentItem<ProjectFrontmatter>;
 type LabItem = DbContentItem<LabFrontmatter>;
 type ArticleItem = DbContentItem<ArticleFrontmatter>;
 
+function SectionHead({ index, title, kicker, children }: { index: string; title: React.ReactNode; kicker: string; children?: React.ReactNode }) {
+  return (
+    <Reveal className="section-head">
+      <p className="eyebrow"><span className="eyebrow-index">{index}</span>{kicker}</p>
+      <h2>{title}</h2>
+      {children ? <div className="section-head-aside">{children}</div> : null}
+    </Reveal>
+  );
+}
+
+function FeaturedProject({ project, index }: { project: ProjectItem; index: number }) {
+  const { frontmatter: fm } = project;
+  const year = new Date(fm.completionDate).getFullYear();
+  const href = `/projects/${fm.slug}`;
+
+  return (
+    <Reveal as="article" className="work-item" delay={60}>
+      <Link href={href} className="work-media" aria-label={`Read the ${fm.title} case study`} tabIndex={-1}>
+        <TiltFrame>
+          <ProjectVisualPreview title={fm.title} liveSiteUrl={fm.liveSiteUrl} thumbnail={fm.thumbnail} priority={index === 0} />
+        </TiltFrame>
+        <span className="work-cursor" aria-hidden="true">View case study <ArrowUpRight size={14} /></span>
+      </Link>
+
+      <div className="work-copy">
+        <p className="work-meta">
+          <span className="work-index">{String(index + 1).padStart(2, "0")}</span>
+          <span>{fm.category}</span>
+          <span>{year}</span>
+          {fm.liveSiteUrl ? <span className="work-live"><i className="live-dot" /> Live</span> : null}
+        </p>
+        <h3><Link href={href}>{fm.title}</Link></h3>
+        <p className="work-summary">{fm.summary}</p>
+        {fm.technologies.length ? (
+          <ul className="chip-list" aria-label="Built with">
+            {fm.technologies.slice(0, 5).map((technology) => <li key={technology}>{technology}</li>)}
+          </ul>
+        ) : null}
+        <div className="work-actions">
+          <Link href={href} className="btn btn-solid btn-sm">Case study <ArrowRight size={14} /></Link>
+          {fm.liveSiteUrl ? <a href={fm.liveSiteUrl} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm">Live site <ArrowUpRight size={14} /></a> : null}
+          {fm.githubUrl ? <a href={fm.githubUrl} target="_blank" rel="noreferrer" className="btn btn-ghost btn-sm" aria-label={`${fm.title} source code`}><Github size={14} /> Code</a> : null}
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
 export function HomeSections({
-  primaryProject,
-  secondaryProject,
-  featuredLab,
+  featured,
+  projects,
+  labs,
   articles,
   settings,
-  currentYear,
+  certificationCount,
 }: {
-  primaryProject?: ProjectItem;
-  secondaryProject?: ProjectItem;
-  featuredLab?: LabItem;
+  featured: ProjectItem[];
+  projects: ProjectItem[];
+  labs: LabItem[];
   articles: ArticleItem[];
   settings: SiteSettingsData;
-  currentYear: number;
+  certificationCount: number;
 }) {
-  const focusItems = settings.currentlyLearning.slice(0, 3);
+  const webCount = projects.filter((project) => /web|software|app/i.test(project.frontmatter.category)).length;
+  const stackProjects: StackProject[] = projects.map(({ frontmatter: fm }) => ({
+    title: fm.title,
+    slug: fm.slug,
+    category: fm.category,
+    year: new Date(fm.completionDate).getFullYear(),
+    technologies: fm.technologies,
+    live: Boolean(fm.liveSiteUrl),
+  }));
+
+  const capabilities = [
+    {
+      icon: Code2,
+      title: "Build",
+      body: "Full-stack web applications — data model, API, interface and deployment — with Laravel and PHP, React, Next.js, TypeScript and SQL.",
+      evidence: webCount ? `${webCount} web projects` : "Selected work",
+      href: "/projects",
+    },
+    {
+      icon: LifeBuoy,
+      title: "Support",
+      body: "Hands-on IT and client support: troubleshooting methodically, documenting fixes, handling sensitive data, and explaining things in plain language.",
+      evidence: "Background & experience",
+      href: "/about",
+    },
+    {
+      icon: ShieldCheck,
+      title: "Secure",
+      body: "Networking and security foundations from Cisco labs, Linux practice and cybersecurity training — so what I build is reachable, segmented and safe.",
+      evidence: labs.length ? `${labs.length} documented labs` : "Certifications",
+      href: labs.length ? "/labs" : "/certifications",
+    },
+  ];
+
+  const learning = settings.currentlyLearning.slice(0, 4);
 
   return (
     <>
-      {primaryProject ? (
-        <section id="selected-work" className="space-project space-project-dark">
-          <div className="space-index">01</div>
-          <div className="space-project-copy">
-            <p className="space-eyebrow">SELECTED WORK / {primaryProject.frontmatter.category.toUpperCase()}</p>
-            <h2>{primaryProject.frontmatter.title}</h2>
-            <p className="space-project-summary">{primaryProject.frontmatter.summary}</p>
-            <div className="space-meta">
-              <span>BUILD</span><b>{primaryProject.frontmatter.technologies.slice(0, 3).join(" / ") || primaryProject.frontmatter.category}</b>
-              <span>STATUS</span><b>{primaryProject.frontmatter.status}</b>
-            </div>
-            <Link href={`/projects/${primaryProject.frontmatter.slug}`} className="space-link">Explore project <ArrowUpRight size={15} /></Link>
+      {featured.length ? (
+        <section id="work" className="section section-work" aria-labelledby="work-title">
+          <SectionHead index="01" kicker="Selected work" title={<span id="work-title">Shipped, in production, and documented.</span>}>
+            <p>Each project links to a case study covering the problem, the decisions, and what I&apos;d do differently.</p>
+            <Link href="/projects" className="text-link">All {projects.length} projects <ArrowUpRight size={15} /></Link>
+          </SectionHead>
+          <div className="work-list">
+            {featured.map((project, index) => <FeaturedProject key={project.recordId} project={project} index={index} />)}
           </div>
-          <Link href={`/projects/${primaryProject.frontmatter.slug}`} className="space-project-visual" aria-label={`Open ${primaryProject.frontmatter.title}`}>
-            <ProjectVisualPreview
-              title={primaryProject.frontmatter.title}
-              liveSiteUrl={primaryProject.frontmatter.liveSiteUrl}
-              thumbnail={primaryProject.frontmatter.thumbnail}
-            />
-          </Link>
-          <div className="bauhaus-axis axis-rust" aria-hidden="true"><span /></div>
         </section>
       ) : null}
 
-      {secondaryProject ? (
-        <section className="space-project space-project-light space-project-reverse">
-          <div className="space-index">02</div>
-          <Link href={`/projects/${secondaryProject.frontmatter.slug}`} className="space-project-visual" aria-label={`Open ${secondaryProject.frontmatter.title}`}>
-            <ProjectVisualPreview
-              title={secondaryProject.frontmatter.title}
-              liveSiteUrl={secondaryProject.frontmatter.liveSiteUrl}
-              thumbnail={secondaryProject.frontmatter.thumbnail}
-            />
-          </Link>
-          <div className="space-project-copy">
-            <p className="space-eyebrow">{secondaryProject.frontmatter.category.toUpperCase()} / EXPERIENCE</p>
-            <h2>{secondaryProject.frontmatter.title}</h2>
-            <p className="space-project-summary">{secondaryProject.frontmatter.summary}</p>
-            <div className="space-meta">
-              <span>TOOLS</span><b>{secondaryProject.frontmatter.technologies.slice(0, 3).join(" / ") || secondaryProject.frontmatter.category}</b>
-              <span>YEAR</span><b>{new Date(secondaryProject.frontmatter.completionDate).getFullYear()}</b>
-            </div>
-            <Link href={`/projects/${secondaryProject.frontmatter.slug}`} className="space-link">View project <ArrowUpRight size={15} /></Link>
-          </div>
-          <div className="bauhaus-axis axis-black" aria-hidden="true"><span /></div>
+      {stackProjects.length ? (
+        <section className="section section-stack" aria-labelledby="stack-title">
+          <SectionHead index="02" kicker="Stack" title={<span id="stack-title">Skills, with receipts.</span>}>
+            <p>Pick a technology to see exactly where I&apos;ve used it.</p>
+          </SectionHead>
+          <Reveal><StackExplorer projects={stackProjects} /></Reveal>
         </section>
       ) : null}
 
-      {featuredLab ? (
-        <section className="space-lab">
-          <div className="space-lab-grid" aria-hidden="true">
-            <span className="node n1" /><span className="node n2" /><span className="node n3" /><span className="node n4" />
-            <i className="edge e1" /><i className="edge e2" /><i className="edge e3" />
-          </div>
-          <div className="space-lab-copy">
-            <p className="space-eyebrow">LAB / 03</p>
-            <h2>{featuredLab.frontmatter.title}</h2>
-            <p>{featuredLab.frontmatter.purpose}</p>
-            <div className="space-lab-tags">{featuredLab.frontmatter.tags.slice(0, 4).map((tag) => <span key={tag}>{tag}</span>)}</div>
-            <Link href={`/labs/${featuredLab.frontmatter.slug}`} className="space-link">Enter lab <ArrowUpRight size={15} /></Link>
-          </div>
-          <div className="space-lab-number">03</div>
-        </section>
-      ) : null}
-
-      <section className="space-journal">
-        <div className="space-journal-head">
-          <span>04 / JOURNAL</span>
-          <p>Notes from learning, building, troubleshooting, and understanding systems more deeply.</p>
-        </div>
-        <div className="space-journal-list">
-          {articles.slice(0, 4).map((article, index) => (
-            <Link key={article.frontmatter.slug} href={`/journal/${article.frontmatter.slug}`} className="space-journal-row">
-              <span className="journal-number">{String(index + 1).padStart(2, "0")}</span>
-              <span className="journal-date">{formatDate(article.frontmatter.date)}</span>
-              <strong>{article.frontmatter.title}</strong>
-              <span className="journal-time">{article.readingTime}</span>
-              <ArrowUpRight size={15} />
-            </Link>
+      <section className="section section-capabilities" aria-labelledby="cap-title">
+        <SectionHead index="03" kicker="What I bring" title={<span id="cap-title">A developer who also understands the network underneath.</span>} />
+        <div className="cap-grid">
+          {capabilities.map((capability, index) => (
+            <Reveal key={capability.title} as="article" className="cap-card" delay={index * 80}>
+              <capability.icon size={22} strokeWidth={1.6} aria-hidden="true" />
+              <h3>{capability.title}</h3>
+              <p>{capability.body}</p>
+              <Link href={capability.href} className="text-link">{capability.evidence} <ArrowRight size={14} /></Link>
+            </Reveal>
           ))}
         </div>
-        <Link href="/journal" className="space-link journal-all">All journal entries <ArrowUpRight size={15} /></Link>
       </section>
 
-      <section className="space-about">
-        <div className="space-about-shape" aria-hidden="true"><span /><i /><b /></div>
-        <div className="space-about-copy">
-          <p className="space-eyebrow">05 / ABOUT</p>
-          <h2><span>Build.</span><span>Break.</span><span>Rebuild.</span></h2>
-          <p>{settings.tagline}</p>
-          <Link href="/about" className="space-link light-link">More about me <ArrowUpRight size={15} /></Link>
-        </div>
-        {focusItems.length ? (
-          <div className="space-about-now">
-            <small>CURRENTLY</small>
-            {focusItems.map((item) => <span key={`about:${item.label}:${item.href}`}>{item.label}</span>)}
-          </div>
-        ) : null}
-      </section>
+      <section className="section section-now" aria-labelledby="now-title">
+        <SectionHead index="04" kicker="Lately" title={<span id="now-title">Still learning in public.</span>} />
+        <div className="now-grid">
+          <Reveal className="now-writing">
+            <p className="footer-label">Recent writing</p>
+            {articles.length ? (
+              <ul>
+                {articles.slice(0, 4).map((article) => (
+                  <li key={article.frontmatter.slug}>
+                    <Link href={`/journal/${article.frontmatter.slug}`}>
+                      <time dateTime={article.frontmatter.date}>{formatDateShort(article.frontmatter.date)}</time>
+                      <span>{article.frontmatter.title}</span>
+                      <ArrowUpRight size={15} aria-hidden="true" />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : <p className="muted">New notes coming soon.</p>}
+            <Link href="/journal" className="text-link">All writing <ArrowUpRight size={15} /></Link>
+          </Reveal>
 
-      <footer className="space-footer">
-        <div className="space-footer-main">
-          <div className="space-footer-intro">
-            <div className="space-footer-question">What should I <em>build</em> next?</div>
-            <a href={`mailto:${settings.email}`} className="space-footer-email"><span className="footer-dot" />{settings.email}</a>
-          </div>
-          <div className="space-footer-form">
-            <div className="space-footer-form-head">
-              <span>06 / SEND A MESSAGE</span>
-              <p>Send a message directly from the website.</p>
+          <Reveal className="now-card" delay={80}>
+            <p className="footer-label">Currently</p>
+            {learning.length ? (
+              <ul>
+                {learning.map((item) => (
+                  <li key={`${item.label}:${item.href}`}><Link href={item.href}>{item.label}</Link></li>
+                ))}
+              </ul>
+            ) : null}
+            <div className="now-card-foot">
+              {labs[0] ? (
+                <Link href={`/labs/${labs[0].frontmatter.slug}`} className="text-link">Latest lab: {labs[0].frontmatter.title} <ArrowUpRight size={14} /></Link>
+              ) : null}
+              {certificationCount ? (
+                <Link href="/certifications" className="text-link">{certificationCount} certifications &amp; tracks <ArrowUpRight size={14} /></Link>
+              ) : null}
             </div>
-            <ContactForm />
-          </div>
+          </Reveal>
         </div>
-        <div className="space-footer-bottom">
-          <span>{settings.name.toUpperCase()} / {currentYear}</span>
-          <div>
-            <a href={settings.githubUrl} target="_blank" rel="noreferrer"><Github size={14} /> GitHub</a>
-            <a href={settings.linkedinUrl} target="_blank" rel="noreferrer"><Linkedin size={14} /> LinkedIn</a>
-            <Link href="/resume">Résumé</Link>
-          </div>
-        </div>
-      </footer>
+      </section>
     </>
   );
 }

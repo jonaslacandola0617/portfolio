@@ -64,8 +64,8 @@ export default async function TagPage({ params }: { params: TagParams }) {
   return (
     <div>
       <PageHeader
-        index="00"
-        eyebrow="Tag Index"
+        index="Tag"
+        eyebrow="Index"
         title={`#${tagged.tag.name}`}
         description={`Browse ${total} published ${total === 1 ? "entry" : "entries"} related to ${tagged.tag.name} across projects, labs, and the learning journal.`}
       />

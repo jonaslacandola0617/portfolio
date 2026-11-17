@@ -6,13 +6,14 @@ import { ContentRenderer } from "@/components/shared/content-renderer";
 import { JsonLd } from "@/components/shared/json-ld";
 import { RelatedContentLinks } from "@/components/shared/related-content-links";
 import { Tag } from "@/components/shared/tag";
-import { StatusBadge, DifficultyBadge } from "@/components/shared/status-badges";
+import { ProjectVisualPreview } from "@/components/shared/project-visual-preview";
+import { TiltFrame } from "@/components/site/interactive";
 import { getAllProjectSlugs, getAllProjects, getProjectBySlug } from "@/lib/content";
 import { getAllCertificates } from "@/lib/db/queries/certificates";
 import { getFirstContentImage, buildContentMetadata } from "@/lib/metadata";
 import { getRelatedContent } from "@/lib/related-content";
 import { buildArticleJsonLd } from "@/lib/structured-data";
-import { formatDate } from "@/lib/utils";
+import { formatDateShort } from "@/lib/utils";
 
 type ProjectParams = Promise<{ slug: string }>;
 
@@ -55,7 +56,6 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
   const prev = idx > 0 ? allProjects[idx - 1] : undefined;
   const next = idx >= 0 ? allProjects[idx + 1] : undefined;
   const projectImage = frontmatter.thumbnail ?? getFirstContentImage(content);
-  const isWebDevelopment = frontmatter.category.trim().replace(/\s+/g, " ").toLocaleLowerCase() === "web development";
   const projectJsonLd = buildArticleJsonLd({
     type: "TechArticle",
     title: frontmatter.title,
@@ -68,93 +68,108 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
     tags: [...frontmatter.tags, ...frontmatter.technologies],
   });
 
+  const year = new Date(frontmatter.completionDate).getFullYear();
+  const statusLabel = { completed: "Shipped", "in-progress": "In progress", planned: "Planned" }[frontmatter.status] ?? frontmatter.status;
+  const facts = [
+    { label: "Type", value: frontmatter.category },
+    { label: "Status", value: statusLabel },
+    { label: "Completed", value: formatDateShort(frontmatter.completionDate) },
+    { label: "Stack", value: frontmatter.technologies.slice(0, 3).join(", ") || "—" },
+  ];
+
   return (
-    <div className="public-project-detail">
+    <div className="case-study">
       <JsonLd data={projectJsonLd} />
 
-      <header className="public-detail-hero">
-        <div className="public-detail-hero-inner">
-          <Link href="/projects" className="public-detail-back"><ArrowLeft size={12} /> All work</Link>
-          <div className="public-detail-kicker">
-            <span>{String(Math.max(0, idx) + 1).padStart(2, "0")} / PROJECT</span>
-            <span className="accent">{frontmatter.category}</span>
-            <StatusBadge status={frontmatter.status} />
+      <header className="case-hero">
+        <Link href="/projects" className="case-back"><ArrowLeft size={15} /> All work</Link>
+        <p className="work-meta">
+          <span className="work-index">Case study {String(Math.max(0, idx) + 1).padStart(2, "0")}</span>
+          <span>{frontmatter.category}</span>
+          <span>{year}</span>
+          {frontmatter.liveSiteUrl ? <span className="work-live"><i className="live-dot" /> Live</span> : null}
+        </p>
+        <h1>{frontmatter.title}</h1>
+        <p className="case-summary">{frontmatter.summary}</p>
+        {(frontmatter.liveSiteUrl || frontmatter.demoUrl || frontmatter.githubUrl) ? (
+          <div className="case-actions">
+            {frontmatter.liveSiteUrl ? <a href={frontmatter.liveSiteUrl} target="_blank" rel="noreferrer" className="btn btn-solid">Visit live site <ExternalLink size={15} /></a> : null}
+            {frontmatter.demoUrl ? <a href={frontmatter.demoUrl} target="_blank" rel="noreferrer" className="btn btn-ghost">Watch demo <ExternalLink size={15} /></a> : null}
+            {frontmatter.githubUrl ? <a href={frontmatter.githubUrl} target="_blank" rel="noreferrer" className="btn btn-ghost"><Github size={15} /> Source code</a> : null}
           </div>
-          <h1 className="public-detail-title">{frontmatter.title}</h1>
-          <p className="public-detail-summary">{frontmatter.summary}</p>
-          <div className="public-detail-line" aria-hidden="true"><span /></div>
-        </div>
+        ) : null}
+        <dl className="case-facts">
+          {facts.map((fact) => (
+            <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>
+          ))}
+        </dl>
       </header>
 
-      {projectImage ? <div className="public-project-image" style={{ backgroundImage: `url(${projectImage})` }} aria-hidden="true" /> : null}
+      {projectImage ? (
+        <div className="case-media">
+          <TiltFrame>
+            <ProjectVisualPreview title={frontmatter.title} liveSiteUrl={frontmatter.liveSiteUrl} thumbnail={projectImage} priority />
+          </TiltFrame>
+        </div>
+      ) : null}
 
-      <div className="public-detail-layout">
-        <article className="public-detail-main">
+      <div className="case-layout">
+        <article className="case-main">
           <ContentRenderer
             content={content}
             context={{ model: "Project", id: project.recordId, slug: frontmatter.slug, title: frontmatter.title }}
           />
 
-          <div className="public-detail-tech">
-            <p>Technologies</p>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {frontmatter.technologies.map((technology) => <Tag key={technology}>{technology}</Tag>)}
-            </div>
-          </div>
-
           <RelatedContentLinks items={related} />
 
-          <div className="public-detail-nav">
+          <nav className="case-pager" aria-label="More projects">
             {prev ? (
-              <Link href={`/projects/${prev.frontmatter.slug}`}><ArrowLeft size={14} /><span>{prev.frontmatter.title}</span></Link>
+              <Link href={`/projects/${prev.frontmatter.slug}`}><small><ArrowLeft size={13} /> Previous</small><strong>{prev.frontmatter.title}</strong></Link>
             ) : <span />}
             {next ? (
-              <Link href={`/projects/${next.frontmatter.slug}`}><span>{next.frontmatter.title}</span><ArrowRight size={14} /></Link>
+              <Link href={`/projects/${next.frontmatter.slug}`}><small>Next <ArrowRight size={13} /></small><strong>{next.frontmatter.title}</strong></Link>
             ) : null}
-          </div>
+          </nav>
         </article>
 
-        <aside className="public-detail-aside">
-          <section className="public-detail-aside-section">
-            <p>Project record</p>
-            <dl>
-              <div><dt>Difficulty</dt><dd><DifficultyBadge difficulty={frontmatter.difficulty} /></dd></div>
-              <div><dt>Est. time</dt><dd className="font-mono">{frontmatter.estimatedTime}</dd></div>
-              <div><dt>Completed</dt><dd className="font-mono">{formatDate(frontmatter.completionDate)}</dd></div>
-              <div><dt>Updated</dt><dd className="font-mono">{formatDate(frontmatter.lastUpdated)}</dd></div>
-            </dl>
-          </section>
-
-          {isWebDevelopment && (frontmatter.liveSiteUrl || frontmatter.demoUrl) ? (
-            <section className="public-detail-aside-section">
-              <p>Experience</p>
-              {frontmatter.liveSiteUrl ? <a href={frontmatter.liveSiteUrl} target="_blank" rel="noreferrer" className="public-detail-resource">Open live site <ExternalLink size={13} /></a> : null}
-              {frontmatter.demoUrl ? <a href={frontmatter.demoUrl} target="_blank" rel="noreferrer" className="public-detail-resource">View demo <ExternalLink size={13} /></a> : null}
+        <aside className="case-aside">
+          {frontmatter.technologies.length ? (
+            <section>
+              <p className="footer-label">Built with</p>
+              <ul className="chip-list">{frontmatter.technologies.map((technology) => <li key={technology}>{technology}</li>)}</ul>
             </section>
           ) : null}
 
-          <section className="public-detail-aside-section">
-            <p>Tags</p>
-            <div className="flex flex-wrap gap-1.5">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
-          </section>
+          {frontmatter.skills.length ? (
+            <section>
+              <p className="footer-label">Skills applied</p>
+              <ul className="chip-list">{frontmatter.skills.map((skill) => <li key={skill}>{skill}</li>)}</ul>
+            </section>
+          ) : null}
 
-          <section className="public-detail-aside-section">
-            <p>Skills practiced</p>
-            <div className="flex flex-wrap gap-1.5">{frontmatter.skills.map((skill) => <Tag key={skill}>{skill}</Tag>)}</div>
-          </section>
+          {frontmatter.tags.length ? (
+            <section>
+              <p className="footer-label">Topics</p>
+              <div className="flex flex-wrap gap-1.5">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
+            </section>
+          ) : null}
 
-          {(frontmatter.githubUrl || frontmatter.downloads?.length || cert) ? (
-            <section className="public-detail-aside-section">
-              <p>Resources</p>
-              {frontmatter.githubUrl ? <a href={frontmatter.githubUrl} target="_blank" rel="noreferrer" className="public-detail-resource"><Github size={13} /> GitHub repository</a> : null}
+          {(frontmatter.downloads?.length || cert) ? (
+            <section>
+              <p className="footer-label">Resources</p>
               {frontmatter.downloads?.map((download) => (
-                <a key={`${download.label}-${download.href}`} href={download.href} className="public-detail-resource" download>
-                  {download.type === "config" ? <FileText size={13} /> : <Download size={13} />}{download.label}
+                <a key={`${download.label}-${download.href}`} href={download.href} className="case-resource" download>
+                  {download.type === "config" ? <FileText size={14} /> : <Download size={14} />}{download.label}
                 </a>
               ))}
-              {cert ? <Link href="/certifications" className="public-detail-resource">{cert.name}</Link> : null}
+              {cert ? <Link href="/certifications" className="case-resource">{cert.name}</Link> : null}
             </section>
           ) : null}
+
+          <section>
+            <p className="footer-label">Interested?</p>
+            <Link href="/contact" className="btn btn-solid btn-sm">Talk to me about this</Link>
+          </section>
         </aside>
       </div>
     </div>

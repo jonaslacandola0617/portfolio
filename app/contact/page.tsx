@@ -1,5 +1,6 @@
 import { ArrowUpRight, Github, Linkedin, Mail } from "lucide-react";
 import { ContactForm } from "@/components/shared/contact-form";
+import { CopyEmail, LocalTime } from "@/components/site/interactive";
 import { getSiteSettings } from "@/lib/db/queries/settings";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
@@ -25,27 +26,31 @@ export const metadata = buildStaticPageMetadata({
 export default async function ContactPage() {
   const settings = await getSiteSettings();
   return (
-    <div className="contact-space">
-      <section className="contact-space-hero">
-        <span className="contact-space-index">07 / CONTACT</span>
-        <h1>What should we <em>build</em> next?</h1>
-        <p>Open to web development, IT support, technical support, networking, cybersecurity, and broader technical opportunities — remote or on-site.</p>
-        <div className="contact-space-line" aria-hidden="true"><span /></div>
-      </section>
+    <div className="contact-wrap">
+      <section>
+        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to new roles · remote or on-site</p>
+        <h1>Let&apos;s work <span>together.</span></h1>
+        <p className="hero-lede">
+          Hiring for web development, IT support, or a broader technical role? Have a project that needs building?
+          Send a message — I read every one.
+        </p>
 
-      <section className="contact-space-body">
-        <div className="contact-space-form">
-          <div className="contact-space-label">SEND A MESSAGE</div>
-          <ContactForm />
+        <div className="contact-direct">
+          <a href={`mailto:${settings.email}`}><span><Mail size={16} /> {settings.email}</span><ArrowUpRight size={16} /></a>
+          <a href={settings.linkedinUrl} target="_blank" rel="noreferrer"><span><Linkedin size={16} /> LinkedIn</span><ArrowUpRight size={16} /></a>
+          <a href={settings.githubUrl} target="_blank" rel="noreferrer"><span><Github size={16} /> GitHub</span><ArrowUpRight size={16} /></a>
         </div>
 
-        <aside className="contact-space-links">
-          <span>DIRECT</span>
-          <a href={`mailto:${settings.email}`}><Mail size={14}/><strong>{settings.email}</strong><ArrowUpRight size={13}/></a>
-          <a href={settings.linkedinUrl} target="_blank" rel="noreferrer"><Linkedin size={14}/><strong>LinkedIn</strong><ArrowUpRight size={13}/></a>
-          <a href={settings.githubUrl} target="_blank" rel="noreferrer"><Github size={14}/><strong>GitHub</strong><ArrowUpRight size={13}/></a>
-          <div className="contact-space-response"><small>RESPONSE</small><p>Typically within 1–2 business days.</p></div>
-        </aside>
+        <div className="hero-actions">
+          <CopyEmail email={settings.email} label="Copy email address" className="btn btn-ghost btn-sm" />
+          <LocalTime />
+        </div>
+        <p className="footer-note" style={{ marginTop: 16 }}>Usually replies within 1–2 business days.</p>
+      </section>
+
+      <section className="contact-form-card" aria-labelledby="contact-form-title">
+        <h2 id="contact-form-title">Send a message</h2>
+        <ContactForm />
       </section>
     </div>
   );

@@ -1,13 +1,5 @@
 /* Component-level public styling for the approved spatial system. */
 
-.public-project-image {
-  width: min(100%, 1500px);
-  aspect-ratio: 16 / 7;
-  margin: 0 auto;
-  background: #151616 center/cover no-repeat;
-  border-bottom: 1px solid var(--jp-line);
-}
-
 .lab-index-row {
   position: relative;
   display: grid;
@@ -45,11 +37,9 @@
 
 /* Existing tag/status atoms are kept for data familiarity but visually quieted. */
 .public-stage [class*="rounded-full"] { border-radius:999px !important; }
-.public-stage .public-detail-main [class*="border-border"],
 .public-stage .public-detail-aside [class*="border-border"] { box-shadow:none; }
 
 /* Related work behaves like continuation, not a card gallery. */
-.public-stage .public-detail-main [data-related-content],
 .public-stage .public-journal-layout [data-related-content],
 .public-stage .public-lab-layout [data-related-content] { margin-top:64px; }
 
@@ -58,14 +48,12 @@
 .public-stage .public-detail-aside > div { background:transparent !important; box-shadow:none !important; }
 
 @media(max-width:900px){
-  .public-project-image { aspect-ratio:16/9; }
   .lab-index-row { grid-template-columns:38px minmax(0,1fr) 20px; }
   .lab-index-marker { display:none; }
   .journal-index-row { grid-template-columns:34px minmax(0,1fr) 18px; }
   .journal-index-row > time,.journal-index-time { display:none; }
 }
 @media(max-width:620px){
-  .public-project-image { aspect-ratio:4/3; }
   .lab-index-row { grid-template-columns:25px minmax(0,1fr) 17px; gap:10px; padding:27px 0; }
   .lab-index-number { font-size:20px; }
   .lab-index-copy h3 { font-size:34px; }

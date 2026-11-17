@@ -27,10 +27,10 @@ export default async function ProjectsPage() {
   return (
     <div>
       <PageHeader
-        index="02"
-        eyebrow="Index"
-        title="Projects"
-        description="Applied work across web development, IT, networking, and security — each entry documented as a self-contained case study: objective, process, and evidence."
+        index="Work"
+        eyebrow={`${projects.length} projects`}
+        title="Things I've built and shipped."
+        description="Production web apps, client sites and infrastructure work. Every entry is a case study: the problem, the decisions, and the result."
       />
       <PageShell>
         {projects.length ? (

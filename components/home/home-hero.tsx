@@ -1,64 +1,77 @@
-import { ArrowDown } from "lucide-react";
+import Link from "next/link";
+import { ArrowDown, ArrowUpRight, FileText } from "lucide-react";
+import { NetworkField } from "@/components/site/network-field";
+import { CopyEmail, LocalTime } from "@/components/site/interactive";
 import type { SiteSettingsData } from "@/lib/db/queries/settings";
 
-function splitName(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  return {
-    first: parts[0] ?? name,
-    rest: parts.slice(1).join(" "),
-  };
+export type HeroStats = {
+  live: number;
+  projects: number;
+  labs: number;
+  certifications: number;
+};
+
+function disciplinesOf(role: string) {
+  return role.split(/\s*[·|,]\s*/).map((item) => item.trim()).filter(Boolean);
 }
 
-function firstSentence(value: string) {
-  const sentence = value.trim().match(/^.*?[.!?](?:\s|$)/)?.[0]?.trim();
-  return sentence || value.trim();
-}
+export function HomeHero({ settings, stats }: { settings: SiteSettingsData; stats: HeroStats }) {
+  const [primary = "Web developer", ...secondary] = disciplinesOf(settings.role);
+  const primaryLabel = primary.charAt(0).toUpperCase() + primary.slice(1).toLowerCase();
 
-export function HomeHero({
-  settings,
-  learningPhilosophy,
-  currentYear,
-}: {
-  settings: SiteSettingsData;
-  learningPhilosophy: string;
-  currentYear: number;
-}) {
-  const name = splitName(settings.name);
-  const focusItems = settings.currentlyLearning.slice(0, 3);
-  const disciplines = settings.role.split(/\s*[·|]\s*/).map((item) => item.trim()).filter(Boolean).slice(0, 3);
+  const statItems = [
+    { value: stats.live, label: stats.live === 1 ? "Product live in production" : "Products live in production" },
+    { value: stats.projects, label: "Documented case studies" },
+    { value: stats.labs, label: "Networking & security labs" },
+    { value: stats.certifications, label: "Certifications & tracks" },
+  ].filter((item) => item.value > 0);
 
   return (
-    <section className="spatial-hero">
-      <div className="spatial-coordinate">PH / {currentYear}</div>
-      <div className="spatial-orbit" aria-hidden="true"><span /><i /><b /></div>
+    <section className="hero" aria-labelledby="hero-title">
+      <NetworkField className="hero-field" />
+      <div className="hero-grain" aria-hidden="true" />
 
-      <div className="spatial-name-wrap">
-        <div className="spatial-line" aria-hidden="true"><span /></div>
-        <h1 className="spatial-name">
-          <span>{name.first}</span>
-          {name.rest ? <span>{name.rest}</span> : null}
+      <div className="hero-inner">
+        <div className="hero-status">
+          <span className="status-pill"><span className="pulse-dot" aria-hidden="true" /> Available for work</span>
+          <LocalTime />
+        </div>
+
+        <p className="hero-hello">Hi, I&apos;m {settings.name}.</p>
+        <h1 id="hero-title" className="hero-title">
+          {primaryLabel} who <em>ships</em> real products
+          <span className="hero-title-soft"> — and keeps the systems behind them running.</span>
         </h1>
+
+        <p className="hero-lede">{settings.tagline}</p>
+
+        {secondary.length ? (
+          <ul className="hero-disciplines" aria-label="Disciplines">
+            <li className="is-primary">{primary}</li>
+            {secondary.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+        ) : null}
+
+        <div className="hero-actions">
+          <Link href="#work" className="btn btn-solid btn-lg">See selected work <ArrowDown size={16} /></Link>
+          <Link href="/resume" className="btn btn-ghost btn-lg"><FileText size={16} /> Résumé</Link>
+          <CopyEmail email={settings.email} label="Copy email" className="btn btn-link" />
+        </div>
       </div>
 
-      <div className="spatial-role">{settings.role.toUpperCase()}</div>
-      <div className="spatial-statement">
-        <p>{settings.tagline}</p>
-        <p className="serif">{firstSentence(learningPhilosophy)}</p>
-      </div>
-
-      {focusItems.length ? (
-        <div className="spatial-focus">
-          <small>NOW / 01</small>
-          {focusItems.map((item) => <span key={`${item.label}:${item.href}`}>{item.label}</span>)}
-        </div>
+      {statItems.length ? (
+        <dl className="hero-stats">
+          {statItems.map((item) => (
+            <div key={item.label}>
+              <dt>{item.label}</dt>
+              <dd>{String(item.value).padStart(2, "0")}</dd>
+            </div>
+          ))}
+          <div className="hero-stats-link">
+            <Link href="/projects">Browse everything <ArrowUpRight size={15} /></Link>
+          </div>
+        </dl>
       ) : null}
-
-      {disciplines.length ? (
-        <div className="spatial-disciplines">
-          {disciplines.map((discipline) => <span key={discipline}>{discipline.toUpperCase()}</span>)}
-        </div>
-      ) : null}
-      <a href="#selected-work" className="spatial-scroll" aria-label="Scroll to selected work"><ArrowDown size={17} /></a>
     </section>
   );
 }

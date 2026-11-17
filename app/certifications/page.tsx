@@ -25,8 +25,8 @@ export default async function CertificationsPage() {
   return (
     <div>
       <PageHeader
-        index="05"
-        eyebrow="Credential Record"
+        index="Credentials"
+        eyebrow="Verified learning"
         title="Certifications"
         description="Structured learning and professional credentials, kept alongside the work and labs where I apply what I learned."
       />

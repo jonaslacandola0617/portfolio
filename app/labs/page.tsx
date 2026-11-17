@@ -26,9 +26,9 @@ export default async function LabsPage() {
   return (
     <div>
       <PageHeader
-        index="03"
-        eyebrow="Lab Notebook"
-        title="Labs"
+        index="Labs"
+        eyebrow="Networking & security"
+        title="Hands-on lab notebook."
         description="A chronological log of hands-on labs — purpose, commands, what went wrong, and what fixed it. Logged close to when the work happened, mistakes included."
       />
       <PageShell>
