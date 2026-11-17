@@ -8,14 +8,14 @@ import { cn } from "@/lib/utils";
 export type EvidenceItem = {
   title: string;
   href: string;
-  kind: "Lab" | "Project" | "Certification";
+  kind: "Experience" | "Lab" | "Project" | "Certification";
   year?: number;
   /** Skills, tools and topics this item demonstrates. */
   keys: string[];
   live?: boolean;
 };
 
-const KIND_ORDER: EvidenceItem["kind"][] = ["Lab", "Certification", "Project"];
+const KIND_ORDER: EvidenceItem["kind"][] = ["Experience", "Lab", "Certification", "Project"];
 
 /**
  * Lets a reviewer pick a skill and see exactly which labs, credentials and
@@ -73,7 +73,7 @@ export function StackExplorer({ items, preferred = [] }: { items: EvidenceItem[]
       <div className="stack-results">
         <p className="stack-results-head" aria-live="polite">
           {activeLabel ? (
-            <><b>{activeLabel}</b> shows up in {matchCount} of {items.length} labs, credentials and projects</>
+            <><b>{activeLabel}</b> shows up in {matchCount} of {items.length} jobs, labs, certificates and projects</>
           ) : (
             <>Everything — {items.length} items</>
           )}

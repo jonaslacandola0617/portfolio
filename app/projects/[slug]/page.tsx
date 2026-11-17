@@ -14,6 +14,7 @@ import { getFirstContentImage, buildContentMetadata } from "@/lib/metadata";
 import { getRelatedContent } from "@/lib/related-content";
 import { buildArticleJsonLd } from "@/lib/structured-data";
 import { formatDateShort } from "@/lib/utils";
+import { AI_ASSISTED_CATEGORY, aiAssistedNote } from "@/lib/profile";
 
 type ProjectParams = Promise<{ slug: string }>;
 
@@ -82,12 +83,13 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
       <JsonLd data={projectJsonLd} />
 
       <header className="case-hero">
-        <Link href="/projects" className="case-back"><ArrowLeft size={15} /> All work</Link>
+        <Link href="/projects" className="case-back"><ArrowLeft size={15} /> All projects</Link>
         <p className="work-meta">
-          <span className="work-index">Case study {String(Math.max(0, idx) + 1).padStart(2, "0")}</span>
+          <span className="work-index">Project {String(Math.max(0, idx) + 1).padStart(2, "0")}</span>
           <span>{frontmatter.category}</span>
           <span>{year}</span>
           {frontmatter.liveSiteUrl ? <span className="work-live"><i className="live-dot" /> Live</span> : null}
+          {AI_ASSISTED_CATEGORY.test(frontmatter.category) ? <span>{aiAssistedNote.short}</span> : null}
         </p>
         <h1>{frontmatter.title}</h1>
         <p className="case-summary">{frontmatter.summary}</p>
@@ -133,6 +135,13 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
         </article>
 
         <aside className="case-aside">
+          {AI_ASSISTED_CATEGORY.test(frontmatter.category) ? (
+            <section>
+              <p className="footer-label">How this was built</p>
+              <p className="ai-note">{aiAssistedNote.long}</p>
+            </section>
+          ) : null}
+
           {frontmatter.technologies.length ? (
             <section>
               <p className="footer-label">Built with</p>

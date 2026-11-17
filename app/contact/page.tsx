@@ -25,11 +25,11 @@ export default async function ContactPage() {
   return (
     <div className="contact-wrap">
       <section>
-        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to IT, network &amp; security roles · remote or on-site</p>
+        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to IT help desk &amp; technical support · remote or on-site in Clark / Pampanga · night shift OK</p>
         <h1>Let&apos;s work <span>together.</span></h1>
         <p className="hero-lede">
-          Hiring for IT support, help desk, network administration, or a security role?
-          Send a message — I read every one and reply quickly.
+          Hiring for IT help desk, desktop support or technical support? I&apos;d like to hear about it.
+          Send a message here or email me directly. I read everything and reply quickly.
         </p>
 
         <div className="contact-direct">

@@ -795,3 +795,39 @@ html .public-stage.site .public-page-shell { width: min(100% - 2 * var(--gutter)
 .kind-lab { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
 .kind-certification { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
 @media (min-width: 761px) { .lab-grid > .lab-card:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+
+/* ── Experience, AI-assisted label, outside IT ───────────────────────────── */
+.hero-availability { font-size: 14px; color: var(--fg-2); }
+
+.exp-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 16px; }
+.exp-item {
+  display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: clamp(20px, 4vw, 56px);
+  padding: clamp(24px, 3vw, 36px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2);
+}
+.exp-item:first-child { border-color: var(--line-2); }
+.exp-side { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.exp-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--line-2); color: var(--accent); }
+.exp-period { font-family: var(--font-mono), monospace; font-size: 13px; color: var(--fg-3); }
+.exp-body h3 { margin: 0; font-family: var(--font-display), sans-serif; font-size: clamp(22px, 2.4vw, 30px); font-weight: 600; letter-spacing: -.03em; line-height: 1.1; }
+.exp-org { margin: 6px 0 0; font-weight: 550; color: var(--fg-2); }
+.exp-summary { margin: 16px 0 0; max-width: 68ch; color: var(--fg-2); }
+.exp-points { margin: 16px 0 20px; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; max-width: 72ch; }
+.exp-points li { position: relative; padding-left: 22px; }
+.exp-points li::before { content: ""; position: absolute; left: 2px; top: 11px; width: 10px; height: 2px; border-radius: 1px; background: var(--accent); }
+@media (max-width: 760px) { .exp-item { grid-template-columns: 1fr; } .exp-side { flex-direction: row; align-items: center; } }
+
+.ai-badge {
+  display: inline-flex; align-items: center; gap: 7px; width: fit-content; margin: 0 0 14px; padding: 4px 10px;
+  border-radius: 999px; border: 1px dashed var(--line-2); font-family: var(--font-mono), monospace; font-size: 12px; color: var(--fg-2);
+}
+.work-card .ai-badge { margin: 0; }
+.ai-note { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--fg-2); }
+
+.outside-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.outside-card { display: flex; flex-direction: column; gap: 12px; padding: 26px; border: 1px solid var(--line); border-radius: var(--radius); transition: border-color .3s, transform .45s var(--ease); }
+.outside-card:hover { border-color: var(--line-2); transform: translateY(-3px); }
+.outside-card h3 { margin: 0; font-family: var(--font-display), sans-serif; font-size: 22px; font-weight: 600; letter-spacing: -.02em; }
+.outside-card p { margin: 0; flex: 1; color: var(--fg-2); }
+@media (max-width: 860px) { .outside-grid { grid-template-columns: 1fr; } }
+
+.kind-experience { color: var(--fg); border-color: var(--fg-3); }

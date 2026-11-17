@@ -20,8 +20,9 @@ export async function generateMetadata() {
     keywords: [
       settings.name,
       "IT support portfolio",
-      "network administrator portfolio",
-      "junior network administrator",
+      "IT help desk",
+      "desktop support",
+      "network technician",
       "cybersecurity portfolio",
       "SOC analyst portfolio",
       "technical support",
@@ -55,19 +56,12 @@ export default async function HomePage() {
     .sort((a, b) => Number(Boolean(b.frontmatter.liveSiteUrl)) - Number(Boolean(a.frontmatter.liveSiteUrl)));
   const featured = [...pinned, ...remaining].slice(0, FEATURED_LIMIT);
 
-  const stats = {
-    labs: labs.length,
-    certifications: certificates.length,
-    projects: projects.length,
-    live: projects.filter((project) => project.frontmatter.liveSiteUrl).length,
-  };
-
   const websiteJsonLd = buildWebsiteJsonLd({ name: settings.name, description: siteConfig.description });
 
   return (
     <div className="home">
       <JsonLd data={websiteJsonLd} />
-      <HomeHero settings={settings} stats={stats} profileImageUrl={about.profileImageUrl} />
+      <HomeHero settings={settings} certificationCount={certificates.length} profileImageUrl={about.profileImageUrl} />
       <HomeSections
         featuredProjects={featured}
         projects={projects}

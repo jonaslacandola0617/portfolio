@@ -16,7 +16,6 @@ const nav = [
   { label: "Projects", href: "/projects" },
   { label: "Certifications", href: "/certifications" },
   { label: "Writing", href: "/journal" },
-  { label: "Video", href: "/video" },
   { label: "About", href: "/about" },
 ] as const;
 
@@ -149,9 +148,9 @@ function SiteFooter({ settings, showCta }: { settings: SiteSettingsData; showCta
     <footer className="site-footer">
       {showCta ? (
       <div className="site-footer-cta">
-        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to IT support, network &amp; security roles</p>
+        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to IT support roles · remote or on-site · night shift OK</p>
         <h2>
-          Hiring for IT, networking or security?
+          Hiring for IT help desk or technical support?
           <span> Let&apos;s talk.</span>
         </h2>
         <div className="site-footer-actions">
@@ -174,6 +173,7 @@ function SiteFooter({ settings, showCta }: { settings: SiteSettingsData; showCta
           <Link href="/certifications">Certifications</Link>
           <Link href="/projects">Projects</Link>
           <Link href="/journal">Writing</Link>
+          <Link href="/video">Video &amp; design</Link>
         </div>
         <div>
           <p className="footer-label">Local time</p>

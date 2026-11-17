@@ -1,6 +1,7 @@
 import { PageHeader, PageShell } from "@/components/shared/page-header";
 import { ProjectIndex } from "@/components/shared/project-index";
 import { getAllProjects } from "@/lib/content";
+import { aiAssistedNote } from "@/lib/profile";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
@@ -26,8 +27,8 @@ export default async function ProjectsPage() {
       <PageHeader
         index="Projects"
         eyebrow={`${projects.length} projects`}
-        title="Things I've built and run."
-        description="Network builds, tools and web applications I've designed, deployed and maintained. Every entry is a case study: the problem, the decisions, and the result."
+        title="Things I've set up and shipped."
+        description={aiAssistedNote.long}
       />
       <PageShell>
         {projects.length ? (
