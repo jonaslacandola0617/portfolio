@@ -18,17 +18,18 @@ function failed<T>(section: string, error: unknown): DashboardSection<T> {
 }
 
 async function getMetrics(): Promise<ContentTypeMetric[]> {
-  const [projects, labs, articles, certificates] = await Promise.all([
-    prisma.project.count(),
-    prisma.lab.count(),
-    prisma.article.count(),
-    prisma.certificate.count(),
+  const published = { where: { publishStatus: "PUBLISHED" as const } };
+  const [labs, labsLive, projects, projectsLive, certificates, certificatesLive, articles, articlesLive] = await Promise.all([
+    prisma.lab.count(), prisma.lab.count(published),
+    prisma.project.count(), prisma.project.count(published),
+    prisma.certificate.count(), prisma.certificate.count(published),
+    prisma.article.count(), prisma.article.count(published),
   ]);
   return [
-    { key: "projects", label: "Projects", href: "/admin/projects", total: projects },
-    { key: "labs", label: "Labs", href: "/admin/labs", total: labs },
-    { key: "articles", label: "Articles", href: "/admin/journal", total: articles },
-    { key: "certificates", label: "Certificates", href: "/admin/certificates", total: certificates },
+    { key: "labs", label: "Labs", href: "/admin/labs", total: labs, published: labsLive },
+    { key: "projects", label: "Projects", href: "/admin/projects", total: projects, published: projectsLive },
+    { key: "certificates", label: "Certificates", href: "/admin/certificates", total: certificates, published: certificatesLive },
+    { key: "articles", label: "Writing", href: "/admin/journal", total: articles, published: articlesLive },
   ];
 }
 

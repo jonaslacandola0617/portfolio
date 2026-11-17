@@ -7,6 +7,7 @@ const expectations: Record<RevalidationContentType, string[]> = {
   certificate: ["/admin", "/admin/certificates", "/certifications", "/sitemap.xml", "/"],
   skill: ["/admin", "/admin/skills", "/projects"],
   settings: ["/admin/settings", "/admin/about", "/", "/about", "/contact", "/resume"],
+  homepage: ["/admin/homepage", "/admin", "/", "/projects", "/projects/[slug]"],
   media: ["/admin/media"],
   video: ["/admin/video", "/admin/video/projects", "/video", "/video/work", "/video/old", "/video/new", "/sitemap.xml", "/"],
   videoSettings: ["/admin/video", "/admin/video/homepage", "/video"],

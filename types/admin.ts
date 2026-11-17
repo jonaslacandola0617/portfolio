@@ -53,6 +53,7 @@ export interface ContentTypeMetric {
   label: string;
   href: string;
   total: number;
+  published: number;
 }
 
 export interface RecentlyUpdatedItem {

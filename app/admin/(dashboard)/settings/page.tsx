@@ -9,9 +9,9 @@ export default async function AdminSettingsPage() {
   return (
     <div className="admin-control-settings">
       <header className="admin-control-settings-head">
-        <span>07 / SETTINGS</span>
+        <span>SETTINGS</span>
         <h1>Settings</h1>
-        <p>Site identity, public links, and current learning items.</p>
+        <p>Your name, role, contact links and résumé. These appear across the whole public site.</p>
       </header>
       <SettingsForm settings={settings} resumeMedia={resumeMedia} />
     </div>

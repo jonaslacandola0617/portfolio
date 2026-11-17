@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUpRight, FileText } from "lucide-react";
 import { NetworkField } from "@/components/site/network-field";
 import { CopyEmail, LocalTime } from "@/components/site/interactive";
 import type { SiteSettingsData } from "@/lib/db/queries/settings";
-import { availability, headlineStats } from "@/lib/profile";
+import type { HomepageContent } from "@/lib/validations/homepage";
 
 const WEB_DISCIPLINE = /web|developer|software|front|back|full.?stack/i;
 
@@ -15,18 +15,22 @@ function disciplinesOf(role: string) {
 
 export function HomeHero({
   settings,
+  content,
   certificationCount,
   profileImageUrl,
 }: {
   settings: SiteSettingsData;
+  content: HomepageContent;
   certificationCount: number;
   profileImageUrl?: string | null;
 }) {
+  const { hero } = content;
+  const availabilityDetail = [hero.availabilityWhere, hero.availabilityShifts].filter(Boolean).join(" · ");
   const [firstName] = settings.name.split(" ");
   const disciplines = disciplinesOf(settings.role);
   const stats = [
-    ...headlineStats,
-    ...(certificationCount ? [{ value: String(certificationCount), label: certificationCount === 1 ? "Certificate completed" : "Certificates & training paths" }] : []),
+    ...content.stats,
+    ...(content.showCertificateStat && certificationCount ? [{ value: String(certificationCount), label: certificationCount === 1 ? "Certificate completed" : "Certificates & training paths" }] : []),
   ];
 
   return (
@@ -36,8 +40,8 @@ export function HomeHero({
 
       <div className="hero-inner">
         <div className="hero-status">
-          <span className="status-pill"><span className="pulse-dot" aria-hidden="true" /> Open to {availability.roles}</span>
-          <span className="hero-availability">{availability.where} · {availability.shifts}</span>
+          <span className="status-pill"><span className="pulse-dot" aria-hidden="true" /> Open to {hero.availabilityRoles}</span>
+          {availabilityDetail ? <span className="hero-availability">{availabilityDetail}</span> : null}
           <LocalTime />
         </div>
 
@@ -49,14 +53,10 @@ export function HomeHero({
           <span>Hi, I&apos;m {firstName}.</span>
         </p>
         <h1 id="hero-title" className="hero-title">
-          <em>IT support</em> with a networking and security foundation.
+          <em>{hero.highlight}</em> {hero.headline}
         </h1>
 
-        <p className="hero-lede">
-          I spent seven months handling up to 40 healthcare cases a day at about 98% accuracy, under hard deadlines and
-          strict privacy rules. I build and fix PCs and printers, and I&apos;ve trained in Cisco networking and Google
-          cybersecurity. Now I want to do that work on an IT team.
-        </p>
+        <p className="hero-lede">{hero.intro}</p>
 
         {disciplines.length ? (
           <ul className="hero-disciplines" aria-label="Disciplines">
@@ -65,7 +65,9 @@ export function HomeHero({
         ) : null}
 
         <div className="hero-actions">
-          <Link href="#experience" className="btn btn-solid btn-lg">See my experience <ArrowDown size={16} /></Link>
+          <Link href={hero.primaryCtaHref} className="btn btn-solid btn-lg">
+            {hero.primaryCtaLabel} {hero.primaryCtaHref.startsWith("#") ? <ArrowDown size={16} /> : <ArrowUpRight size={16} />}
+          </Link>
           <Link href="/resume" className="btn btn-ghost btn-lg"><FileText size={16} /> Résumé</Link>
           <CopyEmail email={settings.email} label="Copy email" className="btn btn-link" />
         </div>

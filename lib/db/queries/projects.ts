@@ -24,6 +24,7 @@ interface ProjectWithRelations {
   githubUrl: string | null;
   liveSiteUrl: string | null;
   demoUrl: string | null;
+  aiAssisted: boolean;
   estimatedTime: string | null;
   completionDate: Date;
   updatedAt: Date;
@@ -90,6 +91,7 @@ function mapProject(project: ProjectWithRelations): DbContentItem<ProjectFrontma
       githubUrl: project.githubUrl ?? undefined,
       liveSiteUrl: project.liveSiteUrl ?? undefined,
       demoUrl: project.demoUrl ?? undefined,
+      aiAssisted: project.aiAssisted,
       downloads: project.downloads.map(
         (download): DownloadLink => ({
           label: download.label,

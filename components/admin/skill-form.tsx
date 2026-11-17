@@ -1,6 +1,6 @@
 "use client";
 
-import { useFormState } from "react-dom";
+import { useActionState } from "react";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,7 +29,7 @@ function FieldError({ errors }: { errors?: string[] }) {
 export function SkillForm({ mode, skill, groups }: SkillFormProps) {
   const router = useRouter();
   const action = mode === "create" ? createSkillAction : updateSkillAction.bind(null, skill!.id);
-  const [state, formAction] = useFormState(action, initialState);
+  const [state, formAction] = useActionState(action, initialState);
 
   return (
     <div className="space-y-6">

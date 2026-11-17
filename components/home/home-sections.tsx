@@ -1,14 +1,13 @@
 import Link from "next/link";
 import {
-  ArrowRight, ArrowUpRight, BadgeCheck, Briefcase, Cpu, ExternalLink, Github, LifeBuoy, Network, ShieldCheck, Sparkles, Wrench,
+  ArrowRight, ArrowUpRight, BadgeCheck, Briefcase, Code2, Cpu, ExternalLink, Github, LifeBuoy, Network, Palette, ShieldCheck, Sparkles, Wrench,
 } from "lucide-react";
 import { ProjectVisualPreview } from "@/components/shared/project-visual-preview";
 import { Reveal, TiltFrame } from "@/components/site/interactive";
 import { LabTopology } from "@/components/site/lab-topology";
 import { StackExplorer, type EvidenceItem } from "@/components/site/stack-explorer";
-import type { SiteSettingsData } from "@/lib/db/queries/settings";
-import { AI_ASSISTED_CATEGORY, aiAssistedNote, experience, outsideIT } from "@/lib/profile";
 import { formatDateShort } from "@/lib/utils";
+import type { HomepageContent, HomepageSectionKey } from "@/lib/validations/homepage";
 import type { ArticleFrontmatter, Certification, DbContentItem, LabFrontmatter, ProjectFrontmatter } from "@/types";
 
 type ProjectItem = DbContentItem<ProjectFrontmatter>;
@@ -17,12 +16,27 @@ type ArticleItem = DbContentItem<ArticleFrontmatter>;
 
 const IT_SKILLS = ["Troubleshooting", "Hardware", "Client support", "Networking", "VLANs", "Routing", "Subnetting", "Linux", "Cybersecurity", "Data privacy", "Documentation"];
 
-function SectionHead({ index, title, kicker, children }: { index: string; title: React.ReactNode; kicker: string; children?: React.ReactNode }) {
+const CAPABILITY_ICON = {
+  support: LifeBuoy,
+  hardware: Wrench,
+  network: Network,
+  security: ShieldCheck,
+  code: Code2,
+  design: Palette,
+} as const;
+
+function SectionHead({ index, section, children }: { index: number; section: HomepageContent["sections"][HomepageSectionKey]; children?: React.ReactNode }) {
+  const hasAside = Boolean(section.intro) || Boolean(children);
   return (
     <Reveal className="section-head">
-      <p className="eyebrow"><span className="eyebrow-index">{index}</span>{kicker}</p>
-      <h2>{title}</h2>
-      {children ? <div className="section-head-aside">{children}</div> : null}
+      <p className="eyebrow"><span className="eyebrow-index">{String(index).padStart(2, "0")}</span>{section.kicker}</p>
+      <h2>{section.title}</h2>
+      {hasAside ? (
+        <div className="section-head-aside">
+          {section.intro ? <p>{section.intro}</p> : null}
+          {children}
+        </div>
+      ) : null}
     </Reveal>
   );
 }
@@ -59,10 +73,9 @@ function LabCard({ lab, index }: { lab: LabItem; index: number }) {
   );
 }
 
-function FeaturedProject({ project, index }: { project: ProjectItem; index: number }) {
+function FeaturedProject({ project, index, aiBadge }: { project: ProjectItem; index: number; aiBadge: string }) {
   const { frontmatter: fm } = project;
   const href = `/projects/${fm.slug}`;
-  const aiAssisted = AI_ASSISTED_CATEGORY.test(fm.category);
 
   return (
     <Reveal as="article" className="work-item" delay={60}>
@@ -82,7 +95,7 @@ function FeaturedProject({ project, index }: { project: ProjectItem; index: numb
         </p>
         <h3><Link href={href}>{fm.title}</Link></h3>
         <p className="work-summary">{fm.summary}</p>
-        {aiAssisted ? <p className="ai-badge"><Sparkles size={13} aria-hidden="true" /> {aiAssistedNote.short}</p> : null}
+        {fm.aiAssisted ? <p className="ai-badge"><Sparkles size={13} aria-hidden="true" /> {aiBadge}</p> : null}
         {fm.technologies.length ? (
           <ul className="chip-list" aria-label="Built with">
             {fm.technologies.slice(0, 5).map((technology) => <li key={technology}>{technology}</li>)}
@@ -99,21 +112,24 @@ function FeaturedProject({ project, index }: { project: ProjectItem; index: numb
 }
 
 export function HomeSections({
+  content,
   featuredProjects,
   projects,
   labs,
   certificates,
   articles,
 }: {
+  content: HomepageContent;
   featuredProjects: ProjectItem[];
   projects: ProjectItem[];
   labs: LabItem[];
   certificates: Certification[];
   articles: ArticleItem[];
-  settings: SiteSettingsData;
 }) {
+  const { sections } = content;
+
   const evidence: EvidenceItem[] = [
-    ...experience.map((entry) => ({
+    ...content.experience.map((entry) => ({
       title: entry.title,
       href: "#experience",
       kind: "Experience" as const,
@@ -143,70 +159,57 @@ export function HomeSections({
     })),
   ];
 
-  const capabilities = [
-    {
-      icon: LifeBuoy,
-      title: "Support people",
-      body: "I've worked a real queue: high volume, hard deadlines, confidential data, and people waiting on an answer. I stay calm and I write things down.",
-      evidence: "Experience",
-      href: "#experience",
-    },
-    {
-      icon: Wrench,
-      title: "Fix hardware",
-      body: "PCs that won't boot, printers that won't print, builds from spare parts. I like finding the actual cause instead of guessing.",
-      evidence: "Hands-on work",
-      href: "#experience",
-    },
-    {
-      icon: Network,
-      title: "Understand networks",
-      body: "Subnetting and VLSM, VLANs and trunking, inter-VLAN and static routing on Cisco IOS. I set it up, test it, and document it.",
-      evidence: labs.length ? `${labs.length} documented labs` : "Labs",
-      href: "/labs",
-    },
-    {
-      icon: ShieldCheck,
-      title: "Think about security",
-      body: "Google's cybersecurity training: NIST CSF, security controls, logs and SIEM basics, incident response, Linux and SQL.",
-      evidence: certificates.length ? "Certificates" : "About",
-      href: certificates.length ? "/certifications" : "/about",
-    },
+  // Only render sections that are switched on and have something to show; number them in order.
+  const order: { key: HomepageSectionKey; show: boolean }[] = [
+    { key: "experience", show: content.experience.length > 0 },
+    { key: "labs", show: labs.length > 0 },
+    { key: "certificates", show: certificates.length > 0 },
+    { key: "skills", show: evidence.length > 0 },
+    { key: "capabilities", show: content.capabilities.length > 0 },
+    { key: "projects", show: featuredProjects.length > 0 },
+    { key: "outside", show: content.outside.areas.length > 0 },
+    { key: "writing", show: articles.length > 0 },
   ];
+  const visible = order.filter((entry) => entry.show && sections[entry.key].visible).map((entry) => entry.key);
+  const numberOf = (key: HomepageSectionKey) => visible.indexOf(key) + 1;
+  const isOn = (key: HomepageSectionKey) => visible.includes(key);
 
   return (
     <>
-      <section id="experience" className="section section-experience" aria-labelledby="exp-title">
-        <SectionHead index="01" kicker="Experience" title={<span id="exp-title">Seven months in a support queue, and a lot of fixing things at home.</span>}>
-          <p>My first job wasn&apos;t in IT, but the work was close to help desk: tickets, deadlines, accuracy, privacy, and people waiting on you.</p>
-        </SectionHead>
-        <ol className="exp-list">
-          {experience.map((entry, index) => (
-            <Reveal as="li" key={entry.title} className="exp-item" delay={index * 80}>
-              <div className="exp-side">
-                <span className="exp-icon" aria-hidden="true">{index === 0 ? <Briefcase size={18} /> : <Cpu size={18} />}</span>
-                <span className="exp-period">{entry.period}</span>
-              </div>
-              <div className="exp-body">
-                <h3>{entry.title}</h3>
-                <p className="exp-org">{entry.org}{entry.place ? ` · ${entry.place}` : ""}</p>
-                <p className="exp-summary">{entry.summary}</p>
-                <ul className="exp-points">
-                  {entry.points.map((point) => <li key={point}>{point}</li>)}
-                </ul>
-                <ul className="chip-list" aria-label="Skills used">
-                  {entry.skills.map((skill) => <li key={skill}>{skill}</li>)}
-                </ul>
-              </div>
-            </Reveal>
-          ))}
-        </ol>
-      </section>
+      {isOn("experience") ? (
+        <section id="experience" className="section section-experience" aria-label={sections.experience.kicker}>
+          <SectionHead index={numberOf("experience")} section={sections.experience} />
+          <ol className="exp-list">
+            {content.experience.map((entry, index) => (
+              <Reveal as="li" key={`${entry.title}-${index}`} className="exp-item" delay={index * 80}>
+                <div className="exp-side">
+                  <span className="exp-icon" aria-hidden="true">{index === 0 ? <Briefcase size={18} /> : <Cpu size={18} />}</span>
+                  <span className="exp-period">{entry.period}</span>
+                </div>
+                <div className="exp-body">
+                  <h3>{entry.title}</h3>
+                  <p className="exp-org">{entry.org}{entry.place ? ` · ${entry.place}` : ""}</p>
+                  {entry.summary ? <p className="exp-summary">{entry.summary}</p> : null}
+                  {entry.points.length ? (
+                    <ul className="exp-points">
+                      {entry.points.map((point) => <li key={point}>{point}</li>)}
+                    </ul>
+                  ) : null}
+                  {entry.skills.length ? (
+                    <ul className="chip-list" aria-label="Skills used">
+                      {entry.skills.map((skill) => <li key={skill}>{skill}</li>)}
+                    </ul>
+                  ) : null}
+                </div>
+              </Reveal>
+            ))}
+          </ol>
+        </section>
+      ) : null}
 
-      {labs.length ? (
-        <section id="labs" className="section section-labs" aria-labelledby="labs-title">
-          <SectionHead index="02" kicker="Networking labs" title={<span id="labs-title">Networks I&apos;ve built, broken and fixed.</span>}>
-            <p>Each lab has the goal, the topology, the commands I used, what went wrong, and how I checked the fix.</p>
+      {isOn("labs") ? (
+        <section id="labs" className="section section-labs" aria-label={sections.labs.kicker}>
+          <SectionHead index={numberOf("labs")} section={sections.labs}>
             <Link href="/labs" className="text-link">All {labs.length} labs <ArrowUpRight size={15} /></Link>
           </SectionHead>
           <div className="lab-grid">
@@ -215,9 +218,9 @@ export function HomeSections({
         </section>
       ) : null}
 
-      {certificates.length ? (
-        <section className="section section-certs" aria-labelledby="certs-title">
-          <SectionHead index="03" kicker="Certificates" title={<span id="certs-title">Training I&apos;ve completed.</span>}>
+      {isOn("certificates") ? (
+        <section id="certificates" className="section section-certs" aria-label={sections.certificates.kicker}>
+          <SectionHead index={numberOf("certificates")} section={sections.certificates}>
             <Link href="/certifications" className="text-link">Certificate details <ArrowUpRight size={15} /></Link>
           </SectionHead>
           <ul className="cert-list">
@@ -245,58 +248,67 @@ export function HomeSections({
         </section>
       ) : null}
 
-      <section className="section section-stack" aria-labelledby="stack-title">
-        <SectionHead index="04" kicker="Skills" title={<span id="stack-title">Pick a skill, see where I used it.</span>}>
-          <p>Every skill links to the job, lab, certificate or project where I actually used it.</p>
-        </SectionHead>
-        <Reveal><StackExplorer items={evidence} preferred={IT_SKILLS} /></Reveal>
-      </section>
+      {isOn("skills") ? (
+        <section id="skills" className="section section-stack" aria-label={sections.skills.kicker}>
+          <SectionHead index={numberOf("skills")} section={sections.skills} />
+          <Reveal><StackExplorer items={evidence} preferred={IT_SKILLS} /></Reveal>
+        </section>
+      ) : null}
 
-      <section className="section section-capabilities" aria-labelledby="cap-title">
-        <SectionHead index="05" kicker="What I bring" title={<span id="cap-title">What I can do for an IT team.</span>} />
-        <div className="cap-grid">
-          {capabilities.map((capability, index) => (
-            <Reveal key={capability.title} as="article" className="cap-card" delay={index * 70}>
-              <capability.icon size={22} strokeWidth={1.6} aria-hidden="true" />
-              <h3>{capability.title}</h3>
-              <p>{capability.body}</p>
-              <Link href={capability.href} className="text-link">{capability.evidence} <ArrowRight size={14} /></Link>
-            </Reveal>
-          ))}
-        </div>
-      </section>
-
-      {featuredProjects.length ? (
-        <section id="projects" className="section section-work" aria-labelledby="work-title">
-          <SectionHead index="06" kicker="Projects" title={<span id="work-title">Things I&apos;ve set up and shipped.</span>}>
-            <p>{aiAssistedNote.long}</p>
-            <Link href="/projects" className="text-link">All {projects.length} projects <ArrowUpRight size={15} /></Link>
-          </SectionHead>
-          <div className="work-list">
-            {featuredProjects.map((project, index) => <FeaturedProject key={project.recordId} project={project} index={index} />)}
+      {isOn("capabilities") ? (
+        <section id="capabilities" className="section section-capabilities" aria-label={sections.capabilities.kicker}>
+          <SectionHead index={numberOf("capabilities")} section={sections.capabilities} />
+          <div className="cap-grid">
+            {content.capabilities.map((capability, index) => {
+              const Icon = CAPABILITY_ICON[capability.icon];
+              return (
+                <Reveal key={`${capability.title}-${index}`} as="article" className="cap-card" delay={index * 70}>
+                  <Icon size={22} strokeWidth={1.6} aria-hidden="true" />
+                  <h3>{capability.title}</h3>
+                  <p>{capability.body}</p>
+                  <Link href={capability.href} className="text-link">{capability.linkLabel} <ArrowRight size={14} /></Link>
+                </Reveal>
+              );
+            })}
           </div>
         </section>
       ) : null}
 
-      <section className="section section-outside" aria-labelledby="outside-title">
-        <SectionHead index="07" kicker="Outside IT" title={<span id="outside-title">{outsideIT.title}</span>}>
-          <p>{outsideIT.intro}</p>
-          <Link href="/video" className="text-link">See video work <ArrowUpRight size={15} /></Link>
-        </SectionHead>
-        <div className="outside-grid">
-          {outsideIT.areas.map((area, index) => (
-            <Reveal key={area.name} as="article" className="outside-card" delay={index * 70}>
-              <h3>{area.name}</h3>
-              <p>{area.body}</p>
-              <ul className="chip-list">{area.tools.map((tool) => <li key={tool}>{tool}</li>)}</ul>
-            </Reveal>
-          ))}
-        </div>
-      </section>
+      {isOn("projects") ? (
+        <section id="projects" className="section section-work" aria-label={sections.projects.kicker}>
+          <SectionHead index={numberOf("projects")} section={{ ...sections.projects, intro: sections.projects.intro || content.aiNote.long }}>
+            <Link href="/projects" className="text-link">All {projects.length} projects <ArrowUpRight size={15} /></Link>
+          </SectionHead>
+          <div className="work-list">
+            {featuredProjects.map((project, index) => (
+              <FeaturedProject key={project.recordId} project={project} index={index} aiBadge={content.aiNote.short} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-      {articles.length ? (
-        <section className="section section-now" aria-labelledby="now-title">
-          <SectionHead index="08" kicker="Writing" title={<span id="now-title">Notes from what I&apos;m learning.</span>}>
+      {isOn("outside") ? (
+        <section id="outside" className="section section-outside" aria-label={sections.outside.kicker}>
+          <SectionHead index={numberOf("outside")} section={sections.outside}>
+            {content.outside.linkLabel && content.outside.href ? (
+              <Link href={content.outside.href} className="text-link">{content.outside.linkLabel} <ArrowUpRight size={15} /></Link>
+            ) : null}
+          </SectionHead>
+          <div className="outside-grid">
+            {content.outside.areas.map((area, index) => (
+              <Reveal key={`${area.name}-${index}`} as="article" className="outside-card" delay={index * 70}>
+                <h3>{area.name}</h3>
+                <p>{area.body}</p>
+                {area.tools.length ? <ul className="chip-list">{area.tools.map((tool) => <li key={tool}>{tool}</li>)}</ul> : null}
+              </Reveal>
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {isOn("writing") ? (
+        <section id="writing" className="section section-now" aria-label={sections.writing.kicker}>
+          <SectionHead index={numberOf("writing")} section={sections.writing}>
             <Link href="/journal" className="text-link">All writing <ArrowUpRight size={15} /></Link>
           </SectionHead>
           <Reveal className="now-writing">

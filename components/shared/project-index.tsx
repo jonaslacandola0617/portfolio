@@ -5,10 +5,9 @@ import Link from "next/link";
 import { ArrowUpRight, Github, Sparkles } from "lucide-react";
 import { ProjectVisualPreview } from "@/components/shared/project-visual-preview";
 import { TiltFrame } from "@/components/site/interactive";
-import { AI_ASSISTED_CATEGORY, aiAssistedNote } from "@/lib/profile";
 import type { ProjectFrontmatter } from "@/types";
 
-export function ProjectIndex({ projects }: { projects: ProjectFrontmatter[] }) {
+export function ProjectIndex({ projects, aiBadge }: { projects: ProjectFrontmatter[]; aiBadge: string }) {
   const categories = useMemo(() => {
     const counts = new Map<string, { label: string; count: number }>();
     for (const project of projects) {
@@ -58,7 +57,7 @@ export function ProjectIndex({ projects }: { projects: ProjectFrontmatter[] }) {
               </p>
               <h2><Link href={href}>{project.title}</Link></h2>
               <p>{project.summary}</p>
-              {AI_ASSISTED_CATEGORY.test(project.category) ? <p className="ai-badge"><Sparkles size={13} aria-hidden="true" /> {aiAssistedNote.short}</p> : null}
+              {project.aiAssisted ? <p className="ai-badge"><Sparkles size={13} aria-hidden="true" /> {aiBadge}</p> : null}
               {project.technologies.length ? (
                 <ul className="chip-list" aria-label="Built with">
                   {project.technologies.slice(0, 5).map((technology) => <li key={technology}>{technology}</li>)}

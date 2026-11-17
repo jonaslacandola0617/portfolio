@@ -21,7 +21,7 @@ export const settingsFormSchema = z.object({
       }),
     )
     .max(50)
-    .default([]),
+    .optional(),
 });
 
 export type SettingsFormValues = z.infer<typeof settingsFormSchema>;

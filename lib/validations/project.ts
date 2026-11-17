@@ -27,6 +27,7 @@ export const projectFormSchema = z.object({
   githubUrl: httpsUrlSchema.optional().or(z.literal("")),
   liveSiteUrl: httpsUrlSchema.optional().or(z.literal("")),
   demoUrl: httpsUrlSchema.optional().or(z.literal("")),
+  aiAssisted: z.boolean().default(false),
   scheduledFor: z.string().optional().or(z.literal("")),
   templateId: z.enum(["project-blank", "project-web", "project-software", "project-networking", "project-cybersecurity", "project-migration"]).default("project-blank"),
 });

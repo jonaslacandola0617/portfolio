@@ -1,7 +1,7 @@
 import { PageHeader, PageShell } from "@/components/shared/page-header";
 import { ProjectIndex } from "@/components/shared/project-index";
 import { getAllProjects } from "@/lib/content";
-import { aiAssistedNote } from "@/lib/profile";
+import { getHomepageContent } from "@/lib/db/queries/homepage";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
@@ -21,18 +21,19 @@ export const metadata = buildStaticPageMetadata({
 });
 
 export default async function ProjectsPage() {
-  const projects = await getAllProjects();
+  const [projects, content] = await Promise.all([getAllProjects(), getHomepageContent()]);
+  const anyAiAssisted = projects.some((project) => project.frontmatter.aiAssisted);
   return (
     <div>
       <PageHeader
         index="Projects"
         eyebrow={`${projects.length} projects`}
         title="Things I've set up and shipped."
-        description={aiAssistedNote.long}
+        description={anyAiAssisted ? content.aiNote.long : "Projects I've set up, deployed and kept running."}
       />
       <PageShell>
         {projects.length ? (
-          <ProjectIndex projects={projects.map((project) => project.frontmatter)} />
+          <ProjectIndex projects={projects.map((project) => project.frontmatter)} aiBadge={content.aiNote.short} />
         ) : (
           <p className="text-sm text-text-dim">No published projects yet.</p>
         )}

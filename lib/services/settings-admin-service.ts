@@ -17,12 +17,14 @@ export async function upsertSiteSettings(fm: SettingsFormValues) {
   // (an array of { label, href }) — same structural mismatch against
   // Prisma.InputJsonValue as TipTap content, same fix: route it through
   // the one shared JSON persistence boundary rather than a local cast.
-  const data = { ...fm, currentlyLearning: toPrismaJson(fm.currentlyLearning) };
+  // "Currently learning" is no longer edited in Settings; keep what's stored unless sent.
+  const { currentlyLearning, ...rest } = fm;
+  const learning = currentlyLearning ? { currentlyLearning: toPrismaJson(currentlyLearning) } : {};
 
   await prisma.siteSettings.upsert({
     where: { id: "singleton" },
-    create: { id: "singleton", ...data },
-    update: { ...data },
+    create: { id: "singleton", ...rest, currentlyLearning: toPrismaJson(currentlyLearning ?? []) },
+    update: { ...rest, ...learning },
   });
   revalidateContent("settings");
 }

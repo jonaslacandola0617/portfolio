@@ -6,9 +6,12 @@ export default async function AdminAboutPage() {
   return (
     <div className="admin-control-settings admin-control-about">
       <header className="admin-control-settings-head">
-        <span>06 / ABOUT</span>
+        <span>ABOUT PAGE</span>
         <h1>About</h1>
-        <p>Profile image, background, focus, and public About-page narrative.</p>
+        <p>
+          Your photo and story. The photo also appears next to “Hi, I’m …” on the homepage.{" "}
+          <a href="/about" target="_blank" rel="noreferrer" className="admin-inline-link">View About page ↗</a>
+        </p>
       </header>
       <AboutForm about={about} />
     </div>

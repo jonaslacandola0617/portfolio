@@ -38,21 +38,16 @@ interface AdminProjectDetail {
   githubUrl: string | null;
   liveSiteUrl: string | null;
   demoUrl: string | null;
+  aiAssisted: boolean;
   scheduledFor: Date | null;
 }
 
-function isWebDevelopmentCategory(category: string) {
-  return category.trim().replace(/\s+/g, " ").toLocaleLowerCase() === "web development";
-}
-
+/** Public links and the AI-assisted flag apply to every category. */
 function webProjectLinks(fm: ProjectFormValues) {
-  if (!isWebDevelopmentCategory(fm.category)) {
-    return { liveSiteUrl: null, demoUrl: null };
-  }
-
   return {
     liveSiteUrl: fm.liveSiteUrl || null,
     demoUrl: fm.demoUrl || null,
+    aiAssisted: fm.aiAssisted,
   };
 }
 

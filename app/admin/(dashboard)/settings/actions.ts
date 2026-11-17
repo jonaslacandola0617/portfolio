@@ -18,7 +18,8 @@ export async function updateSettingsAction(_prevState: ActionResult, formData: F
     githubUrl: formData.get("githubUrl"),
     linkedinUrl: formData.get("linkedinUrl"),
     resumeUrl: formData.get("resumeUrl"),
-    currentlyLearning: learningLabels.map((label, index) => ({ label, href: learningHrefs[index] ?? "" })),
+    // Not edited in Settings any more; undefined keeps what's stored.
+    currentlyLearning: learningLabels.length ? learningLabels.map((label, index) => ({ label, href: learningHrefs[index] ?? "" })) : undefined,
   });
 
   if (!parsed.success) {
