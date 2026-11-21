@@ -1,17 +1,18 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, FlaskConical, FolderGit2, Search } from "lucide-react";
 
 export default function NotFound() {
   return (
-    <section className="public-not-found">
-      <div className="public-not-found-code">404</div>
-      <div className="public-not-found-line" aria-hidden="true"><span /></div>
-      <div className="public-not-found-copy">
-        <span>OUTSIDE THE MAP</span>
-        <h1>Nothing lives here.</h1>
-        <p>The page you&apos;re looking for doesn&apos;t exist, but the rest of the work is still where you left it.</p>
-        <Link href="/"><ArrowLeft size={13}/> Back home</Link>
+    <section className="status-page" aria-labelledby="not-found-title">
+      <p className="eyebrow"><span className="eyebrow-index">404</span>Page not found</p>
+      <h1 id="not-found-title">This page doesn&apos;t exist.</h1>
+      <p className="hero-lede">The link may be old, or the page was moved. Everything else is still here.</p>
+      <div className="hero-actions">
+        <Link href="/" className="btn btn-solid"><ArrowLeft size={15} /> Back home</Link>
+        <Link href="/labs" className="btn btn-ghost"><FlaskConical size={15} /> Labs</Link>
+        <Link href="/projects" className="btn btn-ghost"><FolderGit2 size={15} /> Projects</Link>
       </div>
+      <p className="status-page-hint"><Search size={14} aria-hidden="true" /> Tip: press <kbd>/</kbd> to search the site.</p>
     </section>
   );
 }

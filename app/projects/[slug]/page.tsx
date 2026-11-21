@@ -161,7 +161,7 @@ export default async function ProjectPage({ params }: { params: ProjectParams })
           {frontmatter.tags.length ? (
             <section>
               <p className="footer-label">Topics</p>
-              <div className="flex flex-wrap gap-1.5">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
+              <div className="tag-list">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
             </section>
           ) : null}
 

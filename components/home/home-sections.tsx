@@ -4,7 +4,7 @@ import {
 } from "lucide-react";
 import { ProjectVisualPreview } from "@/components/shared/project-visual-preview";
 import { Reveal, TiltFrame } from "@/components/site/interactive";
-import { LabTopology } from "@/components/site/lab-topology";
+import { LabCard } from "@/components/shared/lab-card";
 import { StackExplorer, type EvidenceItem } from "@/components/site/stack-explorer";
 import { formatDateShort } from "@/lib/utils";
 import type { HomepageContent, HomepageSectionKey } from "@/lib/validations/homepage";
@@ -45,32 +45,6 @@ function yearOf(date?: string) {
   if (!date) return undefined;
   const year = new Date(date).getFullYear();
   return Number.isFinite(year) ? year : undefined;
-}
-
-function LabCard({ lab, index }: { lab: LabItem; index: number }) {
-  const { frontmatter: fm } = lab;
-  const status = { completed: "Completed", "in-progress": "In progress", planned: "Planned" }[fm.status] ?? fm.status;
-  return (
-    <Reveal as="article" className="lab-card" delay={index * 70}>
-      <Link href={`/labs/${fm.slug}`} className="lab-card-link">
-        <div className="lab-card-visual">
-          <LabTopology seed={fm.slug} className="lab-topology" />
-          <span className="lab-card-index">LAB {String(index + 1).padStart(2, "0")}</span>
-        </div>
-        <div className="lab-card-body">
-          <p className="work-meta">
-            <span>{fm.category}</span>
-            <span className={fm.status === "completed" ? "work-live" : undefined}>{fm.status === "completed" ? <i className="live-dot" /> : null}{status}</span>
-            <span>{formatDateShort(fm.date)}</span>
-          </p>
-          <h3>{fm.title}</h3>
-          <p>{fm.purpose}</p>
-          {fm.tags.length ? <ul className="chip-list">{fm.tags.slice(0, 4).map((tag) => <li key={tag}>{tag}</li>)}</ul> : null}
-          <span className="text-link">Read lab notes <ArrowRight size={14} /></span>
-        </div>
-      </Link>
-    </Reveal>
-  );
 }
 
 function FeaturedProject({ project, index, aiBadge }: { project: ProjectItem; index: number; aiBadge: string }) {
@@ -213,7 +187,7 @@ export function HomeSections({
             <Link href="/labs" className="text-link">All {labs.length} labs <ArrowUpRight size={15} /></Link>
           </SectionHead>
           <div className="lab-grid">
-            {labs.slice(0, 4).map((lab, index) => <LabCard key={lab.recordId} lab={lab} index={index} />)}
+            {labs.slice(0, 4).map((lab, index) => <LabCard key={lab.recordId} lab={lab.frontmatter} index={index} />)}
           </div>
         </section>
       ) : null}

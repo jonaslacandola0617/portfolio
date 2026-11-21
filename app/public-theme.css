@@ -31,7 +31,6 @@
 
 .dark .public-stage .public-page-shell,
 .dark .public-stage .public-page-header,
-.dark .public-stage .public-not-found,
 .dark .public-stage .bg-surface,
 .dark .public-stage .bg-surface-2,
 .dark .public-stage .bg-surface-3 {
@@ -54,18 +53,6 @@
   color: #f0a18d;
   background: #0b0c0c;
   border-color: rgba(244,239,230,.18);
-}
-
-.dark .public-stage .public-not-found-code {
-  color: rgba(244,239,230,.055);
-}
-
-.dark .public-stage .public-not-found-line {
-  background: rgba(244,239,230,.42);
-}
-
-.dark .public-stage .public-not-found-line span {
-  box-shadow: 0 0 0 7px #0b0c0c;
 }
 
 .dark .public-stage .text-text { color:#f4efe6 !important; }

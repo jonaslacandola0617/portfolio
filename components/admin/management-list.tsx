@@ -224,7 +224,7 @@ export function ManagementList({
       <PageHeader index={index} eyebrow={eyebrow} title={title} />
       <PageShell>
         <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-1 items-center gap-2 border border-border bg-surface-2 px-3 py-2 sm:max-w-xs">
+          <div className="admin-search flex flex-1 items-center gap-2 sm:max-w-xs">
             <Search className="h-3.5 w-3.5 text-muted" />
             <input
               value={query}
@@ -238,18 +238,18 @@ export function ManagementList({
           </div>
           <div className="flex items-center gap-3">
             {showcase && (
-              <span className="font-mono text-[10px] uppercase tracking-wider text-muted" aria-live="polite">
+              <span className="admin-meta" aria-live="polite">
                 {showcaseIds.length} / {showcase.max} showcased
               </span>
             )}
             {reorderAction && (
-              <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted sm:inline" aria-live="polite">
+              <span className="admin-meta hidden sm:inline" aria-live="polite">
                 {query.trim() ? "Clear search to reorder" : orderMessage ?? "Drag to reorder"}
               </span>
             )}
             <Link
               href={newHref}
-              className="flex items-center gap-2 border border-border-strong bg-text px-4 py-2 text-sm font-medium text-surface"
+              className="admin-btn admin-btn-primary"
             >
               <Plus className="h-3.5 w-3.5" /> New
             </Link>
@@ -264,10 +264,10 @@ export function ManagementList({
           <div className="mb-4 flex items-center justify-between gap-3 sm:hidden">
             <label className="flex items-center gap-2 text-xs text-text-dim">
               <AdminCheckbox checked={allFilteredSelected} indeterminate={someFilteredSelected} onChange={toggleAll} aria-label="Select all" />
-              <span className="label">Select all</span>
+              <span>Select all</span>
             </label>
             {reorderAction && (
-              <span className="font-mono text-[9px] uppercase tracking-wider text-muted" aria-live="polite">
+              <span className="admin-meta" aria-live="polite">
                 {query.trim() ? "Clear search to reorder" : orderMessage ?? "Use arrows to reorder"}
               </span>
             )}
@@ -287,7 +287,7 @@ export function ManagementList({
                 router.refresh();
               }}
               trigger={
-                <button type="button" className="flex items-center gap-2 border border-vermilion px-3 py-2 text-sm text-vermilion">
+                <button type="button" className="admin-btn admin-btn-danger">
                   <Trash2 className="h-3.5 w-3.5" /> Delete ({selected.size})
                 </button>
               }
@@ -296,23 +296,23 @@ export function ManagementList({
         )}
 
         {filtered.length === 0 ? (
-          <div className="flex flex-col items-center gap-3 border border-dashed border-border py-20 text-center">
+          <div className="admin-empty flex flex-col items-center gap-3 py-20 text-center">
             <Inbox className="h-[22px] w-[22px] text-muted" />
             <p className="text-sm text-text-dim">
               {query ? `No items match “${query}”` : `No ${itemLabelPlural} yet.`}
             </p>
           </div>
         ) : (
-          <div className="border border-border">
-            <div className={`hidden items-center gap-3 border-b border-border bg-surface-2 px-4 py-2.5 sm:grid ${gridClass}`}>
-              {reorderAction && <span className="label">Order</span>}
+          <div className="admin-table">
+            <div className={`admin-table-head hidden items-center gap-3 px-4 py-2.5 sm:grid ${gridClass}`}>
+              {reorderAction && <span className="admin-th">Order</span>}
               <AdminCheckbox checked={allFilteredSelected} indeterminate={someFilteredSelected} onChange={toggleAll} aria-label="Select all" />
-              <span className="label">Title</span>
-              <span className="label">Category</span>
-              <span className="label">Status</span>
-              {showcase && <span className="label">Homepage</span>}
-              <span className="label">Updated</span>
-              <span className="label text-right">Actions</span>
+              <span className="admin-th">Title</span>
+              <span className="admin-th">Category</span>
+              <span className="admin-th">Status</span>
+              {showcase && <span className="admin-th">Homepage</span>}
+              <span className="admin-th">Updated</span>
+              <span className="admin-th text-right">Actions</span>
             </div>
             <div className="divide-y divide-border">
               {filtered.map((row) => {
@@ -354,7 +354,7 @@ export function ManagementList({
                         >
                           <GripVertical className="h-3.5 w-3.5" />
                         </span>
-                        <span className="idx w-4 text-right">{String(position).padStart(2, "0")}</span>
+                        <span className="admin-order w-4 text-right">{String(position).padStart(2, "0")}</span>
                       </div>
                     )}
                     <AdminCheckbox checked={selected.has(row.id)} onChange={() => toggle(row.id)} aria-label={`Select ${row.title}`} />
@@ -362,10 +362,10 @@ export function ManagementList({
                     <span className="hidden truncate text-xs text-muted sm:block">{row.meta}</span>
                     <span className="hidden items-center gap-1.5 sm:flex">
                       <span className={`h-1.5 w-1.5 rounded-full ${statusDot(row.status)}`} />
-                      <span className="label">{row.status}</span>
+                      <span className="admin-status-text">{row.status.charAt(0) + row.status.slice(1).toLowerCase()}</span>
                     </span>
                     {showcase && <div className="hidden sm:block">{showcaseToggle(row)}</div>}
-                    <span className="hidden font-mono text-xs text-muted sm:block">{row.updated}</span>
+                    <span className="admin-date hidden sm:block">{row.updated}</span>
                     <div className={`${reorderAction ? "col-span-4" : "col-span-3"} flex items-center justify-end gap-1 sm:col-span-1`}>
                       {showcase && <div className="mr-auto sm:hidden">{showcaseToggle(row, true)}</div>}
                       {reorderAction && (
@@ -374,7 +374,7 @@ export function ManagementList({
                             type="button"
                             onClick={() => void moveRowBy(row.id, -1)}
                             disabled={!canReorder || position <= 1}
-                            className="flex h-8 w-8 items-center justify-center border border-border text-text-dim disabled:opacity-30"
+                            className="admin-icon-btn disabled:opacity-30"
                             aria-label={`Move ${row.title} up`}
                           >
                             <ChevronUp className="h-3.5 w-3.5" />
@@ -383,14 +383,14 @@ export function ManagementList({
                             type="button"
                             onClick={() => void moveRowBy(row.id, 1)}
                             disabled={!canReorder || position >= orderedRows.length}
-                            className="flex h-8 w-8 items-center justify-center border border-border text-text-dim disabled:opacity-30"
+                            className="admin-icon-btn disabled:opacity-30"
                             aria-label={`Move ${row.title} down`}
                           >
                             <ChevronDown className="h-3.5 w-3.5" />
                           </button>
                         </div>
                       )}
-                      <Link href={`${basePath}/${row.id}`} className="flex h-8 w-8 items-center justify-center border border-border text-text-dim hover:text-text" aria-label={`Edit ${row.title}`}>
+                      <Link href={`${basePath}/${row.id}`} className="admin-icon-btn" aria-label={`Edit ${row.title}`}>
                         <Pencil className="h-[13px] w-[13px]" />
                       </Link>
                       <DeleteConfirmationDialog
@@ -401,7 +401,7 @@ export function ManagementList({
                         onConfirm={() => deleteOneAction(row.id)}
                         onSuccess={() => router.refresh()}
                         trigger={
-                          <button type="button" className="flex h-8 w-8 items-center justify-center border border-border text-text-dim hover:border-vermilion hover:text-vermilion" aria-label={`Delete ${row.title}`}>
+                          <button type="button" className="admin-icon-btn is-danger" aria-label={`Delete ${row.title}`}>
                             <Trash2 className="h-[13px] w-[13px]" />
                           </button>
                         }

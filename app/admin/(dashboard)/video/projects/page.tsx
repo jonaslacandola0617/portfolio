@@ -25,9 +25,9 @@ export default async function AdminVideoProjectsPage() {
 
   return (
     <ManagementList
-      index="05.02"
-      title="Video Projects"
-      eyebrow="Editing and cinematography work."
+      index="Video & design"
+      title="Videos"
+      eyebrow="Videos shown on /video. Star up to three to feature them on the video page."
       rows={rows}
       basePath="/admin/video/projects"
       newHref="/admin/video/projects/new"

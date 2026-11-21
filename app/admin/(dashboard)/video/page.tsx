@@ -12,7 +12,7 @@ export default async function AdminVideoPage() {
   const data = await getVideoDashboardData();
   return (
     <div>
-      <PageHeader index="05" eyebrow="Creative portfolio." title="Video Portfolio" />
+      <PageHeader index="Video & design" eyebrow="Your creative work, shown at /video (linked from the homepage Outside IT section)." title="Video portfolio" />
       <PageShell>
         <div className="grid gap-px border border-border bg-border sm:grid-cols-3">
           {[

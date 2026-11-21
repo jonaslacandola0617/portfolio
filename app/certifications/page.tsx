@@ -4,9 +4,9 @@ import { getAllCertificates } from "@/lib/db/queries/certificates";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
 export const metadata = buildStaticPageMetadata({
-  title: "IT, Web Development, Networking & Cybersecurity Certifications",
+  title: "IT, Networking & Cybersecurity Certifications",
   description:
-    "Professional certifications and technical coursework completed by Jonas Lacandola across IT support, web development, networking, cybersecurity, Linux, and software development.",
+    "Verified certificates by Jonas Lacandola: Google Cybersecurity, Cisco Network Technician Career Path, CCNA courses and IT Essentials, each with a link to check it.",
   path: "/certifications",
   keywords: [
     "IT certifications",
@@ -22,23 +22,22 @@ export const metadata = buildStaticPageMetadata({
 
 export default async function CertificationsPage() {
   const certifications = await getAllCertificates();
+  const completed = certifications.filter((cert) => cert.dateCompleted).length;
   return (
     <div>
       <PageHeader
-        index="Credentials"
-        eyebrow="Verified learning"
-        title="Certifications"
-        description="Structured learning and professional credentials, kept alongside the work and labs where I apply what I learned."
+        index="Certificates"
+        eyebrow={`${completed} completed`}
+        title="Training I've completed."
+        description="Each certificate links to the issuer's page so you can verify it. Open one to see what it covered."
       />
       <PageShell>
         {certifications.length ? (
-          <div className="credential-index">
-            {certifications.map((certificate, index) => (
-              <CertificateCard key={certificate.id} cert={certificate} index={index + 1} />
-            ))}
-          </div>
+          <ol className="cert-list cert-list-full">
+            {certifications.map((certificate) => <CertificateCard key={certificate.id} cert={certificate} />)}
+          </ol>
         ) : (
-          <p className="project-index-empty">No published certifications yet.</p>
+          <p className="muted">No published certificates yet.</p>
         )}
       </PageShell>
     </div>

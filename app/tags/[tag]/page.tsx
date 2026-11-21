@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { PageHeader, PageShell, SectionLabel } from "@/components/shared/page-header";
+import { ArrowUpRight, FlaskConical, FolderGit2, BookOpen } from "lucide-react";
+import { PageHeader, PageShell } from "@/components/shared/page-header";
 import { getAllPublishedTags, getPublishedContentByTagSlug } from "@/lib/db/queries/tags";
 import { buildStaticPageMetadata } from "@/lib/metadata";
 
@@ -44,58 +44,31 @@ export default async function TagPage({ params }: { params: TagParams }) {
   if (total === 0) notFound();
 
   const groups = [
-    {
-      index: "01",
-      label: "Projects",
-      items: projects.map((item) => ({ title: item.title, href: `/projects/${item.slug}` })),
-    },
-    {
-      index: "02",
-      label: "Labs",
-      items: labs.map((item) => ({ title: item.title, href: `/labs/${item.slug}` })),
-    },
-    {
-      index: "03",
-      label: "Journal",
-      items: articles.map((item) => ({ title: item.title, href: `/journal/${item.slug}` })),
-    },
+    { label: "Labs", icon: FlaskConical, items: labs.map((item) => ({ title: item.title, href: `/labs/${item.slug}` })) },
+    { label: "Projects", icon: FolderGit2, items: projects.map((item) => ({ title: item.title, href: `/projects/${item.slug}` })) },
+    { label: "Writing", icon: BookOpen, items: articles.map((item) => ({ title: item.title, href: `/journal/${item.slug}` })) },
   ].filter((group) => group.items.length > 0);
 
   return (
     <div>
       <PageHeader
-        index="Tag"
-        eyebrow="Index"
-        title={`#${tagged.tag.name}`}
-        description={`Browse ${total} published ${total === 1 ? "entry" : "entries"} related to ${tagged.tag.name} across projects, labs, and the learning journal.`}
+        index="Topic"
+        eyebrow={`${total} ${total === 1 ? "item" : "items"}`}
+        title={tagged.tag.name}
+        description={`Everything on this site about ${tagged.tag.name}: labs, projects and writing.`}
       />
       <PageShell>
-        <Link
-          href="/"
-          className="mb-8 inline-flex items-center gap-1.5 text-xs text-muted hover:text-text"
-        >
-          <ArrowLeft size={12} /> Back home
-        </Link>
-        <div className="space-y-10">
+        <div className="topic-groups">
           {groups.map((group) => (
-            <section key={group.label}>
-              <SectionLabel index={group.index} title={group.label} />
-              <div className="divide-y divide-border border-y border-border">
-                {group.items.map((item, index) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="group flex items-center gap-4 px-1 py-4"
-                  >
-                    <span className="idx w-7 shrink-0">
-                      {String(index + 1).padStart(2, "0")}
-                    </span>
-                    <span className="font-display text-base font-medium text-text transition-colors group-hover:text-cobalt">
-                      {item.title}
-                    </span>
-                  </Link>
+            <section key={group.label} className="topic-group" aria-labelledby={`topic-${group.label}`}>
+              <h2 id={`topic-${group.label}`}><group.icon size={18} aria-hidden="true" /> {group.label} <span>{group.items.length}</span></h2>
+              <ul>
+                {group.items.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href}>{item.title}<ArrowUpRight size={16} aria-hidden="true" /></Link>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
           ))}
         </div>

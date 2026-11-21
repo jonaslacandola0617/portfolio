@@ -20,46 +20,60 @@ export default async function VideoHomepage() {
   const featured = settings.featuredVideoIds.map((id) => byId.get(id)).filter((project): project is NonNullable<typeof project> => Boolean(project));
 
   return (
-    <div>
-      <section className="mx-auto grid max-w-[1500px] gap-10 border-b border-border px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[minmax(0,0.8fr)_minmax(520px,1.2fr)] lg:items-end lg:px-12 lg:py-24">
-        <div className="max-w-3xl">
-          <p className="idx text-vermilion">{settings.eyebrow}</p>
-          <h1 className="mt-5 font-display text-[clamp(3rem,8vw,8rem)] leading-[0.88] tracking-[-0.045em] text-text">{settings.headline}</h1>
-          <p className="mt-7 max-w-2xl text-base leading-7 text-text-dim sm:text-lg">{settings.intro}</p>
-          <Link href="/video/work" className="label mt-8 inline-flex items-center gap-2 border border-border-strong bg-text px-4 py-3 text-xs !text-surface transition-opacity hover:opacity-85">View Work <ArrowRight className="h-3.5 w-3.5" /></Link>
+    <div className="video-home">
+      <section className="video-hero">
+        <div>
+          <p className="eyebrow"><span className="eyebrow-index">Video</span>{settings.eyebrow}</p>
+          <h1>{settings.headline}</h1>
+          <p className="hero-lede">{settings.intro}</p>
+          <div className="hero-actions">
+            <Link href="/video/work" className="btn btn-solid">All videos <ArrowRight size={15} /></Link>
+          </div>
         </div>
         {hero ? <VideoPlayer videoId={hero.youtubeVideoId} posterUrl={hero.customPosterUrl} title={hero.title} priority /> : null}
       </section>
 
       {featured.length ? (
-        <section className="mx-auto max-w-[1500px] border-b border-border px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
-          <div className="mb-10 flex items-end justify-between gap-6"><div><p className="idx">02 / FEATURED WORK</p><h2 className="mt-3 font-display text-4xl text-text sm:text-6xl">Featured Video Work</h2></div><Link href="/video/work" className="label hidden items-center gap-2 text-[10px] text-text-dim hover:text-text sm:flex">View all <ArrowRight className="h-3 w-3" /></Link></div>
-          <div className="space-y-16 sm:space-y-24">
+        <section className="section" aria-labelledby="featured-video-title">
+          <div className="section-head">
+            <p className="eyebrow"><span className="eyebrow-index">01</span>Featured</p>
+            <h2 id="featured-video-title">Selected work.</h2>
+            <div className="section-head-aside"><Link href="/video/work" className="text-link">All videos <ArrowRight size={15} /></Link></div>
+          </div>
+          <div className="work-list">
             {featured.map((project, index) => {
               const hasCaseStudy = hasMeaningfulTipTapContent(project.content);
-              return <article key={project.id} className="grid items-center gap-7 lg:grid-cols-2 lg:gap-12">
-                <div className={index % 2 ? "lg:order-2" : undefined}><VideoPlayer videoId={project.youtubeVideoId} posterUrl={project.customPosterUrl} title={project.title} /></div>
-                <div className={index % 2 ? "lg:order-1" : undefined}>
-                  <p className="idx text-vermilion">{String(index + 1).padStart(2, "0")} / {videoDisciplineLine(project.disciplines).toUpperCase()}</p>
-                  <h3 className="mt-4 font-display text-4xl leading-tight text-text sm:text-5xl">{project.title}</h3>
-                  <p className="mt-4 max-w-xl text-sm leading-6 text-text-dim sm:text-base">{project.summary}</p>
-                  <p className="mt-5 font-mono text-[10px] uppercase tracking-[0.18em] text-muted">{[videoYear(project.completionDate), project.runtime].filter(Boolean).join(" · ") || (hasCaseStudy ? "CASE STUDY" : "VIDEO PROJECT")}</p>
-                  <Link href={`/video/${project.slug}`} className="label mt-6 inline-flex items-center gap-2 border-b border-border-strong pb-1 text-xs text-text">{hasCaseStudy ? "View case study" : "View project"} <ArrowRight className="h-3 w-3" /></Link>
-                </div>
-              </article>;
+              const meta = [videoYear(project.completionDate), project.runtime].filter(Boolean).join(" · ");
+              return (
+                <article key={project.id} className="work-item">
+                  <div className="work-media"><VideoPlayer videoId={project.youtubeVideoId} posterUrl={project.customPosterUrl} title={project.title} /></div>
+                  <div className="work-copy">
+                    <p className="work-meta">
+                      <span className="work-index">{String(index + 1).padStart(2, "0")}</span>
+                      <span>{videoDisciplineLine(project.disciplines)}</span>
+                      {meta ? <span>{meta}</span> : null}
+                    </p>
+                    <h3><Link href={`/video/${project.slug}`}>{project.title}</Link></h3>
+                    <p className="work-summary">{project.summary}</p>
+                    <div className="work-actions">
+                      <Link href={`/video/${project.slug}`} className="btn btn-ghost btn-sm">{hasCaseStudy ? "Read case study" : "Details"} <ArrowRight size={14} /></Link>
+                    </div>
+                  </div>
+                </article>
+              );
             })}
           </div>
-          <Link href="/video/work" className="label mt-12 inline-flex items-center gap-2 border border-border-strong px-4 py-3 text-xs text-text sm:hidden">View all work <ArrowRight className="h-3 w-3" /></Link>
         </section>
-      ) : (
-        <section className="mx-auto max-w-[1500px] border-b border-border px-5 py-14 sm:px-8 lg:px-12"><div><p className="idx">02 / FEATURED WORK</p><p className="mt-4 max-w-xl text-sm leading-6 text-text-dim">Published video projects will appear here once they are selected in the Video homepage editor.</p><Link href="/video/work" className="label mt-5 inline-flex items-center gap-2 text-xs text-text">View work archive <ArrowRight className="h-3 w-3" /></Link></div></section>
-      )}
+      ) : null}
 
-      <section className="mx-auto max-w-[1500px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
-        <p className="idx mb-7">03 / DISCIPLINES</p>
-        <div className="grid gap-px border border-border bg-border lg:grid-cols-2">
-          <article className="min-h-[280px] bg-surface p-6 sm:p-8"><p className="idx text-vermilion">01 / VIDEO EDITING</p><h2 className="mt-12 font-display text-4xl text-text sm:text-5xl">Editing</h2><p className="mt-5 max-w-lg text-sm leading-6 text-text-dim sm:text-base">{settings.videoEditingDescription}</p></article>
-          <article className="min-h-[280px] bg-surface p-6 sm:p-8"><p className="idx text-vermilion">02 / CINEMATOGRAPHY</p><h2 className="mt-12 font-display text-4xl text-text sm:text-5xl">Cinematography</h2><p className="mt-5 max-w-lg text-sm leading-6 text-text-dim sm:text-base">{settings.cinematographyDescription}</p></article>
+      <section className="section" aria-labelledby="disciplines-title">
+        <div className="section-head">
+          <p className="eyebrow"><span className="eyebrow-index">{featured.length ? "02" : "01"}</span>What I do</p>
+          <h2 id="disciplines-title">Two sides of the same craft.</h2>
+        </div>
+        <div className="outside-grid video-disciplines">
+          <article className="outside-card"><h3>Video editing</h3><p>{settings.videoEditingDescription}</p></article>
+          <article className="outside-card"><h3>Cinematography</h3><p>{settings.cinematographyDescription}</p></article>
         </div>
       </section>
     </div>

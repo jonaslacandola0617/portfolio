@@ -40,9 +40,9 @@ export default async function AdminProjectsPage() {
   return (
     <>
       <ManagementList
-        index="01"
+        index="Content"
         title="Projects"
-        eyebrow="Build projects."
+        eyebrow="Published projects appear on /projects. Star up to two to feature them on the homepage."
         rows={rows}
         basePath="/admin/projects"
         newHref="/admin/projects/new"

@@ -3,7 +3,6 @@ import { VideoProjectForm } from "@/components/admin/video-project-form";
 import { getVideoProjectForEdit } from "@/lib/services/video-admin-service";
 import { getAllMedia } from "@/lib/services/media-admin-service";
 import { PageHeader, PageShell } from "@/components/shared/page-header";
-import { VideoAdminNav } from "@/components/admin/video-admin-nav";
 
 type Params = Promise<{ id: string }>;
 
@@ -32,9 +31,8 @@ export default async function EditVideoProjectPage({ params }: { params: Params 
 
   return (
     <div>
-      <PageHeader index="05.02" eyebrow="Video / Project metadata" title={project.title} />
+      <PageHeader index="Video & design" eyebrow="Edit this video and its case study." title={project.title} />
       <PageShell>
-        <VideoAdminNav />
         <VideoProjectForm media={media} project={editorProject} />
       </PageShell>
     </div>

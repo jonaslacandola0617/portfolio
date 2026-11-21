@@ -58,10 +58,6 @@
   ::selection { background: var(--cobalt); color: white; }
   :focus-visible { outline: 2px solid var(--cobalt); outline-offset: 2px; }
 
-  /* Bauhaus geometry: structural surfaces are sharp. */
-  .rounded, .rounded-sm, .rounded-md, .rounded-lg, .rounded-xl, .rounded-2xl, .rounded-3xl {
-    border-radius: 0 !important;
-  }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {

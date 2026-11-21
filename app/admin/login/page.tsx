@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AdminMark } from "@/components/admin/admin-mark";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { ArrowLeft, ExternalLink, Github, TriangleAlert } from "lucide-react";
@@ -31,17 +32,14 @@ export default async function AdminLoginPage({ searchParams }: { searchParams: A
     <div className="admin-control-login">
       <div className="absolute right-5 top-5 admin-theme-toggle"><ThemeToggle compact /></div>
       <section className="admin-control-login-card">
-        <div className="admin-control-wordmark" aria-label="JL Admin">
-          <strong>JL<i>/</i></strong>
-          <span>ADMIN</span>
-        </div>
+        <AdminMark />
 
-        <span>PRIVATE / ACCESS</span>
-        <h1>Portfolio<br />admin.</h1>
-        <p>Manage projects, labs, journal entries, credentials, media, and public site settings.</p>
+        <p className="admin-login-kicker">Private · Admin only</p>
+        <h1>Sign in to edit your portfolio.</h1>
+        <p>Labs, projects, certificates, writing, your homepage and site settings, all in one place.</p>
 
         {errorMessage && (
-          <div className="mt-6 flex items-start gap-2 border border-vermilion/40 px-3 py-2.5 text-left text-sm text-vermilion">
+          <div className="admin-login-error">
             <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0" />
             {errorMessage}
           </div>

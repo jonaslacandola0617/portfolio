@@ -15,9 +15,9 @@ export default async function AdminLabsPage() {
 
   return (
     <ManagementList
-      index="02"
+      index="Content"
       title="Labs"
-      eyebrow="Create hands-on labs — this is proof of your hard work."
+      eyebrow="Your strongest IT proof. Published labs appear on /labs and the homepage."
       rows={rows}
       basePath="/admin/labs"
       newHref="/admin/labs/new"
