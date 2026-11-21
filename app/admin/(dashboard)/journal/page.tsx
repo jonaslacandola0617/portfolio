@@ -15,9 +15,9 @@ export default async function AdminJournalPage() {
 
   return (
     <ManagementList
-      index="03"
-      title="Journal"
-      eyebrow="Publish journals and document your journey."
+      index="Content"
+      title="Writing"
+      eyebrow="Your writing. Published entries appear on /journal and the homepage."
       rows={rows}
       basePath="/admin/journal"
       newHref="/admin/journal/new"

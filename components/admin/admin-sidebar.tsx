@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminMark } from "@/components/admin/admin-mark";
 import { ExternalLink } from "lucide-react";
 import { auth } from "@/auth";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -12,10 +13,7 @@ export async function AdminSidebar() {
   return (
     <aside className="admin-control-sidebar fixed inset-y-0 left-0 z-30 hidden flex-col border-r lg:flex">
       <div className="admin-control-brand border-b">
-        <div className="admin-control-wordmark" aria-label="JL Control">
-          <strong>JL<i>/</i></strong>
-          <span>ADMIN</span>
-        </div>
+        <AdminMark />
         <p className="admin-control-user">{session?.user?.name ?? "Portfolio Admin"}</p>
       </div>
 

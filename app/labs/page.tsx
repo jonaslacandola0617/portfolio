@@ -27,19 +27,17 @@ export default async function LabsPage() {
     <div>
       <PageHeader
         index="Labs"
-        eyebrow="Networking & security"
+        eyebrow={`${labs.length} ${labs.length === 1 ? "lab" : "labs"}`}
         title="Hands-on lab notebook."
-        description="A chronological log of hands-on labs — purpose, commands, what went wrong, and what fixed it. Logged close to when the work happened, mistakes included."
+        description="Networking and security labs, written up as I did them: the goal, the topology, the commands, what went wrong, and how I checked the fix."
       />
       <PageShell>
         {labs.length ? (
-          <div className="space-y-5">
-            {labs.map((lab, index) => (
-              <LabCard key={lab.frontmatter.slug} lab={lab.frontmatter} index={index + 1} />
-            ))}
+          <div className="lab-grid">
+            {labs.map((lab, index) => <LabCard key={lab.frontmatter.slug} lab={lab.frontmatter} index={index} headingLevel="h2" />)}
           </div>
         ) : (
-          <p className="text-sm text-text-dim">No published labs yet.</p>
+          <p className="muted">No published labs yet.</p>
         )}
       </PageShell>
     </div>

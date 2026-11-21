@@ -6,7 +6,7 @@ export default async function AdminVideoHomepagePage() {
   const { settings, publishedVideos } = await getVideoHomepageSettingsForAdmin();
   return (
     <div>
-      <PageHeader index="05.01" eyebrow="Curate the Video landing page." title="Video Homepage" />
+      <PageHeader index="Video & design" eyebrow="Choose the headline, intro and featured videos for /video." title="Video page" />
       <PageShell>
         <VideoHomepageForm
           settings={{

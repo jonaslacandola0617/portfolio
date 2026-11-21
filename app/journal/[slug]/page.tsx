@@ -12,7 +12,7 @@ import { extractContentHeadings, type ContentHeading } from "@/lib/content-headi
 import { buildContentMetadata, getFirstContentImage } from "@/lib/metadata";
 import { getRelatedContent } from "@/lib/related-content";
 import { buildArticleJsonLd } from "@/lib/structured-data";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatDateShort } from "@/lib/utils";
 
 type ArticleParams = Promise<{ slug: string }>;
 
@@ -64,54 +64,64 @@ export default async function ArticlePage({ params }: { params: ArticleParams })
     tags: frontmatter.tags,
   });
 
+  const category = frontmatter.category && frontmatter.category !== "Uncategorized" ? frontmatter.category : null;
+
   return (
-    <div className="public-journal-detail">
+    <div className="case-study case-study-article">
       <JsonLd data={articleJsonLd} />
 
-      <header className="public-journal-hero">
-        <div className="public-journal-hero-inner">
-          <Link href="/journal" className="public-detail-back"><ArrowLeft size={12} /> All journal entries</Link>
-          <div className="public-journal-meta">
-            <span>Journal</span><span>{frontmatter.category}</span><span>{formatDate(frontmatter.date)}</span><span>{readingTime}</span>
-          </div>
-          <h1 className="public-journal-title">{frontmatter.title}</h1>
-          <p className="public-journal-summary">{frontmatter.summary}</p>
-        </div>
+      <header className="case-hero">
+        <Link href="/journal" className="case-back"><ArrowLeft size={15} /> All writing</Link>
+        <p className="work-meta">
+          <span className="work-index">Writing</span>
+          {category ? <span>{category}</span> : null}
+          <span>{formatDateShort(frontmatter.date)}</span>
+          <span>{readingTime}</span>
+        </p>
+        <h1>{frontmatter.title}</h1>
+        <p className="case-summary">{frontmatter.summary}</p>
       </header>
 
-      <div className="public-journal-layout">
-        <main className="min-w-0">
-          <article>
-            <ContentRenderer
-              content={content}
-              context={{ model: "Article", id: article.recordId, slug: frontmatter.slug, title: frontmatter.title }}
-            />
-          </article>
+      <div className="case-layout">
+        <article className="case-main">
+          <ContentRenderer
+            content={content}
+            context={{ model: "Article", id: article.recordId, slug: frontmatter.slug, title: frontmatter.title }}
+          />
 
           {frontmatter.downloads?.length ? (
-            <section id="journal-resources" className="public-detail-tech scroll-mt-28">
-              <p>Resources</p>
-              <div className="mt-3 divide-y divide-border">
+            <section id="journal-resources" className="case-resources">
+              <h2>Resources</h2>
+              <ul>
                 {frontmatter.downloads.map((download) => (
-                  <a key={`${download.href}-${download.label}`} href={download.href} download className="public-detail-resource py-3">
-                    <Download size={13} className="mt-0.5 shrink-0" />
-                    <span className="min-w-0 flex-1"><span className="block">{download.label}</span>{download.description ? <span className="mt-1 block text-xs opacity-60">{download.description}</span> : null}</span>
-                    <span className="font-mono text-[8px] uppercase">Download</span>
-                  </a>
+                  <li key={`${download.href}-${download.label}`}>
+                    <a href={download.href} download>
+                      <Download size={16} aria-hidden="true" />
+                      <span>{download.label}{download.description ? <em>{download.description}</em> : null}</span>
+                      <small>Download</small>
+                    </a>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
           ) : null}
 
-          <div className="public-detail-tech">
-            <p>Topics</p>
-            <div className="mt-3 flex flex-wrap gap-1.5">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
-          </div>
-
           <RelatedContentLinks items={related} />
-        </main>
+        </article>
 
-        <aside className="public-detail-aside"><TableOfContents items={tocItems} /></aside>
+        <aside className="case-aside">
+          <TableOfContents items={tocItems} />
+          {frontmatter.tags.length ? (
+            <section>
+              <p className="footer-label">Topics</p>
+              <div className="tag-list">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
+            </section>
+          ) : null}
+          <section>
+            <p className="footer-label">Published</p>
+            <p className="case-aside-note">{formatDate(frontmatter.date)}</p>
+          </section>
+        </aside>
       </div>
     </div>
   );

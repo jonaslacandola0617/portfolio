@@ -13,7 +13,7 @@ const initialState: ContactFormState = {
 };
 
 const inputClassName =
-  "w-full border border-border bg-surface-2 px-3 py-2.5 text-sm text-text outline-none transition-colors placeholder:text-muted focus:border-cobalt disabled:cursor-not-allowed disabled:opacity-60";
+  "form-input";
 
 export function ContactForm() {
   const [state, formAction, pending] = React.useActionState(
@@ -49,7 +49,7 @@ export function ContactForm() {
 
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
         <div>
-          <label htmlFor="name" className="label mb-2 block">
+          <label htmlFor="name" className="form-label">
             Name
           </label>
           <input
@@ -65,14 +65,14 @@ export function ContactForm() {
             placeholder="Jane Recruiter"
           />
           {state.fieldErrors?.name && (
-            <p id="name-error" className="mt-1.5 text-xs text-vermilion">
+            <p id="name-error" className="form-error">
               {state.fieldErrors.name}
             </p>
           )}
         </div>
 
         <div>
-          <label htmlFor="email" className="label mb-2 block">
+          <label htmlFor="email" className="form-label">
             Email
           </label>
           <input
@@ -89,7 +89,7 @@ export function ContactForm() {
             placeholder="jane@company.com"
           />
           {state.fieldErrors?.email && (
-            <p id="email-error" className="mt-1.5 text-xs text-vermilion">
+            <p id="email-error" className="form-error">
               {state.fieldErrors.email}
             </p>
           )}
@@ -98,10 +98,10 @@ export function ContactForm() {
 
       <div>
         <div className="mb-2 flex items-center justify-between gap-3">
-          <label htmlFor="message" className="label block">
+          <label htmlFor="message" className="form-label">
             Message
           </label>
-          <span className="font-mono text-[10px] uppercase tracking-wider text-muted">
+          <span className="form-hint">
             Max 5,000 characters
           </span>
         </div>
@@ -119,7 +119,7 @@ export function ContactForm() {
           placeholder="Tell me a bit about the role, project, or opportunity…"
         />
         {state.fieldErrors?.message && (
-          <p id="message-error" className="mt-1.5 text-xs text-vermilion">
+          <p id="message-error" className="form-error">
             {state.fieldErrors.message}
           </p>
         )}
@@ -129,7 +129,7 @@ export function ContactForm() {
         <button
           type="submit"
           disabled={pending}
-          className="flex items-center gap-2 border border-border-strong bg-text px-5 py-3 text-sm font-medium text-surface transition-opacity hover:opacity-85 disabled:cursor-wait disabled:opacity-60"
+          className="btn btn-solid disabled:cursor-wait disabled:opacity-60"
         >
           {pending ? (
             <Loader2 size={14} className="animate-spin" />
@@ -141,26 +141,16 @@ export function ContactForm() {
           {pending ? "Sending…" : state.status === "success" ? "Sent" : "Send message"}
         </button>
 
-        <p className="font-mono text-[10px] uppercase tracking-wider text-muted">
-          Sent securely through jonasl.online
-        </p>
+        <p className="form-hint">Goes straight to my inbox. I usually reply within 1–2 business days.</p>
       </div>
 
       {state.status !== "idle" && (
         <div
           role="status"
           aria-live="polite"
-          className={`border px-4 py-3 text-sm ${
-            state.status === "success"
-              ? "border-teal/50 bg-teal/5 text-text"
-              : "border-vermilion/50 bg-vermilion/5 text-text"
-          }`}
+          className={`form-status ${state.status === "success" ? "is-success" : "is-error"}`}
         >
-          <span
-            className={`mr-2 font-mono text-[10px] uppercase tracking-wider ${
-              state.status === "success" ? "text-teal" : "text-vermilion"
-            }`}
-          >
+          <span className="form-status-label">
             {state.status === "success" ? "Delivered" : "Not sent"}
           </span>
           {state.message}

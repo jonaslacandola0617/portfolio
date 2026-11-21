@@ -58,102 +58,60 @@ export default async function VideoProjectPage({ params }: { params: Params }) {
     url: `${siteConfig.siteUrl}/video/${project.slug}`,
   };
 
+  const facts = [
+    project.roles.length ? { label: "My role", value: project.roles.join(", ") } : null,
+    { label: "Discipline", value: videoDisciplineLine(project.disciplines) },
+    project.completionDate ? { label: "Completed", value: String(videoYear(project.completionDate)) } : null,
+    project.runtime ? { label: "Runtime", value: project.runtime } : null,
+    project.client ? { label: "Client", value: project.client } : null,
+    project.tools.length ? { label: "Tools", value: project.tools.join(", ") } : null,
+  ].filter((fact): fact is { label: string; value: string } => fact !== null);
+
   return (
-    <article className="mx-auto max-w-[1500px] px-5 py-12 sm:px-8 sm:py-16 lg:px-12">
+    <article className="case-study">
       <JsonLd data={structuredData} />
-      <header className="grid gap-8 border-b border-border pb-10 lg:grid-cols-[minmax(0,1fr)_330px] lg:gap-16">
-        <div>
-          <p className="idx text-vermilion">01 / {videoDisciplineLine(project.disciplines).toUpperCase()}</p>
-          <h1 className="mt-4 max-w-5xl font-display text-5xl leading-[0.95] tracking-[-0.03em] text-text sm:text-7xl lg:text-8xl">{project.title}</h1>
-          <p className="mt-6 max-w-3xl text-base leading-7 text-text-dim sm:text-lg">{project.summary}</p>
-        </div>
-        <dl className="divide-y divide-border border-y border-border text-sm">
-          {project.roles.length ? (
-            <div className="grid grid-cols-[110px_1fr] gap-3 py-3">
-              <dt className="idx">My Role</dt>
-              <dd className="text-text">{project.roles.join(", ")}</dd>
-            </div>
-          ) : null}
-          <div className="grid grid-cols-[110px_1fr] gap-3 py-3">
-            <dt className="idx">Discipline</dt>
-            <dd className="text-text">{videoDisciplineLine(project.disciplines)}</dd>
-          </div>
-          {project.completionDate ? (
-            <div className="grid grid-cols-[110px_1fr] gap-3 py-3">
-              <dt className="idx">Completed</dt>
-              <dd className="text-text">{videoYear(project.completionDate)}</dd>
-            </div>
-          ) : null}
-          {project.runtime ? (
-            <div className="grid grid-cols-[110px_1fr] gap-3 py-3">
-              <dt className="idx">Runtime</dt>
-              <dd className="font-mono text-text">{project.runtime}</dd>
-            </div>
-          ) : null}
-          {project.client ? (
-            <div className="grid grid-cols-[110px_1fr] gap-3 py-3">
-              <dt className="idx">Client</dt>
-              <dd className="text-text">{project.client}</dd>
-            </div>
-          ) : null}
-          {project.tools.length ? (
-            <div className="grid grid-cols-[110px_1fr] gap-3 py-3">
-              <dt className="idx">Tools</dt>
-              <dd className="text-text">{project.tools.join(", ")}</dd>
-            </div>
-          ) : null}
+      <header className="case-hero">
+        <Link href="/video/work" className="case-back"><ArrowLeft size={15} /> All videos</Link>
+        <p className="work-meta">
+          <span className="work-index">Video</span>
+          <span>{videoDisciplineLine(project.disciplines)}</span>
+        </p>
+        <h1>{project.title}</h1>
+        <p className="case-summary">{project.summary}</p>
+        <dl className="case-facts">
+          {facts.slice(0, 4).map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
         </dl>
       </header>
 
-      <div className="py-10 sm:py-14">
+      <div className="case-media">
         <VideoPlayer videoId={project.youtubeVideoId} posterUrl={project.customPosterUrl} title={project.title} priority />
       </div>
 
-      {hasCaseStudy ? (
-        <section className="grid gap-8 border-t border-border pt-10 lg:grid-cols-[220px_minmax(0,760px)] lg:justify-between">
-          <p className="idx">02 / CASE STUDY</p>
-          <ContentRenderer
-            content={project.content}
-            context={{
-              model: "Project",
-              id: project.id,
-              slug: project.slug,
-              title: project.title,
-            }}
-          />
-        </section>
-      ) : null}
+      <div className="case-layout">
+        <div className="case-main">
+          {hasCaseStudy ? (
+            <ContentRenderer content={project.content} context={{ model: "Project", id: project.id, slug: project.slug, title: project.title }} />
+          ) : (
+            <p className="muted">No written case study for this one. The video speaks for itself.</p>
+          )}
 
-      <nav aria-label="Video project navigation" className="mt-16 grid gap-px border-y border-border bg-border sm:grid-cols-2">
-        <div className="bg-surface p-5 sm:p-6">
-          {previous ? (
-            <Link href={`/video/${previous.slug}`} className="group block">
-              <span className="label flex items-center gap-2 text-[10px] text-muted">
-                <ArrowLeft className="h-3 w-3" /> Previous
-              </span>
-              <span className="mt-2 block font-display text-2xl text-text group-hover:text-vermilion">{previous.title}</span>
-            </Link>
-          ) : (
-            <Link href="/video/work" className="label text-[10px] text-text-dim">
-              ← Back to work
-            </Link>
-          )}
+          <nav className="case-pager" aria-label="More videos">
+            {previous ? (
+              <Link href={`/video/${previous.slug}`}><small><ArrowLeft size={13} /> Previous</small><strong>{previous.title}</strong></Link>
+            ) : <Link href="/video/work"><small><ArrowLeft size={13} /> Back</small><strong>All videos</strong></Link>}
+            {next ? (
+              <Link href={`/video/${next.slug}`}><small>Next <ArrowRight size={13} /></small><strong>{next.title}</strong></Link>
+            ) : <Link href="/video/work"><small>Back <ArrowRight size={13} /></small><strong>All videos</strong></Link>}
+          </nav>
         </div>
-        <div className="bg-surface p-5 text-right sm:p-6">
-          {next ? (
-            <Link href={`/video/${next.slug}`} className="group block">
-              <span className="label flex items-center justify-end gap-2 text-[10px] text-muted">
-                Next <ArrowRight className="h-3 w-3" />
-              </span>
-              <span className="mt-2 block font-display text-2xl text-text group-hover:text-vermilion">{next.title}</span>
-            </Link>
-          ) : (
-            <Link href="/video/work" className="label text-[10px] text-text-dim">
-              Back to work →
-            </Link>
-          )}
-        </div>
-      </nav>
+        {facts.length > 4 ? (
+          <aside className="case-aside">
+            {facts.slice(4).map((fact) => (
+              <section key={fact.label}><p className="footer-label">{fact.label}</p><p className="case-aside-note">{fact.value}</p></section>
+            ))}
+          </aside>
+        ) : <aside className="case-aside" />}
+      </div>
     </article>
   );
 }

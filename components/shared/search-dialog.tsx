@@ -7,12 +7,14 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { useSearch } from "@/hooks/use-search";
 
 const typeLabel = {
-  project: "Work",
   lab: "Labs",
-  article: "Journal",
-  certificate: "Credentials",
+  certificate: "Certificates",
+  project: "Projects",
+  article: "Writing",
   video: "Video",
 };
+
+const suggestions = ["VLAN", "Linux", "Cybersecurity", "Active Directory", "Troubleshooting"];
 
 export function SearchDialog() {
   const { open, setOpen, index } = useSearch();
@@ -24,10 +26,10 @@ export function SearchDialog() {
 
   const results = React.useMemo(() => {
     const q = query.trim().toLowerCase();
+    if (!q) return [];
     return index
       .filter(
         (item) =>
-          !q ||
           item.title.toLowerCase().includes(q) ||
           item.summary.toLowerCase().includes(q) ||
           item.tags.some((tag) => tag.toLowerCase().includes(q)),
@@ -36,49 +38,50 @@ export function SearchDialog() {
   }, [query, index]);
 
   const groups = (Object.keys(typeLabel) as (keyof typeof typeLabel)[])
-    .map((type) => ({
-      type,
-      label: typeLabel[type],
-      items: results.filter((result) => result.type === type),
-    }))
+    .map((type) => ({ type, label: typeLabel[type], items: results.filter((result) => result.type === type) }))
     .filter((group) => group.items.length);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent overlayClassName="public-search-overlay" className="public-search-dialog [&>button]:hidden">
-        <div className="public-search-dialog-head">
-          <div><span>SEARCH /</span><p>Find something I built, tested, filmed, edited, or wrote about.</p></div>
-          <button type="button" onClick={() => setOpen(false)} aria-label="Close search"><X size={18} /></button>
+      <DialogContent overlayClassName="public-search-overlay" className="public-search-dialog search-dialog [&>button]:hidden">
+        <div className="search-input-row">
+          <Search size={20} aria-hidden="true" />
+          <input
+            autoFocus
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search labs, certificates, projects, writing…"
+            aria-label="Search the portfolio"
+          />
+          <button type="button" onClick={() => setOpen(false)} aria-label="Close search" className="search-close"><X size={18} /></button>
         </div>
 
-        <div className="public-search-input-wrap">
-          <Search size={20} />
-          <input autoFocus value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Laravel, network, video editing, cinematography…" />
-          <kbd>ESC</kbd>
-        </div>
-
-        <div className="public-search-results">
-          {groups.length === 0 ? (
-            <div className="public-search-empty"><strong>No match.</strong><p>Try a project, video, lab, technology, or topic.</p></div>
+        <div className="search-body">
+          {!query.trim() ? (
+            <div className="search-empty">
+              <p>Try one of these:</p>
+              <div className="search-suggestions">
+                {suggestions.map((term) => <button key={term} type="button" onClick={() => setQuery(term)}>{term}</button>)}
+              </div>
+            </div>
+          ) : groups.length === 0 ? (
+            <div className="search-empty"><strong>No results for “{query.trim()}”.</strong><p>Try a tool, a topic or a project name.</p></div>
           ) : (
             groups.map((group) => (
-              <section key={group.type} className="public-search-group">
-                <div className="public-search-group-label">{group.label}</div>
-                <div>
-                  {group.items.map((item, index) => (
-                    <Link key={`${item.type}:${item.title}:${item.href}`} href={item.href} onClick={() => setOpen(false)} className="public-search-result">
-                      <span>{String(index + 1).padStart(2, "0")}</span>
-                      <div><strong>{item.title}</strong><p>{item.summary}</p></div>
-                      <ArrowUpRight size={16} />
-                    </Link>
-                  ))}
-                </div>
+              <section key={group.type} className="search-group" aria-label={group.label}>
+                <p className="search-group-label">{group.label} <span>{group.items.length}</span></p>
+                {group.items.map((item) => (
+                  <Link key={`${item.type}:${item.title}:${item.href}`} href={item.href} onClick={() => setOpen(false)} className="search-result">
+                    <span><strong>{item.title}</strong><small>{item.summary}</small></span>
+                    <ArrowUpRight size={16} aria-hidden="true" />
+                  </Link>
+                ))}
               </section>
             ))
           )}
         </div>
 
-        <div className="public-search-dialog-foot"><span>TYPE TO FILTER</span><span>CLICK A RESULT TO OPEN</span></div>
+        <div className="search-foot"><span><kbd>/</kbd> open</span><span><kbd>Esc</kbd> close</span></div>
       </DialogContent>
     </Dialog>
   );

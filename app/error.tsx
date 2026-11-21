@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
-import { AlertTriangle } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 
 export default function PublicError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
@@ -10,16 +10,15 @@ export default function PublicError({ error, reset }: { error: Error & { digest?
   }, [error]);
 
   return (
-    <div className="flex min-h-[70vh] flex-col items-center justify-center px-6 text-center">
-      <AlertTriangle className="mb-4 h-6 w-6 text-vermilion" />
-      <p className="idx mb-4">Route Error</p>
-      <h1 className="font-display text-3xl font-semibold text-text">Something went wrong</h1>
-      <p className="mt-3 max-w-sm text-sm text-text-dim">This page hit an unexpected error. Try the route again or return home.</p>
-      {error.digest ? <p className="mt-3 font-mono text-[11px] text-muted">Reference: {error.digest}</p> : null}
-      <div className="mt-6 flex flex-wrap justify-center gap-2">
-        <button onClick={() => reset()} className="border border-border-strong bg-text px-5 py-2.5 text-sm font-medium text-surface">Try again</button>
-        <Link href="/" className="border border-border px-5 py-2.5 text-sm font-medium text-text-dim hover:border-border-strong hover:text-text">Back to home</Link>
+    <section className="status-page" aria-labelledby="error-title">
+      <p className="eyebrow"><span className="eyebrow-index">Error</span>Something went wrong</p>
+      <h1 id="error-title">This page didn&apos;t load.</h1>
+      <p className="hero-lede">It&apos;s a temporary problem on my side. Try again, or head back home.</p>
+      <div className="hero-actions">
+        <button type="button" onClick={() => reset()} className="btn btn-solid"><RotateCcw size={15} /> Try again</button>
+        <Link href="/" className="btn btn-ghost">Back home</Link>
       </div>
-    </div>
+      {error.digest ? <p className="status-page-hint">Reference: <code>{error.digest}</code></p> : null}
+    </section>
   );
 }

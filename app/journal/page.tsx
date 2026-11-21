@@ -3,22 +3,19 @@ import { ArrowUpRight } from "lucide-react";
 import { PageHeader, PageShell } from "@/components/shared/page-header";
 import { getAllArticles } from "@/lib/content";
 import { buildStaticPageMetadata } from "@/lib/metadata";
-import { formatDate } from "@/lib/utils";
+import { formatDateShort } from "@/lib/utils";
 
 export const metadata = buildStaticPageMetadata({
   title: "IT, Networking & Security Learning Journal",
   description:
-    "A practical technical learning journal covering web development, PHP, Laravel, React, Next.js, networking, CCNA, cybersecurity, Linux, and hands-on problem solving.",
+    "Notes on networking, CCNA, cybersecurity, Active Directory, Linux and troubleshooting by Jonas Lacandola: what I learned, what broke, and how I fixed it.",
   path: "/journal",
   keywords: [
-    "web development learning journal",
-    "PHP learning notes",
-    "Laravel learning notes",
-    "React learning notes",
-    "Next.js learning notes",
     "CCNA notes",
     "networking notes",
     "cybersecurity learning journal",
+    "Active Directory notes",
+    "IT support notes",
     "technical learning journal",
   ],
 });
@@ -29,26 +26,37 @@ export default async function JournalPage() {
     <div>
       <PageHeader
         index="Writing"
-        eyebrow="Journal"
+        eyebrow={`${articles.length} ${articles.length === 1 ? "entry" : "entries"}`}
         title="Notes from the work."
-        description="Notes from web development, networking, security, and broader technical learning — practical, dated, and tied back to hands-on work."
+        description="What I learned while studying and building: networking, security and troubleshooting, written in plain language and dated."
       />
       <PageShell>
-        <div className="journal-index-list">
-          {articles.map((article, index) => (
-            <Link key={article.frontmatter.slug} href={`/journal/${article.frontmatter.slug}`} className="journal-index-row">
-              <span className="journal-index-number">{String(index + 1).padStart(2, "0")}</span>
-              <time>{formatDate(article.frontmatter.date)}</time>
-              <div className="journal-index-copy">
-                <span>{article.frontmatter.category}</span>
-                <h2>{article.frontmatter.title}</h2>
-                <p>{article.frontmatter.summary}</p>
-              </div>
-              <span className="journal-index-time">{article.readingTime}</span>
-              <ArrowUpRight size={17} className="journal-index-arrow" />
-            </Link>
-          ))}
-        </div>
+        {articles.length ? (
+          <ol className="writing-list">
+            {articles.map((article) => {
+              const fm = article.frontmatter;
+              const category = fm.category && fm.category !== "Uncategorized" ? fm.category : null;
+              return (
+                <li key={fm.slug}>
+                  <Link href={`/journal/${fm.slug}`} className="writing-row">
+                    <time dateTime={fm.date}>{formatDateShort(fm.date)}</time>
+                    <span className="writing-copy">
+                      <h2>{fm.title}</h2>
+                      <p>{fm.summary}</p>
+                      <span className="writing-meta">
+                        {category ? <span>{category}</span> : null}
+                        <span>{article.readingTime}</span>
+                      </span>
+                    </span>
+                    <ArrowUpRight size={18} aria-hidden="true" className="writing-arrow" />
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        ) : (
+          <p className="muted">No published entries yet.</p>
+        )}
       </PageShell>
     </div>
   );

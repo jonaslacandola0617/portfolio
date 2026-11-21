@@ -19,9 +19,9 @@ export default async function AdminCertificatesPage() {
 
   return (
     <ManagementList
-      index="04"
+      index="Content"
       title="Certificates"
-      eyebrow="Display credentials and certifications."
+      eyebrow="Shown on /certifications and the homepage. Add a credential URL so employers can verify each one."
       rows={rows}
       basePath="/admin/certificates"
       newHref="/admin/certificates/new"

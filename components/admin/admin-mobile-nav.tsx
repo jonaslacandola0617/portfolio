@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AdminMark } from "@/components/admin/admin-mark";
 import Link from "next/link";
 import { ExternalLink, Menu, X } from "lucide-react";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -14,10 +15,7 @@ export function AdminMobileNav() {
   return (
     <>
       <header className="admin-control-mobile-head sticky top-0 z-30 flex items-center justify-between border-b lg:hidden">
-        <div className="admin-control-wordmark" aria-label="JL Admin">
-          <strong>JL<i>/</i></strong>
-          <span>ADMIN</span>
-        </div>
+        <AdminMark />
         <div className="admin-control-mobile-actions">
           <div className="admin-theme-toggle"><ThemeToggle compact /></div>
           <button
@@ -40,10 +38,7 @@ export function AdminMobileNav() {
             aria-label="CMS menu"
           >
             <div className="flex items-center justify-between border-b px-5 py-4">
-              <div className="admin-control-wordmark">
-                <strong>JL<i>/</i></strong>
-                <span>ADMIN</span>
-              </div>
+              <AdminMark />
               <button type="button" onClick={() => setOpen(false)} aria-label="Close menu" className="text-text-dim">
                 <X className="h-[18px] w-[18px]" />
               </button>

@@ -41,24 +41,6 @@
 .public-search-dialog-foot { display:flex; justify-content:space-between; gap:20px; padding:13px 30px; border-top:1px solid #0b0c0c; font-family:var(--font-ibm-plex-mono),monospace; font-size:7px; letter-spacing:.1em; color:#6f6b63; }
 
 /* CREDENTIALS */
-.credential-index { border-top:1px solid var(--jp-ink); border-bottom:1px solid var(--jp-ink); }
-.credential-row { display:grid; grid-template-columns:44px 62px minmax(0,1fr) 175px; gap:20px; align-items:start; padding:34px 0; border-bottom:1px solid color-mix(in srgb,var(--jp-ink) 14%,transparent); }
-.credential-row:last-child { border-bottom:0; }
-.credential-number { padding-top:4px; font-family:var(--font-ibm-plex-mono),monospace; font-size:8px; color:var(--jp-muted); }
-.credential-mark { display:grid; place-items:center; width:48px; height:48px; border:1px solid var(--jp-line); color:var(--jp-rust-dark); }
-.credential-mark img { width:34px; height:34px; object-fit:contain; }
-.credential-copy { min-width:0; }
-.credential-issuer { display:block; margin-bottom:8px; font-family:var(--font-ibm-plex-mono),monospace; font-size:7px; letter-spacing:.11em; color:var(--jp-rust-dark); text-transform:uppercase; }
-.credential-copy h2 { margin:0; font-family:var(--font-playfair),serif; font-size:clamp(30px,4vw,56px); font-weight:500; letter-spacing:-.05em; line-height:.95; }
-.credential-skills { display:flex; flex-wrap:wrap; gap:5px; margin-top:16px; }
-.credential-skills span { border:1px solid var(--jp-line); padding:4px 6px; font-size:8px; color:var(--jp-muted); }
-.credential-meta { display:grid; justify-items:end; gap:14px; padding-top:4px; font-family:var(--font-ibm-plex-mono),monospace; font-size:8px; text-align:right; color:var(--jp-muted); }
-.credential-meta a { display:inline-flex; align-items:center; gap:5px; border-bottom:1px solid var(--jp-rust); padding-bottom:4px; color:var(--jp-rust-dark); text-transform:uppercase; letter-spacing:.06em; }
-.credential-progress { color:var(--jp-rust-dark); }
-.credential-details { margin-top:19px; border-top:1px solid var(--jp-line); }
-.credential-details summary { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:13px 0; cursor:pointer; list-style:none; font-family:var(--font-ibm-plex-mono),monospace; font-size:8px; letter-spacing:.08em; color:var(--jp-muted); text-transform:uppercase; }
-.credential-details summary::-webkit-details-marker{display:none}.credential-details[open] summary svg{transform:rotate(180deg)}
-.credential-description { padding:16px 0 5px; border-top:1px solid var(--jp-line); }
 
 /* CONTACT */
 
@@ -66,9 +48,7 @@
 
 @media(max-width:900px){
   .public-search-group { grid-template-columns:1fr; }.public-search-group-label{padding-bottom:8px}.public-search-result p{white-space:normal;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
-  .credential-row { grid-template-columns:36px 50px minmax(0,1fr); }.credential-meta{grid-column:3;justify-items:start;text-align:left}
 }
 @media(max-width:620px){
   .public-search-dialog { width:calc(100vw - 20px)!important; height:calc(100svh - 20px); }.public-search-dialog-head,.public-search-input-wrap{padding-left:18px;padding-right:18px}.public-search-results{padding:0 18px}.public-search-input-wrap{grid-template-columns:18px 1fr}.public-search-input-wrap kbd{display:none}.public-search-result{grid-template-columns:25px minmax(0,1fr) 16px}.public-search-dialog-foot{padding-left:18px;padding-right:18px}
-  .credential-row { grid-template-columns:26px minmax(0,1fr); gap:10px; }.credential-mark{display:none}.credential-meta{grid-column:2}.credential-copy h2{font-size:34px}
 }

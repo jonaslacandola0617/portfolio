@@ -1,11 +1,24 @@
 import type { ContentStatus, Difficulty } from "@/types";
+import { cn } from "@/lib/utils";
 
 const difficultyDots: Record<Difficulty, number> = { beginner: 1, intermediate: 2, advanced: 3 };
+
 export function DifficultyBadge({ difficulty }: { difficulty: Difficulty }) {
   const n = difficultyDots[difficulty];
-  return <span className="flex items-center gap-1" title={difficulty} aria-label={`Difficulty: ${difficulty}`}>{[1,2,3].map(i=><span key={i} className={`h-2.5 w-1 ${i<=n?"bg-vermilion":"bg-border"}`} />)}</span>;
+  return (
+    <span className="difficulty-badge" title={difficulty} aria-label={`Difficulty: ${difficulty}`}>
+      {[1, 2, 3].map((i) => <span key={i} className={cn(i <= n && "is-on")} />)}
+    </span>
+  );
 }
+
+const statusLabels: Record<ContentStatus, string> = { completed: "Completed", "in-progress": "In progress", planned: "Planned" };
+
 export function StatusBadge({ status }: { status: ContentStatus }) {
-  const config = status === "completed" ? { label:"Completed", cls:"bg-teal" } : status === "in-progress" ? { label:"In Progress", cls:"bg-signal" } : { label:"Planned", cls:"bg-muted-foreground" };
-  return <span className="label flex items-center gap-1.5"><span className={`h-1.5 w-1.5 rounded-full ${config.cls}`} aria-hidden="true" />{config.label}</span>;
+  return (
+    <span className={cn("status-badge", `is-${status}`)}>
+      <span aria-hidden="true" />
+      {statusLabels[status] ?? status}
+    </span>
+  );
 }

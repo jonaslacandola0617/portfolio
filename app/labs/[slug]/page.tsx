@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Download } from "lucide-react";
+import { LabTopology } from "@/components/site/lab-topology";
 import { ContentRenderer } from "@/components/shared/content-renderer";
 import { JsonLd } from "@/components/shared/json-ld";
 import { RelatedContentLinks } from "@/components/shared/related-content-links";
@@ -13,7 +14,7 @@ import { extractContentHeadings, type ContentHeading } from "@/lib/content-headi
 import { buildContentMetadata, getFirstContentImage } from "@/lib/metadata";
 import { getRelatedContent } from "@/lib/related-content";
 import { buildArticleJsonLd } from "@/lib/structured-data";
-import { formatDate } from "@/lib/utils";
+import { formatDate, formatDateShort } from "@/lib/utils";
 
 type LabParams = Promise<{ slug: string }>;
 
@@ -49,8 +50,6 @@ export default async function LabPage({ params }: { params: LabParams }) {
   const related = await getRelatedContent({ currentPath, tags: frontmatter.tags, category: frontmatter.category });
   const contentHeadings = extractContentHeadings(content);
   const tocItems: ContentHeading[] = [
-    { id: "lab-objective", text: "Objective", level: 2 },
-    { id: "lab-record", text: "Lab Record", level: 2 },
     ...contentHeadings,
     ...(frontmatter.downloads?.length ? ([{ id: "lab-resources", text: "Resources", level: 2 }] satisfies ContentHeading[]) : []),
   ];
@@ -67,63 +66,73 @@ export default async function LabPage({ params }: { params: LabParams }) {
     tags: frontmatter.tags,
   });
 
+  const statusLabel = { completed: "Completed", "in-progress": "In progress", planned: "Planned" }[frontmatter.status] ?? frontmatter.status;
+  const facts = [
+    { label: "Type", value: "Hands-on lab" },
+    { label: "Area", value: frontmatter.category },
+    { label: "Status", value: statusLabel },
+    { label: "Date", value: formatDateShort(frontmatter.date) },
+  ];
+
   return (
-    <div className="public-lab-detail">
+    <div className="case-study">
       <JsonLd data={labJsonLd} />
 
-      <header className="public-detail-hero public-lab-hero">
-        <div className="public-detail-hero-inner">
-          <Link href="/labs" className="public-detail-back"><ArrowLeft size={12} /> All labs</Link>
-          <div className="public-detail-kicker">
-            <span>LAB / TECHNICAL RECORD</span>
-            <span className="accent">{frontmatter.category}</span>
-            <StatusBadge status={frontmatter.status} />
-            <span>{formatDate(frontmatter.date)}</span>
+      <header className="case-hero">
+        <Link href="/labs" className="case-back"><ArrowLeft size={15} /> All labs</Link>
+        <div className="case-hero-grid">
+          <div>
+            <p className="work-meta">
+              <span className="work-index">Lab</span>
+              <span>{frontmatter.category}</span>
+              <StatusBadge status={frontmatter.status} />
+            </p>
+            <h1>{frontmatter.title}</h1>
+            <p className="case-summary">{frontmatter.purpose}</p>
           </div>
-          <h1 className="public-detail-title">{frontmatter.title}</h1>
-          <div className="public-detail-line" aria-hidden="true"><span /></div>
+          <div className="case-topology" aria-hidden="true"><LabTopology seed={frontmatter.slug} className="lab-topology" /></div>
         </div>
+        <dl className="case-facts">
+          {facts.map((fact) => <div key={fact.label}><dt>{fact.label}</dt><dd>{fact.value}</dd></div>)}
+        </dl>
       </header>
 
-      <div className="public-lab-layout">
-        <main className="min-w-0">
-          <section id="lab-objective" className="public-lab-objective scroll-mt-28">
-            <small>01 / Objective</small>
-            <p>{frontmatter.purpose}</p>
-          </section>
-
-          <section id="lab-record" className="scroll-mt-28">
-            <p className="public-lab-record-label">02 / Lab record</p>
-            <div className="mt-6">
-              <ContentRenderer
-                content={content}
-                context={{ model: "Lab", id: lab.recordId, slug: frontmatter.slug, title: frontmatter.title }}
-              />
-            </div>
-          </section>
+      <div className="case-layout">
+        <article className="case-main">
+          <ContentRenderer
+            content={content}
+            context={{ model: "Lab", id: lab.recordId, slug: frontmatter.slug, title: frontmatter.title }}
+          />
 
           {frontmatter.downloads?.length ? (
-            <section id="lab-resources" className="public-detail-tech scroll-mt-28">
-              <p>03 / Resources</p>
-              <div className="mt-3 divide-y divide-border">
+            <section id="lab-resources" className="case-resources">
+              <h2>Resources</h2>
+              <ul>
                 {frontmatter.downloads.map((download) => (
-                  <a key={`${download.href}-${download.label}`} href={download.href} download className="public-detail-resource py-3">
-                    <Download size={13} /><span className="flex-1">{download.label}</span><span className="font-mono text-[8px] uppercase">Download</span>
-                  </a>
+                  <li key={`${download.href}-${download.label}`}>
+                    <a href={download.href} download><Download size={16} aria-hidden="true" /><span>{download.label}</span><small>Download</small></a>
+                  </li>
                 ))}
-              </div>
+              </ul>
             </section>
           ) : null}
 
-          <div className="public-detail-tech">
-            <p>Tags</p>
-            <div className="mt-3 flex flex-wrap gap-1.5">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
-          </div>
-
           <RelatedContentLinks items={related} />
-        </main>
+        </article>
 
-        <aside className="public-detail-aside"><TableOfContents items={tocItems} /></aside>
+        <aside className="case-aside">
+          <TableOfContents items={tocItems} />
+          {frontmatter.tags.length ? (
+            <section>
+              <p className="footer-label">Topics</p>
+              <div className="tag-list">{frontmatter.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>
+            </section>
+          ) : null}
+          <section>
+            <p className="footer-label">Last updated</p>
+            <p className="case-aside-note">{formatDate(frontmatter.lastUpdated)}</p>
+          </section>
+        </aside>
       </div>
     </div>
   );
