@@ -490,7 +490,8 @@ html.dark .public-stage.site .border-border { border-color: var(--line) !importa
 .stack-chip.is-active { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
 .stack-chip.is-active span { background: rgba(0, 0, 0, .16); color: inherit; }
 .stack-results { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg-2); overflow: hidden; }
-.stack-results-head { margin: 0; padding: 16px 20px; border-bottom: 1px solid var(--line); font-size: 14px; color: var(--fg-3); }
+.stack-results-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); }
+.stack-results-head p { margin: 0; font-size: 14px; color: var(--fg-3); }
 .stack-results-head b { color: var(--fg); font-weight: 600; }
 .stack-results ul { margin: 0; padding: 0; list-style: none; }
 .stack-row + .stack-row { border-top: 1px solid var(--line); }
@@ -498,8 +499,19 @@ html.dark .public-stage.site .border-border { border-color: var(--line) !importa
 .stack-row a:hover { background: var(--bg-3); }
 .stack-row-title { font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stack-row-meta { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-mono), monospace; font-size: 12px; color: var(--fg-3); }
-.stack-row.is-dim a { opacity: .28; pointer-events: none; }
-.stack-row:not(.is-dim) .stack-row-title { color: var(--fg); }
+.stack-row { animation: stack-row-in .35s var(--ease) both; }
+@keyframes stack-row-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.stack-picker { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
+.stack-more, .stack-clear, .stack-show-all {
+  display: inline-flex; align-items: center; gap: 6px; border: 0; background: none; cursor: pointer;
+  font-size: 14px; font-weight: 550; color: var(--fg-2); transition: color .2s;
+}
+.stack-more:hover, .stack-clear:hover, .stack-show-all:hover { color: var(--accent); }
+.stack-more { padding: 0; text-decoration: underline; text-underline-offset: 4px; text-decoration-color: var(--line-2); }
+.stack-clear { padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-2); }
+.stack-show-all { width: 100%; justify-content: center; padding: 13px 20px; border-top: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) { .stack-row { animation: none; } }
+.stack-row-title { color: var(--fg); }
 @media (max-width: 860px) {
   .stack-explorer { grid-template-columns: 1fr; }
   .stack-row-meta { display: none; }
