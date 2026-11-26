@@ -6,13 +6,13 @@ import type { HomepageContent } from "@/lib/validations/homepage";
  */
 export const defaultHomepage: HomepageContent = {
   hero: {
-    availabilityRoles: "IT help desk & technical support roles",
+    availabilityRoles: "networking, IT support & security roles",
     availabilityWhere: "Remote or on-site in Clark / Pampanga",
     availabilityShifts: "Night shift OK",
-    highlight: "IT support",
-    headline: "with a networking and security foundation.",
+    highlight: "Networking and IT support,",
+    headline: "with a security focus and a habit of building things.",
     intro:
-      "I spent seven months handling up to 40 healthcare cases a day at about 98% accuracy, under hard deadlines and strict privacy rules. I build and fix PCs and printers, and I've trained in Cisco networking and Google cybersecurity. Now I want to do that work on an IT team.",
+      "I spent seven months handling up to 40 healthcare cases a day at about 98% accuracy, under hard deadlines and strict privacy rules. I build and fix PCs and printers, and I've trained in Cisco networking and Google cybersecurity. I also build web tools and design and edit video, so I'm used to learning new tools fast and finishing what I start.",
     primaryCtaLabel: "See my experience",
     primaryCtaHref: "#experience",
   },
@@ -117,13 +117,13 @@ export const defaultHomepage: HomepageContent = {
       title: "Pick a skill, see where I used it.",
       intro: "Every skill links to the job, lab, certificate or project where I actually used it.",
     },
-    capabilities: { visible: true, kicker: "What I bring", title: "What I can do for an IT team.", intro: "" },
+    capabilities: { visible: true, kicker: "What I bring", title: "What I bring to a team.", intro: "" },
     projects: { visible: true, kicker: "Projects", title: "Things I've set up and shipped.", intro: "" },
     outside: {
       visible: true,
-      kicker: "Outside IT",
-      title: "Outside IT, I design and edit.",
-      intro: "Before and alongside IT, I've done creative work. It taught me patience with details and how to finish things for real people with real deadlines.",
+      kicker: "Design & video",
+      title: "I also design, edit and animate.",
+      intro: "Graphic design, video editing and, lately, 3D in Blender. It's where I learned to care about details and deliver for real people on real deadlines.",
     },
     writing: { visible: true, kicker: "Writing", title: "Notes from what I'm learning.", intro: "" },
   },

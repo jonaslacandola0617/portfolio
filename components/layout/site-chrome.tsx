@@ -148,9 +148,9 @@ function SiteFooter({ settings, showCta }: { settings: SiteSettingsData; showCta
     <footer className="site-footer">
       {showCta ? (
       <div className="site-footer-cta">
-        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to IT support roles · remote or on-site · night shift OK</p>
+        <p className="eyebrow"><span className="pulse-dot" aria-hidden="true" /> Open to networking, IT support &amp; security roles · remote or on-site · night shift OK</p>
         <h2>
-          Hiring for IT help desk or technical support?
+          Need someone who figures things out and writes it down?
           <span> Let&apos;s talk.</span>
         </h2>
         <div className="site-footer-actions">
