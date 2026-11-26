@@ -50,7 +50,7 @@ export async function GET() {
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", padding: "72px 80px", width: "100%" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14, fontSize: 24, color: c.fg }}>
             <div style={{ display: "flex", width: 12, height: 12, borderRadius: 6, background: c.ok }} />
-            Open to IT help desk & technical support roles
+            Open to networking, IT support & security roles
           </div>
 
           <div style={{ display: "flex", flexDirection: "column" }}>

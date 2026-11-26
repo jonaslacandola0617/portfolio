@@ -176,7 +176,7 @@ const PANELS: { id: string; label: string; section?: HomepageSectionKey }[] = [
   { id: "skills", label: "Skills", section: "skills" },
   { id: "capabilities", label: "What I bring", section: "capabilities" },
   { id: "projects", label: "Projects", section: "projects" },
-  { id: "outside", label: "Outside IT", section: "outside" },
+  { id: "outside", label: "Design & video", section: "outside" },
   { id: "writing", label: "Writing", section: "writing" },
 ];
 
@@ -422,8 +422,8 @@ export function HomepageEditor({ initial, defaults, context }: { initial: Homepa
         </div>
       </Panel>
 
-      {/* Outside IT */}
-      <Panel id="outside" index="07" title="Outside IT" description="Creative work and interests: personality without distracting from IT." hasError={panelHasError(["sections.outside", "outside"])}>
+      {/* Design & video */}
+      <Panel id="outside" index="07" title="Design & video" description="Your creative work: design, video and 3D, shown as real skills alongside your IT work." hasError={panelHasError(["sections.outside", "outside"])}>
         <SectionFields {...sectionProps("outside")}>
           <TextField id="outside-link" label="Link label (optional)" value={content.outside.linkLabel} onChange={(linkLabel) => set("outside", { ...content.outside, linkLabel })} error={err("outside.linkLabel")} max={40} />
           <TextField id="outside-href" label="Link (optional)" placeholder="/video" value={content.outside.href} onChange={(href) => set("outside", { ...content.outside, href })} error={err("outside.href")} />
